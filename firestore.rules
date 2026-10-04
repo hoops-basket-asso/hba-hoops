@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function hasEmail() { return signedIn() && request.auth.token.email != null; }
+    function bureauDoc() { return get(/databases/$(database)/documents/config/bureau); }
+    function isBureau() {
+      return hasEmail()
+        && exists(/databases/$(database)/documents/config/bureau)
+        && bureauDoc().data.emails.hasAny([request.auth.token.email, request.auth.token.email.lower()]);
+    }
+    function scorerOk(sid) {
+      let t = request.resource.data.scorerToken;
+      return signedIn()
+        && t is string
+        && exists(/databases/$(database)/documents/scorerTokens/$(t))
+        && get(/databases/$(database)/documents/scorerTokens/$(t)).data.sid == sid
+        && get(/databases/$(database)/documents/scorerTokens/$(t)).data.expires > request.time;
+    }
+
+    // Réglages publics (minutes, cible, seuils des badges). Jamais de secret ici.
+    match /config/main {
+      allow read: if true;
+      allow write: if isBureau();
+    }
+    // Liste des emails du bureau : créée une seule fois par le premier compte email connecté, puis gérée depuis la console Firebase.
+    match /config/bureau {
+      allow read: if hasEmail();
+      allow create: if hasEmail() && !exists(/databases/$(database)/documents/config/bureau);
+      allow update, delete: if false;
+    }
+    // Joueurs et séances : lecture publique (stats consultables sans compte), écriture bureau ou marqueur du jour.
+    match /players/{id} {
+      allow read: if true;
+      allow write: if isBureau();
+    }
+    match /sessions/{id} {
+      allow read: if true;
+      allow write: if isBureau() || scorerOk(id);
+    }
+    // Liens marqueur : créés par le bureau, lus par toute personne connectée (y compris anonyme).
+    match /scorerTokens/{token} {
+      allow read: if signedIn();
+      allow write: if isBureau();
+    }
+    // Données sensibles : bureau uniquement.
+    match /sanctions/{id} { allow read, write: if isBureau(); }
+    match /treasury/{id}  { allow read, write: if isBureau(); }
+    match /payments/{id}  { allow read, write: if isBureau(); }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}
