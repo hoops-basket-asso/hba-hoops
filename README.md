@@ -1,9 +1,12 @@
 # Hoops Stats · Hoops Basket Association
 
-Web app de l'association : table de marque du dimanche, stats joueurs, sanctions et trésorerie.
+Table de marque du dimanche, stats joueurs, sanctions et trésorerie de l'association.
 
-- `index.html` : l'application (une seule page), connectée au projet Firebase `hba-hoops`.
-- `firestore.rules` : règles de sécurité Firestore à coller dans la console Firebase (Firestore → Règles).
-- `manifest.json`, `icon-*.png` : installation sur l'écran d'accueil.
+- `index.html` : le site (généré, ne pas modifier à la main) — servi par GitHub Pages.
+- `src/app.html` : l'application ; `src/fb-shim.js` : couche Firebase ; `src/config.js` : identifiants publics Firebase.
+- `build.py` : assemble `index.html` (`python3 build.py`).
+- `firestore.rules` : règles de sécurité à publier dans la console Firebase.
+- `tests/` : tests navigateur (voir `tests/README.md`).
+- `docs/ARCHITECTURE.md` : dossier technique (architecture, sécurité, limites, questions de revue).
 
-Mise en ligne automatique par GitHub Pages à chaque modification de la branche `main`.
+Aucune donnée de l'association n'est dans ce dépôt : tout est dans Firestore, protégé par les règles.

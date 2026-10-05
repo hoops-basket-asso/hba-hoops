@@ -1,0 +1,23 @@
+const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.html'; require('fs').mkdirSync('out',{recursive:true});
+(async()=>{
+  const b=await chromium.launch({...(process.env.CHROMIUM?{executablePath:process.env.CHROMIUM}:{})}); const p=await b.newPage({viewport:{width:400,height:900}}); p.setDefaultTimeout(8000);
+  let html=require('fs').readFileSync(APP,'utf8'); const db=require('fs').readFileSync('./tests/fixture-realdb.json','utf8');
+  const fake=`window.__db=${db}; window.__w=[]; window.claude={use:async(n)=>{ if(n!=='db') return null; return { doc:(path)=>({onSnapshot:(f)=>{ if(path==='config/main') f({exists:true,data:()=>({pin:'2018'})}); return ()=>{}; }, set:async(d)=>{ window.__w.push(d); }, delete:async()=>{} }), collection:(c)=>({onSnapshot:(f)=>{ const rows=window.__db[c]||[]; f({docs:rows.map(r=>({id:r.id,data:()=>r})),empty:!rows.length,metadata:{fromCache:false}}); return ()=>{}; }, doc:()=>({set:async()=>{}}) }) }; }};`;
+  html='<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0">'+html.replace('<script>','<script>'+fake)+'</body></html>';
+  const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+  await p.setContent(html,{waitUntil:'load'}); await p.waitForTimeout(600);
+  await p.screenshot({path:'out/x_home.png'});
+  await p.click('[data-go="stats"]'); await p.waitForTimeout(400); await p.screenshot({path:'out/x_stats.png',fullPage:true});
+  const txt=await p.textContent('#main'); console.log('approx shown', /Classement approximatif/.test(txt));
+  await p.click('[data-go="share"]'); await p.waitForTimeout(300); let sum=await p.$eval('#sumTxt',e=>e.value); console.log(sum.split('\n').slice(0,8).join(' / '));
+  console.log('fix button hidden when locked', !(await p.$('[data-act="fix-results"]')));
+  await p.click('[data-go="home"]'); await p.fill('#pinIn','2018'); await p.click('[data-act="unlock"]'); await p.waitForTimeout(100);
+  await p.click('[data-go="share"]'); await p.waitForTimeout(200); await p.click('[data-act="fix-results"]'); await p.waitForTimeout(200); await p.screenshot({path:'out/x_fix.png',fullPage:true});
+  const wins=await p.$$('[data-act="fix-win"]'); console.log('win buttons',wins.length); await wins[1].click(); await p.waitForTimeout(100);
+  await p.selectOption('#fxHome','B'); await p.selectOption('#fxAway','C'); await p.click('[data-act="fix-add"]'); await p.waitForTimeout(100);
+  await p.fill('#fxNote','Test note'); await p.click('[data-act="fix-save"]'); await p.waitForTimeout(200);
+  const last=await p.evaluate(()=>{ const d=window.__w[window.__w.length-1]; return {matches:d.matches.length, w1:d.matches[0].winner, corr:d.corrections.length, note:d.resultNote, approx:d.teamsApprox}; }); console.log(last);
+  sum=await p.$eval('#sumTxt',e=>e.value); console.log(sum.split('\n').slice(0,6).join(' / '));
+  await p.screenshot({path:'out/x_share.png',fullPage:true});
+  console.log('errors',errs); await b.close();
+})().catch(e=>{console.error(String(e).slice(0,500));process.exit(1);});

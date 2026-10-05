@@ -1,0 +1,1610 @@
+{
+ "config": {
+  "main": {
+   "assists": true,
+   "badgeCenturion": 100,
+   "badgeCool": 8,
+   "badgeHot": 20,
+   "badgeMaestro": 5,
+   "badgeMagnetMin": 30,
+   "badgePillar": 10,
+   "badgeSniper": 3,
+   "badgeStreak": 5,
+   "badgeUnbeatenMin": 4,
+   "fineAmount": 45,
+   "minutes": 9,
+   "seasonStart": "2026-09-01",
+   "target": 12,
+   "teamFoulLimit": 6
+  }
+ },
+ "players": {
+  "p20": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p20",
+   "member": false,
+   "name": "Joueur 23",
+   "nick": "",
+   "note": ""
+  },
+  "p13": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p13",
+   "member": true,
+   "name": "Joueur 16",
+   "nick": "",
+   "note": ""
+  },
+  "p04": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p04",
+   "member": true,
+   "name": "Joueur 07",
+   "nick": "",
+   "note": ""
+  },
+  "p38": {
+   "active": true,
+   "createdAt": 1791184440000,
+   "id": "p38",
+   "member": false,
+   "name": "Joueur 41",
+   "note": "",
+   "nick": ""
+  },
+  "p25": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p25",
+   "member": false,
+   "name": "Joueur 28",
+   "nick": "",
+   "note": ""
+  },
+  "p01": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p01",
+   "member": true,
+   "name": "Joueur 04",
+   "nick": "",
+   "note": ""
+  },
+  "m658dqos9p": {
+   "active": true,
+   "createdAt": 1791103068061,
+   "id": "m658dqos9p",
+   "member": false,
+   "name": "Joueur 03",
+   "nick": "",
+   "note": ""
+  },
+  "p06": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p06",
+   "member": true,
+   "name": "Joueur 09",
+   "nick": "",
+   "note": ""
+  },
+  "p10": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p10",
+   "member": true,
+   "name": "Joueur 13",
+   "nick": "",
+   "note": ""
+  },
+  "p35": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p35",
+   "member": false,
+   "name": "Joueur 38",
+   "nick": "",
+   "note": ""
+  },
+  "p24": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p24",
+   "member": false,
+   "name": "Joueur 27",
+   "nick": "",
+   "note": ""
+  },
+  "p32": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p32",
+   "member": true,
+   "name": "Joueur 35",
+   "nick": "",
+   "note": ""
+  },
+  "p18": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p18",
+   "member": false,
+   "name": "Joueur 21",
+   "nick": "",
+   "note": ""
+  },
+  "p36": {
+   "active": true,
+   "createdAt": 1791024300000,
+   "id": "p36",
+   "member": false,
+   "name": "Joueur 39",
+   "note": "",
+   "nick": ""
+  },
+  "p29": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p29",
+   "member": false,
+   "name": "Joueur 32",
+   "nick": "",
+   "note": ""
+  },
+  "p40": {
+   "active": true,
+   "createdAt": 1791132000000,
+   "id": "p40",
+   "member": false,
+   "name": "Joueur 43",
+   "note": "",
+   "nick": ""
+  },
+  "p31": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p31",
+   "member": true,
+   "name": "Joueur 34",
+   "nick": "",
+   "note": ""
+  },
+  "p07": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p07",
+   "member": true,
+   "name": "Joueur 10",
+   "nick": "",
+   "note": ""
+  },
+  "p05": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p05",
+   "member": true,
+   "name": "Joueur 08",
+   "nick": "",
+   "note": ""
+  },
+  "p28": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p28",
+   "member": false,
+   "name": "Joueur 31",
+   "nick": "",
+   "note": ""
+  },
+  "p12": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p12",
+   "member": true,
+   "name": "Joueur 15",
+   "nick": "",
+   "note": ""
+  },
+  "bse54o366p": {
+   "active": true,
+   "createdAt": 1791103086097,
+   "id": "bse54o366p",
+   "member": false,
+   "name": "Joueur 02",
+   "nick": "",
+   "note": ""
+  },
+  "p22": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p22",
+   "member": true,
+   "name": "Joueur 25",
+   "nick": "",
+   "note": ""
+  },
+  "p26": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p26",
+   "member": false,
+   "name": "Joueur 29",
+   "nick": "",
+   "note": ""
+  },
+  "bitxlo2e0b": {
+   "active": true,
+   "createdAt": 1791103096235,
+   "id": "bitxlo2e0b",
+   "member": false,
+   "name": "Joueur 01",
+   "nick": "",
+   "note": ""
+  },
+  "p03": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p03",
+   "member": true,
+   "name": "Joueur 06",
+   "nick": "",
+   "note": ""
+  },
+  "p14": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p14",
+   "member": true,
+   "name": "Joueur 17",
+   "nick": "",
+   "note": ""
+  },
+  "p23": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p23",
+   "member": true,
+   "name": "Joueur 26",
+   "nick": "",
+   "note": ""
+  },
+  "p08": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p08",
+   "member": true,
+   "name": "Joueur 11",
+   "nick": "",
+   "note": ""
+  },
+  "p41": {
+   "active": true,
+   "createdAt": 1791132000000,
+   "id": "p41",
+   "member": false,
+   "name": "Joueur 44",
+   "note": "",
+   "nick": ""
+  },
+  "p16": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p16",
+   "member": false,
+   "name": "Joueur 19",
+   "nick": "",
+   "note": ""
+  },
+  "p19": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p19",
+   "member": false,
+   "name": "Joueur 22",
+   "nick": "",
+   "note": ""
+  },
+  "p11": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p11",
+   "member": true,
+   "name": "Joueur 14",
+   "nick": "",
+   "note": ""
+  },
+  "p17": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p17",
+   "member": false,
+   "name": "Joueur 20",
+   "nick": "",
+   "note": ""
+  },
+  "p15": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p15",
+   "member": false,
+   "name": "Joueur 18",
+   "nick": "",
+   "note": ""
+  },
+  "p21": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p21",
+   "member": false,
+   "name": "Joueur 24",
+   "nick": "",
+   "note": ""
+  },
+  "p34": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p34",
+   "member": false,
+   "name": "Joueur 37",
+   "nick": "",
+   "note": ""
+  },
+  "p27": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p27",
+   "member": true,
+   "name": "Joueur 30",
+   "nick": "",
+   "note": ""
+  },
+  "p30": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p30",
+   "member": true,
+   "name": "Joueur 33",
+   "nick": "",
+   "note": ""
+  },
+  "p39": {
+   "active": true,
+   "createdAt": 1791117600000,
+   "id": "p39",
+   "member": false,
+   "name": "Joueur 42",
+   "note": "",
+   "nick": ""
+  },
+  "p37": {
+   "active": true,
+   "createdAt": 1791024300000,
+   "id": "p37",
+   "member": false,
+   "name": "Joueur 40",
+   "note": "",
+   "nick": ""
+  },
+  "p33": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p33",
+   "member": true,
+   "name": "Joueur 36",
+   "nick": "",
+   "note": ""
+  },
+  "p02": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p02",
+   "member": true,
+   "name": "Joueur 05",
+   "nick": "",
+   "note": ""
+  },
+  "p09": {
+   "active": true,
+   "createdAt": 1759130000000,
+   "id": "p09",
+   "member": true,
+   "name": "Joueur 12",
+   "nick": "",
+   "note": ""
+  }
+ },
+ "sessions": {
+  "8fa0p6t5bc": {
+   "changes": [
+    {
+     "afterMatch": 0,
+     "from": null,
+     "pid": "p39",
+     "reason": "test",
+     "t": 1791120000000,
+     "to": "A"
+    }
+   ],
+   "closedAt": 1791111826458,
+   "corrections": [
+    {
+     "by": "bureau",
+     "t": 1791117600000,
+     "what": "correction de test"
+    },
+    {
+     "by": "bureau",
+     "t": 1791120000000,
+     "what": "correction de test"
+    }
+   ],
+   "createdAt": 1791104158056,
+   "date": "2026-10-04",
+   "draft": {
+    "order": [
+     "B",
+     "A",
+     "C"
+    ],
+    "picks": [
+     {
+      "n": 1,
+      "pid": "p03",
+      "t": 1791103789789,
+      "team": "B"
+     },
+     {
+      "n": 2,
+      "pid": "p02",
+      "t": 1791103795000,
+      "team": "A"
+     },
+     {
+      "n": 3,
+      "pid": "p19",
+      "t": 1791103797898,
+      "team": "C"
+     },
+     {
+      "n": 4,
+      "pid": "p26",
+      "t": 1791103804161,
+      "team": "C"
+     },
+     {
+      "n": 5,
+      "pid": "p11",
+      "t": 1791103818394,
+      "team": "A"
+     },
+     {
+      "n": 6,
+      "pid": "m658dqos9p",
+      "t": 1791103820359,
+      "team": "B"
+     },
+     {
+      "n": 7,
+      "pid": "p30",
+      "t": 1791103827098,
+      "team": "B"
+     },
+     {
+      "n": 8,
+      "pid": "p05",
+      "t": 1791103829386,
+      "team": "A"
+     },
+     {
+      "n": 9,
+      "pid": "p36",
+      "t": 1791103832050,
+      "team": "C"
+     },
+     {
+      "n": 10,
+      "pid": "p38",
+      "t": 1791103837556,
+      "team": "C"
+     },
+     {
+      "n": 11,
+      "pid": "p07",
+      "t": 1791103840217,
+      "team": "A"
+     },
+     {
+      "n": 12,
+      "pid": "p06",
+      "t": 1791103842172,
+      "team": "B"
+     },
+     {
+      "n": 13,
+      "pid": "p21",
+      "t": 1791103845499,
+      "team": "B"
+     },
+     {
+      "n": 14,
+      "pid": "p17",
+      "t": 1791103847424,
+      "team": "A"
+     },
+     {
+      "n": 15,
+      "pid": "bitxlo2e0b",
+      "t": 1791103848701,
+      "team": "C"
+     }
+    ]
+   },
+   "format": "rotation",
+   "id": "8fa0p6t5bc",
+   "incidents": [],
+   "matches": [
+    {
+     "away": "C",
+     "createdAt": 1791104158068,
+     "elapsedMs": 0,
+     "endReason": "points",
+     "endedAt": 1791104636146,
+     "events": [
+      {
+       "el": 13762,
+       "pid": "p38",
+       "t": 1791104179145,
+       "team": "C",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 17814,
+       "pid": "p01",
+       "t": 1791104183197,
+       "team": "C",
+       "type": "ast"
+      },
+      {
+       "el": 66376,
+       "pid": "p05",
+       "t": 1791104231759,
+       "team": "A",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 69030,
+       "pid": "p04",
+       "t": 1791104234413,
+       "team": "A",
+       "type": "ast"
+      },
+      {
+       "el": 144766,
+       "in": "p17",
+       "out": "p07",
+       "t": 1791104310149,
+       "team": "A",
+       "type": "sub"
+      },
+      {
+       "el": 147864,
+       "pid": "p17",
+       "t": 1791104313247,
+       "team": "A",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 180404,
+       "pid": "p19",
+       "t": 1791104345787,
+       "team": "C",
+       "type": "foul"
+      },
+      {
+       "el": 258267,
+       "pid": "p36",
+       "t": 1791104423650,
+       "team": "C",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 282973,
+       "pid": "p26",
+       "t": 1791104448356,
+       "team": "C",
+       "type": "ast"
+      },
+      {
+       "el": 303838,
+       "pid": "p36",
+       "t": 1791104469221,
+       "team": "C",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 306037,
+       "pid": "p26",
+       "t": 1791104471420,
+       "team": "C",
+       "type": "ast"
+      },
+      {
+       "el": 324677,
+       "pid": "p38",
+       "t": 1791104490060,
+       "team": "C",
+       "type": "pt",
+       "v": 3
+      },
+      {
+       "el": 332258,
+       "pid": "p26",
+       "t": 1791104497641,
+       "team": "C",
+       "type": "ast"
+      },
+      {
+       "el": 362388,
+       "pid": "p36",
+       "t": 1791104527771,
+       "team": "C",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 363685,
+       "pid": "p26",
+       "t": 1791104529068,
+       "team": "C",
+       "type": "ast"
+      },
+      {
+       "el": 443921,
+       "made": true,
+       "pid": "p11",
+       "t": 1791104609304,
+       "team": "A",
+       "type": "ft"
+      },
+      {
+       "el": 465928,
+       "pid": "p19",
+       "t": 1791104631311,
+       "team": "C",
+       "type": "pt",
+       "v": 2
+      }
+     ],
+     "home": "A",
+     "lineup": {
+      "A": [
+       "p04",
+       "p02",
+       "p11",
+       "p05",
+       "p07"
+      ],
+      "C": [
+       "p01",
+       "p19",
+       "p26",
+       "p36",
+       "p38"
+      ]
+     },
+     "n": 1,
+     "roster": {
+      "away": [
+       "p01",
+       "p19",
+       "p26",
+       "p36",
+       "p38",
+       "bitxlo2e0b"
+      ],
+      "home": [
+       "p04",
+       "p02",
+       "p11",
+       "p05",
+       "p07",
+       "p17",
+       "p39"
+      ]
+     },
+     "running": false,
+     "startedAt": null,
+     "status": "done",
+     "winner": "C"
+    },
+    {
+     "_beeped": true,
+     "away": "B",
+     "createdAt": 1791104699960,
+     "elapsedMs": 540000,
+     "endReason": "time",
+     "endedAt": 1791105363507,
+     "events": [
+      {
+       "el": 130825,
+       "pid": "p38",
+       "t": 1791104872015,
+       "team": "C",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 201962,
+       "pid": "p03",
+       "t": 1791104943152,
+       "team": "B",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 294832,
+       "pid": "p03",
+       "t": 1791105036022,
+       "team": "B",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 353981,
+       "pid": "p36",
+       "t": 1791105095171,
+       "team": "C",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 362009,
+       "pid": "p36",
+       "t": 1791105103199,
+       "team": "C",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 403262,
+       "pid": "p19",
+       "t": 1791105144452,
+       "team": "C",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 405355,
+       "pid": "p26",
+       "t": 1791105146545,
+       "team": "C",
+       "type": "ast"
+      },
+      {
+       "el": 461869,
+       "pid": "p06",
+       "t": 1791105203059,
+       "team": "B",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 464218,
+       "pid": "p03",
+       "t": 1791105205408,
+       "team": "B",
+       "type": "ast"
+      }
+     ],
+     "home": "C",
+     "lineup": {
+      "B": [
+       "p13",
+       "p03",
+       "m658dqos9p",
+       "p30",
+       "p06"
+      ],
+      "C": [
+       "p01",
+       "p19",
+       "p26",
+       "p36",
+       "p38"
+      ]
+     },
+     "n": 2,
+     "roster": {
+      "away": [
+       "p13",
+       "p03",
+       "m658dqos9p",
+       "p30",
+       "p06",
+       "p21"
+      ],
+      "home": [
+       "p01",
+       "p19",
+       "p26",
+       "p36",
+       "p38",
+       "bitxlo2e0b"
+      ]
+     },
+     "running": false,
+     "startedAt": null,
+     "status": "done",
+     "winner": "C"
+    },
+    {
+     "_beeped": true,
+     "away": "A",
+     "createdAt": 1791105425071,
+     "elapsedMs": 540000,
+     "endReason": "time",
+     "endedAt": 1791106198595,
+     "events": [
+      {
+       "el": 25947,
+       "pid": "p04",
+       "t": 1791105494656,
+       "team": "A",
+       "type": "pt",
+       "v": 3
+      },
+      {
+       "el": 36496,
+       "pid": "p01",
+       "t": 1791105528570,
+       "team": "C",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 115956,
+       "pid": "p01",
+       "t": 1791105619220,
+       "team": "C",
+       "type": "pt",
+       "v": 3
+      }
+     ],
+     "home": "C",
+     "lineup": {
+      "A": [
+       "p04",
+       "p02",
+       "p11",
+       "p05",
+       "p07"
+      ],
+      "C": [
+       "p01",
+       "p19",
+       "p26",
+       "p36",
+       "p38"
+      ]
+     },
+     "n": 3,
+     "roster": {
+      "away": [
+       "p04",
+       "p02",
+       "p11",
+       "p05",
+       "p07",
+       "p17",
+       "p39"
+      ],
+      "home": [
+       "p01",
+       "p19",
+       "p26",
+       "p36",
+       "p38",
+       "bitxlo2e0b"
+      ]
+     },
+     "running": false,
+     "startedAt": null,
+     "status": "done",
+     "winner": "A"
+    },
+    {
+     "_beeped": true,
+     "away": "C",
+     "createdAt": 1791106323234,
+     "elapsedMs": 540000,
+     "endReason": "time",
+     "endedAt": 1791106973643,
+     "events": [
+      {
+       "el": 0,
+       "in": "bitxlo2e0b",
+       "out": "p01",
+       "t": 1791106339174,
+       "team": "C",
+       "type": "sub"
+      },
+      {
+       "el": 60288,
+       "pid": "p38",
+       "t": 1791106399462,
+       "team": "C",
+       "type": "foul"
+      },
+      {
+       "el": 65227,
+       "pid": "p07",
+       "t": 1791106404401,
+       "team": "A",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 72346,
+       "pid": "p05",
+       "t": 1791106411520,
+       "team": "A",
+       "type": "ast"
+      },
+      {
+       "el": 90749,
+       "pid": "p26",
+       "t": 1791106429923,
+       "team": "C",
+       "type": "foul"
+      },
+      {
+       "el": 109698,
+       "pid": "p04",
+       "t": 1791106448872,
+       "team": "A",
+       "type": "foul"
+      },
+      {
+       "el": 116181,
+       "pid": "p11",
+       "t": 1791106455355,
+       "team": "A",
+       "type": "foul"
+      },
+      {
+       "el": 157612,
+       "pid": "p11",
+       "t": 1791106496786,
+       "team": "A",
+       "type": "foul"
+      },
+      {
+       "el": 203171,
+       "pid": "p07",
+       "t": 1791106542345,
+       "team": "A",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 205898,
+       "pid": "p05",
+       "t": 1791106545072,
+       "team": "A",
+       "type": "ast"
+      },
+      {
+       "el": 225994,
+       "pid": "p07",
+       "t": 1791106565168,
+       "team": "A",
+       "type": "foul"
+      },
+      {
+       "el": 251680,
+       "pid": "bitxlo2e0b",
+       "t": 1791106590854,
+       "team": "C",
+       "type": "foul"
+      },
+      {
+       "el": 262102,
+       "pid": "bitxlo2e0b",
+       "t": 1791106601276,
+       "team": "C",
+       "type": "foul"
+      },
+      {
+       "el": 307587,
+       "pid": "p11",
+       "t": 1791106646761,
+       "team": "A",
+       "type": "foul"
+      },
+      {
+       "el": 326024,
+       "pid": "p19",
+       "t": 1791106665198,
+       "team": "C",
+       "type": "foul"
+      },
+      {
+       "el": 338005,
+       "pid": "p19",
+       "t": 1791106677179,
+       "team": "C",
+       "type": "foul"
+      },
+      {
+       "el": 357479,
+       "made": true,
+       "pid": "p04",
+       "t": 1791106696653,
+       "team": "A",
+       "type": "ft"
+      },
+      {
+       "el": 367180,
+       "made": true,
+       "pid": "p04",
+       "t": 1791106706354,
+       "team": "A",
+       "type": "ft"
+      },
+      {
+       "el": 402006,
+       "pid": "p02",
+       "t": 1791106741180,
+       "team": "A",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 406253,
+       "pid": "p04",
+       "t": 1791106745427,
+       "team": "A",
+       "type": "ast"
+      },
+      {
+       "el": 525075,
+       "pid": "p36",
+       "t": 1791106864249,
+       "team": "C",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 540000,
+       "pid": "bitxlo2e0b",
+       "t": 1791106889968,
+       "team": "C",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 540000,
+       "pid": "p36",
+       "t": 1791106892273,
+       "team": "C",
+       "type": "ast"
+      },
+      {
+       "el": 540000,
+       "pid": "p36",
+       "t": 1791106900005,
+       "team": "C",
+       "type": "pt",
+       "v": 2
+      },
+      {
+       "el": 540000,
+       "pid": "p11",
+       "t": 1791106942268,
+       "team": "A",
+       "type": "pt",
+       "v": 2
+      }
+     ],
+     "home": "A",
+     "lineup": {
+      "A": [
+       "p04",
+       "p02",
+       "p11",
+       "p05",
+       "p07"
+      ],
+      "C": [
+       "p01",
+       "p19",
+       "p26",
+       "p36",
+       "p38"
+      ]
+     },
+     "n": 4,
+     "roster": {
+      "away": [
+       "p01",
+       "p19",
+       "p26",
+       "p36",
+       "p38",
+       "bitxlo2e0b"
+      ],
+      "home": [
+       "p04",
+       "p02",
+       "p11",
+       "p05",
+       "p07",
+       "p17",
+       "p39"
+      ]
+     },
+     "running": false,
+     "startedAt": null,
+     "status": "done",
+     "winner": "A"
+    },
+    {
+     "away": "B",
+     "createdAt": 1791107014665,
+     "elapsedMs": 0,
+     "endReason": "points",
+     "endedAt": 1791108131875,
+     "events": [
+      {
+       "added": "bureau",
+       "el": 0,
+       "pid": "p03",
+       "t": 1791108130875,
+       "team": "B",
+       "type": "pt",
+       "v": 3
+      },
+      {
+       "added": "bureau",
+       "el": 0,
+       "pid": "p03",
+       "t": 1791108130875,
+       "team": "B",
+       "type": "pt",
+       "v": 3
+      },
+      {
+       "added": "bureau",
+       "el": 0,
+       "pid": "p03",
+       "t": 1791108130875,
+       "team": "B",
+       "type": "pt",
+       "v": 3
+      },
+      {
+       "added": "bureau",
+       "el": 0,
+       "pid": "p13",
+       "t": 1791108130875,
+       "team": "B",
+       "type": "pt",
+       "v": 3
+      },
+      {
+       "added": "bureau",
+       "el": 0,
+       "pid": "p13",
+       "t": 1791108130875,
+       "team": "B",
+       "type": "pt",
+       "v": 3
+      },
+      {
+       "added": "bureau",
+       "el": 0,
+       "pid": "p06",
+       "t": 1791108130875,
+       "team": "B",
+       "type": "tech"
+      }
+     ],
+     "home": "A",
+     "lineup": {
+      "A": [
+       "p04",
+       "p02",
+       "p11",
+       "p05",
+       "p07"
+      ],
+      "B": [
+       "p13",
+       "p03",
+       "m658dqos9p",
+       "p30",
+       "p06"
+      ]
+     },
+     "n": 5,
+     "roster": {
+      "away": [
+       "p13",
+       "p03",
+       "m658dqos9p",
+       "p30",
+       "p06",
+       "p21"
+      ],
+      "home": [
+       "p04",
+       "p02",
+       "p11",
+       "p05",
+       "p07",
+       "p17",
+       "p39"
+      ]
+     },
+     "running": false,
+     "startedAt": null,
+     "status": "done",
+     "winner": "A"
+    },
+    {
+     "_beeped": true,
+     "away": "C",
+     "createdAt": 1791108146039,
+     "elapsedMs": 540000,
+     "endReason": "time",
+     "endedAt": 1791111800673,
+     "events": [
+      {
+       "added": "bureau",
+       "el": 0,
+       "pid": "p01",
+       "t": 1791111799673,
+       "team": "C",
+       "type": "pt",
+       "v": 3
+      },
+      {
+       "added": "bureau",
+       "el": 0,
+       "pid": "p01",
+       "t": 1791111799673,
+       "team": "C",
+       "type": "pt",
+       "v": 3
+      },
+      {
+       "added": "bureau",
+       "el": 0,
+       "pid": "p01",
+       "t": 1791111799773,
+       "team": "C",
+       "type": "tech"
+      }
+     ],
+     "home": "A",
+     "lineup": {
+      "A": [
+       "p04",
+       "p02",
+       "p11",
+       "p05",
+       "p07"
+      ],
+      "C": [
+       "p01",
+       "p19",
+       "p26",
+       "p36",
+       "p38"
+      ]
+     },
+     "n": 6,
+     "roster": {
+      "away": [
+       "p01",
+       "p19",
+       "p26",
+       "p36",
+       "p38",
+       "bitxlo2e0b"
+      ],
+      "home": [
+       "p04",
+       "p02",
+       "p11",
+       "p05",
+       "p07",
+       "p17",
+       "p39"
+      ]
+     },
+     "running": false,
+     "startedAt": null,
+     "status": "done",
+     "winner": "C"
+    }
+   ],
+   "nextAway": "C",
+   "nextHome": "A",
+   "present": [
+    "m658dqos9p",
+    "bitxlo2e0b",
+    "p21",
+    "p03",
+    "p19",
+    "p02",
+    "p30",
+    "p01",
+    "p17",
+    "p11",
+    "p04",
+    "p13",
+    "p26",
+    "p06",
+    "p05",
+    "p36",
+    "p38",
+    "p07",
+    "p39"
+   ],
+   "resultNote": "Classement approximatif (données de test).",
+   "status": "closed",
+   "teams": {
+    "A": {
+     "captain": "p04",
+     "color": "gris",
+     "name": "Gris",
+     "players": [
+      "p04",
+      "p02",
+      "p11",
+      "p05",
+      "p07",
+      "p17",
+      "p39"
+     ]
+    },
+    "B": {
+     "captain": "p13",
+     "color": "vert",
+     "name": "Vert",
+     "players": [
+      "p13",
+      "p03",
+      "m658dqos9p",
+      "p30",
+      "p06",
+      "p21"
+     ]
+    },
+    "C": {
+     "captain": "p01",
+     "color": "noir",
+     "name": "Noir",
+     "players": [
+      "p01",
+      "p19",
+      "p26",
+      "p36",
+      "p38",
+      "bitxlo2e0b"
+     ]
+    },
+    "D": {
+     "color": "jaune",
+     "name": "Jaune",
+     "players": []
+    }
+   },
+   "teamsApprox": true,
+   "updatedAt": 1791111826458,
+   "note": ""
+  },
+  "s20261004": {
+   "changes": [],
+   "createdAt": 1791024300000,
+   "date": "2026-10-04",
+   "id": "s20261004",
+   "incidents": [],
+   "matches": [],
+   "note": "",
+   "present": [
+    "p23",
+    "p30",
+    "p11",
+    "p04",
+    "p05",
+    "p13",
+    "p02",
+    "p07",
+    "p03",
+    "p06",
+    "p01",
+    "p36",
+    "p17",
+    "p26",
+    "p19",
+    "p21",
+    "p38"
+   ],
+   "status": "setup",
+   "teams": {},
+   "resultNote": "Classement approximatif (données de test)."
+  }
+ },
+ "sanctions": {
+  "sa20260927-p20": {
+   "cat": "A",
+   "createdAt": 1759130640000,
+   "date": "2026-09-27",
+   "fine": true,
+   "fineMode": "carafe",
+   "finePaid": false,
+   "finePaidAt": "",
+   "id": "sa20260927-p20",
+   "note": "",
+   "nth": 1,
+   "pid": "p20",
+   "sanction": "1 séance de suspension + carafe",
+   "type": "Contestation véhémente / perturbation de la séance",
+   "until": "2026-10-04"
+  },
+  "sa20260927-p14": {
+   "cat": "B",
+   "createdAt": 1759130640000,
+   "date": "2026-09-27",
+   "fine": true,
+   "fineMode": "carafe",
+   "finePaid": true,
+   "finePaidAt": "2026-09-27",
+   "id": "sa20260927-p14",
+   "note": "",
+   "nth": 1,
+   "pid": "p14",
+   "sanction": "2 séances de suspension + carafe",
+   "type": "Blocage de séance",
+   "until": "2026-10-11"
+  },
+  "tech-8fa0p6t5bc-5-p06": {
+   "cat": "A",
+   "createdAt": 1791117600000,
+   "date": "2026-10-04",
+   "fine": true,
+   "fineMode": "carafe",
+   "finePaid": true,
+   "finePaidAt": "2026-10-04",
+   "id": "tech-8fa0p6t5bc-5-p06",
+   "note": "",
+   "nth": 1,
+   "pid": "p06",
+   "sanction": "Carafe",
+   "type": "Faute technique en match (carafe)",
+   "until": ""
+  },
+  "tech-8fa0p6t5bc-6-p01": {
+   "cat": "A",
+   "createdAt": 1791120000000,
+   "date": "2026-10-04",
+   "fine": true,
+   "fineMode": "carafe",
+   "finePaid": false,
+   "finePaidAt": "",
+   "id": "tech-8fa0p6t5bc-6-p01",
+   "note": "",
+   "nth": 1,
+   "pid": "p01",
+   "sanction": "Carafe",
+   "type": "Faute technique en match (carafe)",
+   "until": ""
+  },
+  "sa20260927-p10": {
+   "cat": "B",
+   "createdAt": 1759130640000,
+   "date": "2026-09-27",
+   "fine": true,
+   "fineMode": "carafe",
+   "finePaid": false,
+   "finePaidAt": "",
+   "id": "sa20260927-p10",
+   "note": "",
+   "nth": 1,
+   "pid": "p10",
+   "sanction": "2 séances de suspension + carafe",
+   "type": "Blocage de séance",
+   "until": "2026-10-11"
+  },
+  "sa20260927-p09": {
+   "cat": "A",
+   "createdAt": 1759130640000,
+   "date": "2026-09-27",
+   "fine": true,
+   "fineMode": "carafe",
+   "finePaid": false,
+   "finePaidAt": "",
+   "id": "sa20260927-p09",
+   "note": "",
+   "nth": 1,
+   "pid": "p09",
+   "sanction": "1 séance de suspension + carafe",
+   "type": "Contestation véhémente / perturbation de la séance",
+   "until": "2026-10-04"
+  }
+ },
+ "payments": {
+  "2026-10-04": {
+   "date": "2026-10-04",
+   "paid": {
+    "p17": {
+     "amt": 12,
+     "at": "2026-10-03",
+     "confirmedAt": "2026-10-04",
+     "mode": "virement",
+     "note": "",
+     "status": "confirmed"
+    },
+    "p19": {
+     "amt": 12,
+     "at": "2026-10-04",
+     "confirmedAt": "2026-10-04",
+     "mode": "virement",
+     "status": "confirmed",
+     "note": ""
+    },
+    "p21": {
+     "amt": 12,
+     "at": "2026-10-03",
+     "confirmedAt": "2026-10-04",
+     "mode": "virement",
+     "note": "",
+     "status": "confirmed"
+    },
+    "p26": {
+     "amt": 12,
+     "at": "2026-10-03",
+     "confirmedAt": "2026-10-04",
+     "mode": "virement",
+     "note": "",
+     "status": "confirmed"
+    },
+    "p36": {
+     "amt": 12,
+     "at": "2026-10-03",
+     "confirmedAt": "2026-10-04",
+     "mode": "virement",
+     "note": "",
+     "status": "confirmed"
+    },
+    "p38": {
+     "amt": 12,
+     "at": "2026-10-04",
+     "confirmedAt": "2026-10-04",
+     "mode": "virement",
+     "note": "",
+     "status": "confirmed"
+    }
+   }
+  }
+ },
+ "treasury": {
+  "pack": {
+   "cost": 7500,
+   "hours": 80,
+   "sessionFee": 12,
+   "start": "2026-09-01",
+   "weeks": 50
+  }
+ }
+}
