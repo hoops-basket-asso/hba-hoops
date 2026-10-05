@@ -327,14 +327,20 @@ async function boot(){
   const [db,user,dl] = window.claude ? await Promise.all([claude.use('db'),claude.use('user'),claude.use('downloads')]) : [localDb(),null,null];
   S.db=db; S.user=user; S.downloads=dl;
   if(user){ try{ S.canWrite = await user.can('data.write'); }catch(e){ S.canWrite=null; } }
-  if(fbMode()){ syncRole(); FB.listeners.push(()=>{ syncRole(); render(); }); }
   if(!db){ S.loaded=true; render(); return; }
+  S.unsubs=[]; const sub=(u)=>{ if(typeof u==='function') S.unsubs.push(u); };
+  const subscribePrivate=()=>{ // collections réservées au bureau : (ré)abonnement à chaque changement de rôle
+    (S.privUnsubs||[]).forEach(u=>{ try{ u(); }catch(e){} }); S.privUnsubs=[]; const ps=(u)=>{ if(typeof u==='function') S.privUnsubs.push(u); };
+    if(fbMode()&&!S.unlocked){ S.sanctions={}; S.treasury={}; S.payments={}; return; }
+    ps(db.collection('sanctions').onSnapshot(sn=>{ const next={}; sn.docs.forEach(d=>{ const x=clone(d.data()); if(x&&x.pid) next[d.id]=x; }); Object.keys(S.sanctions).forEach(id=>{ if(S.saving['sanctions/'+id]||S.dirty['sanctions/'+id]||S.failed['sanctions/'+id]) next[id]=S.sanctions[id]; }); S.sanctions=next; render(); }, ()=>{}));
+    ps(db.collection('treasury').onSnapshot(sn=>{ sn.docs.forEach(d=>{ S.treasury[d.id]=clone(d.data()); }); render(); }, ()=>{}));
+    ps(db.collection('payments').onSnapshot(sn=>{ const next={}; sn.docs.forEach(d=>next[d.id]=clone(d.data())); Object.keys(S.payments).forEach(id=>{ if(S.saving['payments/'+id]||S.dirty['payments/'+id]||S.failed['payments/'+id]) next[id]=S.payments[id]; }); S.payments=next; render(); }, ()=>{}));
+  };
+  if(fbMode()){ syncRole(); FB.listeners.push(()=>{ syncRole(); subscribePrivate(); render(); }); }
   db.doc('config/main').onSnapshot(sn=>{ if(sn.exists) S.config={...S.config,...sn.data()}; render(); }, ()=>{});
   setTimeout(()=>{ if(!S.loaded){ S.loaded=true; render(); } },8000);
   db.collection('players').onSnapshot(sn=>{ if(sn.empty&&sn.metadata.fromCache&&Object.keys(S.players).length) return; const next={}; sn.docs.forEach(d=>{ const p=normPlayer(clone(d.data())); if(p) next[d.id]=p; }); Object.keys(S.players).forEach(id=>{ if(S.saving['players/'+id]||S.dirty['players/'+id]||S.failed['players/'+id]) next[id]=S.players[id]; }); S.players=next; render(); }, e=>{ toast('Lecture des joueurs interrompue ('+(e&&e.code||'?')+'), rechargez la page'); });
-  db.collection('sanctions').onSnapshot(sn=>{ const next={}; sn.docs.forEach(d=>{ const x=clone(d.data()); if(x&&x.pid) next[d.id]=x; }); Object.keys(S.sanctions).forEach(id=>{ if(S.saving['sanctions/'+id]||S.dirty['sanctions/'+id]||S.failed['sanctions/'+id]) next[id]=S.sanctions[id]; }); S.sanctions=next; render(); }, ()=>{});
-  db.collection('treasury').onSnapshot(sn=>{ sn.docs.forEach(d=>{ S.treasury[d.id]=clone(d.data()); }); render(); }, ()=>{});
-  db.collection('payments').onSnapshot(sn=>{ const next={}; sn.docs.forEach(d=>next[d.id]=clone(d.data())); Object.keys(S.payments).forEach(id=>{ if(S.saving['payments/'+id]||S.dirty['payments/'+id]||S.failed['payments/'+id]) next[id]=S.payments[id]; }); S.payments=next; render(); }, ()=>{});
+  subscribePrivate();
   db.collection('sessions').onSnapshot(sn=>{ if(sn.empty&&sn.metadata.fromCache&&Object.keys(S.sessions).length) return; const next={}; sn.docs.forEach(d=>{ const s=normSession(clone(d.data())); if(s){ s.id=s.id||d.id; next[d.id]=s; } }); Object.keys(S.sessions).forEach(id=>{ if(S.saving['sessions/'+id]||S.dirty['sessions/'+id]||S.failed['sessions/'+id]) next[id]=S.sessions[id]; }); S.sessions=next; S._cache.badges={}; S.loaded=true; if(!S.sid){ const live=Object.values(S.sessions).find(x=>x.status==='live'); if(live) S.sid=live.id; } render(); }, ()=>{ S.loaded=true; render(); });
 }
 
