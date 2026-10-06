@@ -215,16 +215,16 @@ async function boot(){
   const subscribePrivate=()=>{ // collections réservées au bureau : (ré)abonnement à chaque changement de rôle
     (S.privUnsubs||[]).forEach(u=>{ try{ u(); }catch(e){} }); S.privUnsubs=[]; const ps=(u)=>{ if(typeof u==='function') S.privUnsubs.push(u); };
     if(fbMode()&&!S.unlocked){ S.sanctions={}; S.treasury={}; S.payments={}; return; }
-    ps(db.collection('sanctions').onSnapshot(sn=>{ const next={}; sn.docs.forEach(d=>{ const x=clone(d.data()); if(x&&x.pid) next[d.id]=x; }); Object.keys(S.sanctions).forEach(id=>{ if(S.saving['sanctions/'+id]||S.dirty['sanctions/'+id]||S.failed['sanctions/'+id]) next[id]=S.sanctions[id]; }); S.sanctions=next; render(); }, ()=>{}));
-    ps(db.collection('treasury').onSnapshot(sn=>{ sn.docs.forEach(d=>{ S.treasury[d.id]=clone(d.data()); }); render(); }, ()=>{}));
-    ps(db.collection('payments').onSnapshot(sn=>{ const next={}; sn.docs.forEach(d=>next[d.id]=clone(d.data())); Object.keys(S.payments).forEach(id=>{ if(S.saving['payments/'+id]||S.dirty['payments/'+id]||S.failed['payments/'+id]) next[id]=S.payments[id]; }); S.payments=next; render(); }, ()=>{}));
+    ps(db.collection('sanctions').onSnapshot(sn=>{ const next={}; sn.docs.forEach(d=>{ const x=clone(d.data()); if(x&&x.pid) next[d.id]=x; }); Object.keys(S.sanctions).forEach(id=>{ if(S.saving['sanctions/'+id]||S.dirty['sanctions/'+id]||S.failed['sanctions/'+id]) next[id]=S.sanctions[id]; }); S.sanctions=next; renderSoft(); }, ()=>{}));
+    ps(db.collection('treasury').onSnapshot(sn=>{ sn.docs.forEach(d=>{ S.treasury[d.id]=clone(d.data()); }); renderSoft(); }, ()=>{}));
+    ps(db.collection('payments').onSnapshot(sn=>{ const next={}; sn.docs.forEach(d=>next[d.id]=clone(d.data())); Object.keys(S.payments).forEach(id=>{ if(S.saving['payments/'+id]||S.dirty['payments/'+id]||S.failed['payments/'+id]) next[id]=S.payments[id]; }); S.payments=next; renderSoft(); }, ()=>{}));
   };
-  if(fbMode()){ syncRole(); FB.listeners.push(()=>{ syncRole(); subscribePrivate(); render(); }); }
-  db.doc('config/main').onSnapshot(sn=>{ if(sn.exists) S.config={...S.config,...sn.data()}; render(); }, ()=>{});
-  setTimeout(()=>{ if(!S.loaded){ S.loaded=true; render(); } },8000);
-  db.collection('players').onSnapshot(sn=>{ if(sn.empty&&sn.metadata.fromCache&&Object.keys(S.players).length) return; const next={}; sn.docs.forEach(d=>{ const p=normPlayer(clone(d.data())); if(p) next[d.id]=p; }); Object.keys(S.players).forEach(id=>{ if(S.saving['players/'+id]||S.dirty['players/'+id]||S.failed['players/'+id]) next[id]=S.players[id]; }); S.players=next; render(); }, e=>{ toast('Lecture des joueurs interrompue ('+(e&&e.code||'?')+'), rechargez la page'); });
+  if(fbMode()){ syncRole(); FB.listeners.push(()=>{ syncRole(); subscribePrivate(); renderSoft(); }); }
+  db.doc('config/main').onSnapshot(sn=>{ if(sn.exists) S.config={...S.config,...sn.data()}; renderSoft(); }, ()=>{});
+  setTimeout(()=>{ if(!S.loaded){ S.loaded=true; renderSoft(); } },8000);
+  db.collection('players').onSnapshot(sn=>{ if(sn.empty&&sn.metadata.fromCache&&Object.keys(S.players).length) return; const next={}; sn.docs.forEach(d=>{ const p=normPlayer(clone(d.data())); if(p) next[d.id]=p; }); Object.keys(S.players).forEach(id=>{ if(S.saving['players/'+id]||S.dirty['players/'+id]||S.failed['players/'+id]) next[id]=S.players[id]; }); S.players=next; renderSoft(); }, e=>{ toast('Lecture des joueurs interrompue ('+(e&&e.code||'?')+'), rechargez la page'); });
   subscribePrivate();
-  db.collection('sessions').onSnapshot(sn=>{ if(sn.empty&&sn.metadata.fromCache&&Object.keys(S.sessions).length) return; const next={}; sn.docs.forEach(d=>{ const s=normSession(clone(d.data())); if(s){ s.id=s.id||d.id; next[d.id]=s; } }); Object.keys(S.sessions).forEach(id=>{ if(S.saving['sessions/'+id]||S.dirty['sessions/'+id]||S.failed['sessions/'+id]) next[id]=S.sessions[id]; }); S.sessions=next; S._cache.badges={}; S._cache.season=null; S.loaded=true; if(!S.sid){ const live=Object.values(S.sessions).find(x=>x.status==='live'); if(live) S.sid=live.id; } render(); }, ()=>{ S.loaded=true; render(); });
+  db.collection('sessions').onSnapshot(sn=>{ if(sn.empty&&sn.metadata.fromCache&&Object.keys(S.sessions).length) return; const next={}; sn.docs.forEach(d=>{ const s=normSession(clone(d.data())); if(s){ s.id=s.id||d.id; next[d.id]=s; } }); Object.keys(S.sessions).forEach(id=>{ if(S.saving['sessions/'+id]||S.dirty['sessions/'+id]||S.failed['sessions/'+id]) next[id]=S.sessions[id]; }); S.sessions=next; S._cache.badges={}; S._cache.season=null; S.loaded=true; if(!S.sid){ const live=Object.values(S.sessions).find(x=>x.status==='live'); if(live) S.sid=live.id; } renderSoft(); }, ()=>{ S.loaded=true; renderSoft(); });
 }
 
 // ---------- match engine (events are the source of truth) ----------
@@ -587,6 +587,9 @@ function liveMatch(s){ return s && Array.isArray(s.matches) && s.matches.find(m=
 // ---------- render ----------
 function captureForms(){ const out={}; document.querySelectorAll('input[id],textarea[id],select[id]').forEach(e=>{ if(e.readOnly||e.type==='file'||(S.skipPreserve&&S.skipPreserve.includes(e.id))) return; out[e.id]=e.type==='checkbox'?{c:e.checked}:{v:e.value,s:e.selectionStart,e:e.selectionEnd}; }); const a=document.activeElement; return {out,focus:a&&a.id}; }
 function restoreForms(f){ if(!f) return; for(const [id,x] of Object.entries(f.out)){ const e=document.getElementById(id); if(!e) continue; if('c' in x) e.checked=x.c; else if(e.value!==x.v){ e.value=x.v; } } if(f.focus&&!['pq2','pq'].includes(f.focus)){ const e=document.getElementById(f.focus); if(e&&document.activeElement!==e){ e.focus({preventScroll:true}); const x=f.out[f.focus]; try{ if(x&&x.s!=null&&e.setSelectionRange) e.setSelectionRange(x.s,x.e); }catch(err){} } } S.skipPreserve=null; }
+function typing(){ const a=document.activeElement; return !!(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT')&&a.type!=='checkbox'&&a.type!=='file'); }
+function renderSoft(){ if(typing()){ S._pendingRender=true; return; } render(); }
+document.addEventListener('focusout',()=>{ if(S._pendingRender){ S._pendingRender=false; setTimeout(()=>{ if(!typing()) render(); },50); } });
 function render(){ try{ renderInner(); }catch(err){ console.error(err); const m=$('#main'); if(m) m.insertAdjacentHTML('afterbegin',`<div class="alert"><b>Affichage interrompu.</b> ${esc(err&&err.message||err)}<div class="row" style="margin-top:8px"><button class="btn sm ghost" data-act="recover">Revenir à l'accueil</button></div></div>`); } }
 function renderInner(){
   const forms=captureForms();
@@ -969,7 +972,7 @@ function renderSheet(){
 function stopShot(){ clearInterval(S.shotTimer); S.shotTimer=null; S.shot=null; }
 function startShot(n){ clearInterval(S.shotTimer); S.shot=n; const step=()=>{ const sx=curSession(); const mx=sx&&liveMatch(sx); if(!mx||S.view!=='live'){ stopShot(); return; } if(sx.format!=='cent'&&!mx.running){ return; } S.shot--; const el2=$('#shotClk'); if(el2) el2.textContent=S.shot; if(S.shot<=0){ clearInterval(S.shotTimer); S.shotTimer=null; S.shot=null; buzzer(); if(el2){ el2.textContent='0'; el2.classList.add('over'); } toast('⏱ Temps d\'attaque écoulé : violation, balle à l\'adversaire'); return; } if(S.shot<=5) tick(); }; S.shotTimer=setInterval(step,1000); }
 async function manageWake(){ if(S._wakeBusy) return; const s=curSession(); const m=s&&liveMatch(s); const want=!!(m&&S.view==='live'&&!m.endedAt); S._wakeBusy=true; try{ if(want&&!S.wake&&navigator.wakeLock){ S.wake=await navigator.wakeLock.request('screen'); S.wake.addEventListener('release',()=>{ S.wake=null; }); } else if(!want&&S.wake){ await S.wake.release(); S.wake=null; } }catch(e){ S.wake=null; S.wakeErr=String(e&&e.message||e); } finally{ S._wakeBusy=false; } }
-window.addEventListener('resize',()=>{ clearTimeout(S.rsz); S.rsz=setTimeout(render,200); });
+window.addEventListener('resize',()=>{ clearTimeout(S.rsz); S.rsz=setTimeout(()=>{ const w=window.innerWidth; if(w!==S._w){ S._w=w; render(); } },200); }); S._w=window.innerWidth;
 document.addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target&&(e.target.id==='pq2'||e.target.id==='pq')) e.target.blur(); });
 document.addEventListener('touchstart',e=>{ S._ty=e.touches&&e.touches[0]?e.touches[0].clientY:null; },{passive:true});
 document.addEventListener('touchmove',e=>{ const a=document.activeElement; if(!(a&&(a.id==='pq2'||a.id==='pq'))) return; const y=e.touches&&e.touches[0]?e.touches[0].clientY:null; if(S._ty!=null&&y!=null&&Math.abs(y-S._ty)>24&&a.blur) a.blur(); },{passive:true});
