@@ -17,7 +17,7 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   await p.click('.pbtn'); await p.click('[data-act="incident-for"]'); await p.waitForTimeout(200); await p.click('[data-act="incident-kind"][data-id="blocage"]'); await p.click('[data-act="incident-save"]'); await p.waitForTimeout(200);
   await p.click('[data-act="end-match"]'); await p.waitForTimeout(100); await (await p.$$('[data-win]'))[0].click(); await p.waitForTimeout(200);
   await p.screenshot({path:'out/s_between.png'});
-  await p.click('[data-go="players"]'); await p.waitForTimeout(200); await p.screenshot({path:'out/s_disc.png'});
+  await p.click('[data-go="bureau"]'); await p.click('[data-bureau-seg="discipline"]'); await p.waitForTimeout(200); await p.screenshot({path:'out/s_disc.png'});
   await p.click('[data-act="sanction-from"]'); await p.waitForTimeout(200); await p.screenshot({path:'out/s_sanc.png'});
   console.log('errors:',errs);
   await b.close();

@@ -67,7 +67,7 @@
   FB.db = {
     doc:(path)=>({
       onSnapshot:(f,err)=>fs.doc(path).onSnapshot(sn=>f({exists:sn.exists,data:()=>sn.data()}), e=>{ if(err) err(e); }),
-      set:async(d)=>{ const data=strip(d); if(path.startsWith('sessions/') && FB.role==='scorer' && FB.scorerToken) data.scorerToken=FB.scorerToken; await fs.doc(path).set(data); },
+      set:async(d,opt)=>{ const data=strip(d); if(path.startsWith('sessions/') && FB.role==='scorer' && FB.scorerToken) data.scorerToken=FB.scorerToken; if(opt&&opt.merge) await fs.doc(path).set(data,{merge:true}); else await fs.doc(path).set(data); },
       delete:()=>fs.doc(path).delete()
     }),
     collection:(c)=>({

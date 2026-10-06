@@ -32,6 +32,7 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   await p.click('[data-act="clock-toggle"]'); await p.waitForTimeout(2200); const sh3=await p.evaluate(()=>window.__hs.S.shot); console.log('shot after resume',sh3); if(sh3>=sh2) errs.push('shot clock not running after resume');
   // 14s button
   const b14=await p.$('[data-act="shot"][data-s="14"]'); if(b14){ await b14.click(); const v=await p.evaluate(()=>window.__hs.S.shot); if(v!==14) errs.push('14s button -> '+v); } else errs.push('no 14s button');
+  await p.evaluate(()=>{ window.__hs.S.shot=2; }); await p.waitForTimeout(3200); { const sv=await p.evaluate(()=>window.__hs.S.shot); const bt=await p.textContent('body'); console.log('shot expiry in match',sv, /Temps d'attaque écoulé/.test(bt)); if(sv!==null) errs.push('shot not expired'); }
   // technique confirm sheet
   await (await p.$$('.prow:not(.bench) .pbtn'))[2].click(); await p.click('[data-ev="tech"]'); await p.waitForTimeout(100);
   const cy=await p.$('[data-act="confirm-yes"]'); if(!cy) errs.push('no confirm sheet for tech'); await p.screenshot({path:'out/f_confirm.png'}); if(cy) await cy.click(); await p.waitForTimeout(100);
@@ -50,7 +51,7 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   await p.click('[data-go="stats"]'); await p.waitForTimeout(300); await p.screenshot({path:'out/f_stats.png'});
   await p.click('[data-act="cols-toggle"]'); await p.waitForTimeout(100);
   await p.click('[data-act="share-stats"]'); await p.waitForTimeout(1500); const img=await p.$('#statsImg img'); if(!img) errs.push('no stats image'); else { const src=await img.getAttribute('src'); console.log('stats img bytes', src.length); await p.screenshot({path:'out/f_share.png',fullPage:true}); const buf=Buffer.from(src.split(',')[1],'base64'); require('fs').writeFileSync('f_statsimg.png',buf); }
-  await p.evaluate(()=>{ window.__hs.S.shot=2; }); await p.waitForTimeout(3500); const sv=await p.evaluate(()=>window.__hs.S.shot); const bt=await p.textContent('body'); console.log('shot after expiry',sv, /20 secondes écoulées/.test(bt)); if(sv!==null) errs.push('shot not expired');
+  console.log('shot clock stops outside live view', await p.evaluate(()=>window.__hs.S.shot===null&&!window.__hs.S.shotTimer));
   console.log('errors', errs);
   await b.close();
 })().catch(e=>{console.error(e);process.exit(1);});
