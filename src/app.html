@@ -166,7 +166,7 @@ const fmtTime = t => new Date(t).toLocaleTimeString('fr-FR',{hour:'2-digit',minu
 const fmtShort = iso => new Date(iso+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
 const pct = (a,b) => b? Math.round(100*a/b) : 0;
 const clone = o => JSON.parse(JSON.stringify(o));
-try{ S.unlocked = !window.FB && (localStorage.getItem('hs-unlocked')==='1' || sessionStorage.getItem('hs-unlocked')==='1'); S.period = localStorage.getItem('hs-period')||'session'; }catch(e){}
+try{ S.me=localStorage.getItem('hs-me')||null; S.unlocked = !window.FB && (localStorage.getItem('hs-unlocked')==='1' || sessionStorage.getItem('hs-unlocked')==='1'); S.period = localStorage.getItem('hs-period')||'session'; }catch(e){}
 
 // ---------- normalisation (never trust a stored doc's shape) ----------
 function normSession(s){ if(!s||typeof s!=='object') return null; s.matches=Array.isArray(s.matches)?s.matches:[]; s.teams=(s.teams&&typeof s.teams==='object')?s.teams:{}; TEAMS.forEach(t=>{ if(s.teams[t]){ s.teams[t].players=Array.isArray(s.teams[t].players)?s.teams[t].players:[]; s.teams[t].name=s.teams[t].name||TNAMES[t]; } }); s.present=Array.isArray(s.present)?s.present:[]; s.incidents=Array.isArray(s.incidents)?s.incidents:[]; s.changes=Array.isArray(s.changes)?s.changes:[]; s.status=s.status||'closed'; if(!(typeof s.date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s.date))) return null;
@@ -263,6 +263,10 @@ function sessionStatsRaw(sess){
   }
   return {teams,pl,done,players:Object.keys(pl).length};
 }
+const MVP_W={ast:1.5,w:2,pf:1,tech:3};
+function mvpScore(r){ return (r.pts||0)+MVP_W.ast*(r.ast||0)+MVP_W.w*(r.w||0)-MVP_W.pf*(r.pf||0)-MVP_W.tech*((r.tech||0)+(r.uns||0)); }
+function mvpPick(rows,minGp=1){ return [...rows].filter(r=>r.gp>=minGp).map(r=>({r,v:mvpScore(r)})).sort((a,b)=>b.v-a.v||b.r.pts-a.r.pts)[0]||null; }
+function mvpLabel(x){ return `indice ${Math.round(x.v)} · ${x.r.pts} pts, ${x.r.ast||0} PD, ${x.r.w} V${x.r.pf?', '+x.r.pf+' F':''}`; }
 function aggregate(sessions){
   const pl={}; const P = id => pl[id] || (pl[id]={id,sessions:0,gp:0,w:0,pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0});
   let matches=0;
@@ -319,7 +323,7 @@ function badgesForPlayer(pid){ return Object.values(S.sessions).filter(s=>s.stat
 function badgeChips(list){ return list.map(b=>`<span class="pill" title="${esc(b.detail)}">${b.icon} ${esc(b.label)}</span>`).join(' '); }
 // ---------- awards de fin de saison ----------
 const AWARDS=[
-  {k:'mvp',icon:'👑',name:'MVP',desc:'points + passes + victoires, au moins 60 % des dimanches'},
+  {k:'mvp',icon:'👑',name:'MVP',desc:'indice MVP (points + 1,5 × passes + 2 × victoires − fautes − 3 × techniques), au moins 60 % des dimanches'},
   {k:'westbrook',icon:'🎩',name:'Trophée Westbrook',desc:'meilleure part de paniers servis'},
   {k:'curry',icon:'🎯',name:'Trophée Curry',desc:'le plus de paniers à 3 points'},
   {k:'calderon',icon:'🆓',name:'Trophée Calderón',desc:'meilleur % aux lancers francs (min. 30 tentés)'},
@@ -336,7 +340,7 @@ function seasonAwards(){ const b=seasonBounds(); const sess=Object.values(S.sess
   const pick=(filter,score,fmt)=>{ const c=rows.filter(filter).map(r=>({r,v:score(r)})).filter(x=>isFinite(x.v)).sort((a,b)=>b.v-a.v); return c.length?{pid:c[0].r.id,value:fmt(c[0]),runner:c[1]?{pid:c[1].r.id,value:fmt(c[1])}:null}:null; };
   const list=[];
   const minPres=Math.ceil(n*0.6);
-  list.push({...AWARDS[0],w:pick(r=>r.sessions>=minPres,r=>r.pts+1.5*(r.ast||0)+2*r.w,x=>`${x.r.pts} pts · ${x.r.ast||0} PD · ${x.r.w} V`)});
+  list.push({...AWARDS[0],w:pick(r=>r.sessions>=minPres,r=>mvpScore(r),x=>`indice ${Math.round(x.v)} · ${x.r.pts} pts · ${x.r.ast||0} PD · ${x.r.w} V`)});
   list.push({...AWARDS[1],w:pick(r=>ctx[r.id].teamFG>=40&&(r.ast||0)>0,r=>100*r.ast/ctx[r.id].teamFG,x=>`${Math.round(x.v)} % des paniers de son équipe (${x.r.ast} PD)`)});
   list.push({...AWARDS[2],w:pick(r=>r.fg3>0,r=>r.fg3,x=>`${x.r.fg3} paniers à 3 pts`)});
   list.push({...AWARDS[3],w:pick(r=>r.fta>=30,r=>r.ftm/r.fta,x=>`${pct(x.r.ftm,x.r.fta)} % (${x.r.ftm}/${x.r.fta})`)});
@@ -345,7 +349,7 @@ function seasonAwards(){ const b=seasonBounds(); const sess=Object.values(S.sess
   list.push({...AWARDS[6],w:pick(r=>r.gp>=60,r=>r.w/r.gp,x=>`${pct(x.r.w,x.r.gp)} % (${x.r.w} V – ${x.r.gp-x.r.w} D)`)});
   if(half>=4){ const a1=aggregate(first).pl, a2=aggregate(second).pl; const m1=Object.fromEntries(a1.map(r=>[r.id,r])), m2=Object.fromEntries(a2.map(r=>[r.id,r])); const cand=rows.filter(r=>m1[r.id]&&m2[r.id]&&m1[r.id].gp>=10&&m2[r.id].gp>=10).map(r=>({r,v:m2[r.id].pts/m2[r.id].gp-m1[r.id].pts/m1[r.id].gp})).sort((a,b)=>b.v-a.v); list.push({...AWARDS[7],w:cand.length&&cand[0].v>0?{pid:cand[0].r.id,value:`${(m1[cand[0].r.id].pts/m1[cand[0].r.id].gp).toFixed(1)} → ${(m2[cand[0].r.id].pts/m2[cand[0].r.id].gp).toFixed(1)} pts/match`,runner:null}:null}); } else list.push({...AWARDS[7],w:null});
   list.push({...AWARDS[8],w:pick(r=>r.sessions>=25&&!r.tech&&!r.uns&&!playerSanctions(r.id,true).length,r=>r.sessions,x=>`${x.r.sessions} dimanches, casier vierge`)});
-  list.push({...AWARDS[9],w:pick(r=>r.sessions<n/2&&r.gp>=10,r=>(r.pts+1.5*(r.ast||0)+2*r.w)/r.gp,x=>`${(x.r.pts/x.r.gp).toFixed(1)} pts/match en ${x.r.sessions} dimanches`)});
+  list.push({...AWARDS[9],w:pick(r=>r.sessions<n/2&&r.gp>=10,r=>mvpScore(r)/r.gp,x=>`${(x.r.pts/x.r.gp).toFixed(1)} pts/match en ${x.r.sessions} dimanches`)});
   return {sess,rows,list,n}; }
 function awardsCard(){ const a=seasonAwards(); if(!a.n) return ''; const b=seasonBounds(); const over=today()>=b.end;
   return `<div class="card"><h2>Awards de la saison <span class="muted" style="font-size:15px;font-family:var(--body);font-weight:500">${over?'finale':'classement provisoire · '+a.n+' dimanche'+(a.n>1?'s':'')}</span></h2><p class="muted small">Calculés automatiquement sur la saison ${esc(b.start.slice(0,4))}-${esc(b.end.slice(0,4))}. Les seuils (présence, matchs, lancers) s'appliquent dès maintenant : « — » = personne n'est encore éligible.</p>${a.list.map(x=>`<div class="lead"><div class="ico">${x.icon}</div><div><div class="who">${esc(x.name)}${x.w?' · '+esc(pname(x.w.pid)):' · <span class="muted">—</span>'}</div><div class="what">${esc(x.desc)}${x.w?' · <b>'+esc(x.w.value)+'</b>':''}${x.w&&x.w.runner?' · 2e : '+esc(pname(x.w.runner.pid))+' ('+esc(x.w.runner.value)+')':''}</div></div></div>`).join('')}</div>`; }
@@ -450,7 +454,8 @@ function summaryText(sess){
   if(sess.format==='cent'){ const cum={}; sess.matches.filter(x=>x.status==='done').forEach(x=>{ const st=matchState(x,sess); cum[x.home]=(cum[x.home]||0)+st.score[x.home]; cum[x.away]=(cum[x.away]||0)+st.score[x.away]; }); L.push('🏆 Match à 100 points : '+tn('A')+' '+(cum.A||0)+' – '+(cum.B||0)+' '+tn('B')+' ('+sess.matches.filter(x=>x.status==='done').map(x=>{ const st=matchState(x,sess); return 'QT'+x.quarter+' '+st.score[x.home]+'-'+st.score[x.away]; }).join(', ')+')'); L.push(''); }
   else if(sess.teamsApprox){ L.push('⚠️ '+(sess.resultNote||'Résultats du jour non consignés match par match.')); L.push(''); }
   else if(tRank.length){ L.push('🏆 Équipe du jour : '+tn(tRank[0][0])+' ('+tRank[0][1].w+' V – '+tRank[0][1].l+' D)'); tRank.slice(1).forEach(([t,x])=>L.push('   '+tn(t)+' : '+x.w+' V – '+x.l+' D')); L.push(''); }
-  if(top[0]) L.push('🔥 MVP : '+pname(top[0].id)+' — '+top[0].pts+' pts en '+top[0].gp+(sess.format==='cent'?' quart-temps':' matchs'));
+  { const mv=mvpPick(rows); if(mv) L.push('👑 MVP : '+pname(mv.r.id)+' — '+mvpLabel(mv)); }
+  if(top[0]) L.push('🔥 Meilleur marqueur : '+pname(top[0].id)+' — '+top[0].pts+' pts en '+top[0].gp+(sess.format==='cent'?' quart-temps':' matchs'));
   if(sniper&&sniper.fg3) L.push('🎯 Sniper : '+pname(sniper.id)+' — '+sniper.fg3+' paniers à 3 pts');
   if(ft) L.push('🆓 Lancers francs : '+pname(ft.id)+' — '+ft.ftm+'/'+ft.fta+' ('+pct(ft.ftm,ft.fta)+' %)');
   if(pm&&pm.pm>0) L.push('🧱 Meilleur +/- : '+pname(pm.id)+' ('+(pm.pm>0?'+':'')+pm.pm+')');
@@ -488,7 +493,7 @@ async function summaryImage(sess){
   const top=[...rows].sort((a,b)=>b.pts-a.pts); const sniper=[...rows].sort((a,b)=>b.fg3-a.fg3)[0]; const pm=[...rows].sort((a,b)=>b.pm-a.pm)[0];
   const ft=[...rows].filter(r=>r.fta>=3).sort((a,b)=>pct(b.ftm,b.fta)-pct(a.ftm,a.fta))[0];
   const tech=rows.reduce((a,r)=>a+r.tech,0), uns=rows.reduce((a,r)=>a+r.uns,0);
-  const awards=[]; if(top[0])awards.push(['🔥','MVP',pname(top[0].id),top[0].pts+' pts']); if(sniper&&sniper.fg3)awards.push(['🎯','Sniper',pname(sniper.id),sniper.fg3+' × 3 pts']);
+  const awards=[]; { const mv=mvpPick(rows); if(mv) awards.push(['👑','MVP',pname(mv.r.id),'indice '+Math.round(mv.v)]); } if(top[0])awards.push(['🔥','Meilleur marqueur',pname(top[0].id),top[0].pts+' pts']); if(sniper&&sniper.fg3)awards.push(['🎯','Sniper',pname(sniper.id),sniper.fg3+' × 3 pts']);
   if(pm&&pm.pm>0)awards.push(['🧱','Meilleur +/-',pname(pm.id),'+'+pm.pm]); if(ft)awards.push(['🆓','Lancers francs',pname(ft.id),ft.ftm+'/'+ft.fta]);
   awards.push(['🧊','Fair-play',tech+' tech. · '+uns+' antisp.','']);
   x.fillStyle=NAVY; x.font='700 26px Barlow, system-ui, sans-serif'; x.fillText('LES RÉCOMPENSES',60,y); y+=20;
@@ -602,6 +607,7 @@ function vHome(){
   const alerts=Object.values(S.players).map(p=>({p,s:sanctionStatus(p.id)})).filter(x=>x.s.level||x.s.susp||x.s.fineDue.length);
   const oi=openIncidents(); const toVerify=Object.values(S.payments).reduce((a,pd)=>a+Object.values(pd.paid||{}).filter(x=>x.status==='declared').length,0);
   if((alerts.length||oi.length||toVerify)&&S.unlocked) h+=`<div class="card"><h2>Alertes du bureau</h2>${toVerify?`<div class="alert warn">💶 ${toVerify} participation${toVerify>1?'s':''} déclarée${toVerify>1?'s':''} à confirmer sur le compte. <button class="btn sm ghost" data-go="treasury">Tréso</button></div>`:''}${oi.length?`<div class="alert warn">🚩 ${oi.length} incident${oi.length>1?'s':''} à traiter par le bureau. <button class="btn sm ghost" data-go="discipline">Voir</button></div>`:''}${alerts.map(x=>`<div class="alert ${x.s.level===2?'':'warn'}"><b>${esc(x.p.name)}</b> : ${x.s.susp?'suspendu jusqu\'au '+esc(fmtShort(x.s.susp.until))+'. ':''}${x.s.fineDue.length?'🍺 Amende non réglée (carafe ou '+(S.config.fineAmount||45)+' €) : pas d\'inscription possible. ':''}${esc(x.s.msg)}</div>`).join('')}</div>`;
+  if(!live&&S.loaded) h+=homeDigest(past);
   const bureauTxt=(S.config.bureau||'').trim(); if(bureauTxt) h+=`<p class="muted small center" style="margin:0 0 10px">${esc(bureauTxt)}</p>`;
   h+=`<div class="card"><h2>Table de marque</h2>`;
   if(S.canWrite===false&&!fbMode()) h+=`<p class="muted small">Ce lien vous donne accès en lecture. Seuls les marqueurs désignés peuvent saisir.</p>`;
@@ -611,9 +617,25 @@ function vHome(){
   h+=`</div>`;
   h+=`<div class="card"><h2>Séances passées</h2>`;
   if(!past.length) h+=`<div class="empty">Aucune séance enregistrée. La première apparaîtra ici avec ses équipes, ses matchs et son MVP.${!S.demo?'<br><button class="btn sm ghost" data-act="demo-on" style="margin-top:10px">Voir une démo avec des données fictives</button>':''}</div>`;
-  else h+=past.slice(0,12).map(s=>{ const ss=sessionStats(s); const top=Object.values(ss.pl).sort((a,b)=>b.pts-a.pts)[0]; const tw=Object.entries(ss.teams).sort((a,b)=>b[1].w-a[1].w)[0];
-    return `<div class="lead" style="cursor:pointer" data-act="stats-of" data-id="${s.id}"><div class="ico">🏀</div><div><div class="who">${esc(fmtDate(s.date))}</div><div class="what">${ss.done} matchs · ${ss.players} joueurs${tw&&!s.teamsApprox?' · 🏆 '+esc(s.teams[tw[0]].name||TNAMES[tw[0]]):''}${s.teamsApprox?' · ⚠️ classement approx.':''}${top?' · 🔥 '+esc(pname(top.id))+' '+top.pts+' pts':''}</div></div><div class="big">›</div></div>`; }).join('');
+  else h+=past.slice(0,12).map(s=>{ const ss=sessionStats(s); const mvx=mvpPick(Object.values(ss.pl)); const top=mvx?{id:mvx.r.id,pts:mvx.r.pts}:null; const tw=Object.entries(ss.teams).sort((a,b)=>b[1].w-a[1].w)[0];
+    return `<div class="lead" style="cursor:pointer" data-act="stats-of" data-id="${s.id}"><div class="ico">🏀</div><div><div class="who">${esc(fmtDate(s.date))}</div><div class="what">${ss.done} matchs · ${ss.players} joueurs${tw&&!s.teamsApprox?' · 🏆 '+esc(s.teams[tw[0]].name||TNAMES[tw[0]]):''}${s.teamsApprox?' · ⚠️ classement approx.':''}${top?' · 👑 '+esc(pname(top.id)):''}</div></div><div class="big">›</div></div>`; }).join('');
   h+=`</div>`;
+  return h;
+}
+function homeDigest(past){
+  let h=''; const b=seasonBounds(); const season=past.filter(s=>s.date>=b.start&&s.date<b.end); const ag=season.length?aggregate(season):null; const rows=ag?ag.pl:[];
+  // 1. last session
+  const last=past[0]; if(last){ const ss=sessionStats(last); const tn=t=>last.teams[t]&&(last.teams[t].name||TNAMES[t]); const tw=Object.entries(ss.teams).sort((a,b)=>b[1].w-a[1].w||(b[1].pf-b[1].pa)-(a[1].pf-a[1].pa))[0]; const mv=mvpPick(Object.values(ss.pl)); const top=[...Object.values(ss.pl)].sort((a,b)=>b.pts-a.pts)[0];
+    h+=`<div class="card"><div class="row"><h2 class="grow">Dernière séance</h2><span class="muted small">${esc(fmtDate(last.date))}</span></div><div class="tiles" style="margin-top:8px"><div class="tile acc"><div class="k">${last.teamsApprox?'Résultat':'Équipe du jour'}</div><div class="v" style="font-size:20px">${last.teamsApprox?'≈ égalité':(tw?dot(last.teams,tw[0])+' '+esc(tn(tw[0])):'—')}</div><div class="s">${last.teamsApprox?esc((last.resultNote||'').slice(0,60)):(tw?tw[1].w+' V – '+tw[1].l+' D':'')}</div></div><div class="tile"><div class="k">👑 MVP</div><div class="v" style="font-size:20px">${mv?esc(pshort(mv.r.id)):'—'}</div><div class="s">${mv?mv.r.pts+' pts · '+(mv.r.ast||0)+' PD · '+mv.r.w+' V':''}</div></div></div><div class="row small muted" style="margin-top:8px;justify-content:space-between"><span>${ss.done} match${ss.done>1?'s':''} · ${ss.players} joueurs${top?' · 🔥 '+esc(pshort(top.id))+' '+top.pts+' pts':''}</span><button class="btn sm ghost" data-act="stats-of" data-id="${last.id}">Détail</button></div></div>`; }
+  // 2. season ladder
+  if(rows.length){ const top=[...rows].sort((a,b)=>b.pts-a.pts)[0]; const asr=[...rows].filter(r=>r.ast).sort((a,b)=>b.ast-a.ast)[0]; const mv=mvpPick(rows,3); const sn=[...rows].filter(r=>r.fg3).sort((a,b)=>b.fg3-a.fg3)[0]; const win=[...rows].filter(r=>r.gp>=5).sort((a,b)=>pct(b.w,b.gp)-pct(a.w,a.gp)||b.gp-a.gp)[0];
+    const L=[]; if(mv)L.push(['👑','MVP de la saison',mv.r.id,'indice '+Math.round(mv.v)]); if(top)L.push(['🔥','Meilleur marqueur',top.id,top.pts+' pts']); if(asr)L.push(['🎩','Meilleur passeur',asr.id,asr.ast+' PD']); if(sn)L.push(['🎯','Sniper',sn.id,sn.fg3+' × 3 pts']); if(win)L.push(['🏅','Meilleur % victoires',win.id,pct(win.w,win.gp)+' %']);
+    h+=`<div class="card"><div class="row"><h2 class="grow">Ladder ${esc(seasonLabel())}</h2><span class="muted small">${season.length} séance${season.length>1?'s':''}</span></div>${L.map(([ic,l,pid,v])=>`<div class="lead" data-act="player-detail" data-id="${pid}" style="cursor:pointer"><div class="ico">${ic}</div><div><div class="who">${esc(pname(pid))}</div><div class="what">${l}</div></div><div class="big num" style="font-size:16px">${v}</div></div>`).join('')}<div class="row" style="margin-top:8px"><button class="btn sm ghost" data-go="stats">Tout le classement</button></div></div>`; }
+  // 3. my profile (no account: remembered on this device)
+  const me=S.me&&S.players[S.me]?S.players[S.me]:null;
+  if(!me){ const opts=Object.values(S.players).filter(p=>p.active!==false).sort((a,b)=>a.name.localeCompare(b.name,'fr')); if(opts.length) h+=`<div class="card"><h2>Mes stats</h2><p class="muted small">Dites-nous qui vous êtes pour voir votre saison ici (mémorisé sur cet appareil seulement).</p><div class="row"><select id="meSel" class="grow"><option value="">— je suis… —</option>${opts.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select><button class="btn sm navy" data-act="me-set">OK</button></div></div>`; }
+  else { const r=rows.find(x=>x.id===me.id); const lastR=last&&sessionStats(last).pl[me.id]; const rank=r?[...rows].sort((a,b)=>b.pts-a.pts).findIndex(x=>x.id===me.id)+1:0; const bd=season.flatMap(sx=>badgesForSession(sx)).filter(x=>x.pid===me.id);
+    h+=`<div class="card"><div class="row"><h2 class="grow">${esc(me.nick||pshort(me.id))}, votre saison</h2><button class="btn sm ghost" data-act="me-clear" title="Changer de joueur">✎</button></div>${r?`<div class="tiles" style="margin-top:8px"><div class="tile acc"><div class="k">Points</div><div class="v num">${r.pts}</div><div class="s">${rank?rank+'e marqueur':''} · ${r.gp} match${r.gp>1?'s':''}</div></div><div class="tile"><div class="k">Victoires</div><div class="v num">${pct(r.w,r.gp)} %</div><div class="s">${r.w} V – ${r.gp-r.w} D</div></div><div class="tile"><div class="k">Passes · 3 pts</div><div class="v num">${r.ast||0} · ${r.fg3}</div><div class="s">indice MVP ${Math.round(mvpScore(r))}</div></div><div class="tile"><div class="k">Badges</div><div class="v num">${bd.length}</div><div class="s">${bd.slice(-3).map(x=>BADGES[x.k][0]).join(' ')||'à conquérir'}</div></div></div>${lastR?`<p class="small muted" style="margin:8px 0 0">Dernière séance : ${lastR.pts} pts, ${lastR.ast||0} PD, ${lastR.w} V – ${lastR.gp-lastR.w} D.</p>`:''}`:`<p class="muted small">Pas encore de match cette saison. À dimanche !</p>`}<div class="row" style="margin-top:8px"><button class="btn sm ghost" data-act="player-detail" data-id="${me.id}">Ma fiche complète</button></div></div>`; }
   return h;
 }
 function vSetup(){
@@ -714,7 +736,7 @@ function teamTable(s,ss){ const tn=t=>s.teams[t].name||TNAMES[t];
 function leadersCard(ss,label){ const rows=Object.values(ss.pl); if(!rows.length) return '';
   const top=[...rows].sort((a,b)=>b.pts-a.pts)[0]; const sn=[...rows].filter(r=>r.fg3).sort((a,b)=>b.fg3-a.fg3)[0]; const pm=[...rows].filter(r=>r.pm>0).sort((a,b)=>b.pm-a.pm)[0];
   const ft=[...rows].filter(r=>r.fta>=3).sort((a,b)=>pct(b.ftm,b.fta)-pct(a.ftm,a.fta))[0]; const win=[...rows].filter(r=>r.gp>=3).sort((a,b)=>pct(b.w,b.gp)-pct(a.w,a.gp))[0]; const asr=[...rows].filter(r=>r.ast).sort((a,b)=>b.ast-a.ast)[0];
-  const L=[]; if(top)L.push(['🔥','MVP · meilleur marqueur',pname(top.id),top.pts+' pts']); if(sn)L.push(['🎯','Sniper · paniers à 3',pname(sn.id),sn.fg3+'×3']); if(pm)L.push(['🧱','Meilleur +/-',pname(pm.id),'+'+pm.pm]); if(asr)L.push(['🎩','Passeur · passes décisives',pname(asr.id),asr.ast+' PD']);
+  const L=[]; { const mv=mvpPick(rows); if(mv) L.push(['👑','MVP · indice '+Math.round(mv.v),pname(mv.r.id),mv.r.pts+' pts · '+(mv.r.ast||0)+' PD · '+mv.r.w+' V']); } if(top)L.push(['🔥','Meilleur marqueur',pname(top.id),top.pts+' pts']); if(sn)L.push(['🎯','Sniper · paniers à 3',pname(sn.id),sn.fg3+'×3']); if(pm)L.push(['🧱','Meilleur +/-',pname(pm.id),'+'+pm.pm]); if(asr)L.push(['🎩','Passeur · passes décisives',pname(asr.id),asr.ast+' PD']);
   if(ft)L.push(['🆓','Lancers francs',pname(ft.id),ft.ftm+'/'+ft.fta]); if(win)L.push(['🏅','Meilleur % victoires',pname(win.id),pct(win.w,win.gp)+' %']);
   return `<div class="card"><h2>Récompenses <span class="muted" style="font-size:15px;font-family:var(--body);font-weight:500">${esc(label)}</span></h2>${L.map(a=>`<div class="lead"><div class="ico">${a[0]}</div><div><div class="who">${esc(a[2])}</div><div class="what">${a[1]}</div></div><div class="big num">${esc(a[3])}</div></div>`).join('')}</div>`; }
 
@@ -768,10 +790,11 @@ function vPlayers(){
   const ag=aggregate(Object.values(S.sessions).filter(s=>s.status==='closed'||s.status==='live')); const by=Object.fromEntries(ag.pl.map(r=>[r.id,r]));
   const rw=S.unlocked&&S.canWrite!==false&&!S.demo;
   const sanc=Object.values(S.sanctions).sort((a,b)=>a.date<b.date?1:-1);
-  const flt=S.pFilter||'all'; const shown=list.filter(p=>flt==='all'?p.active!==false:flt==='member'?p.member&&p.active!==false:flt==='student'?p.student&&p.active!==false:flt==='guest'?!p.member&&!p.student&&p.active!==false:p.active===false);
+  const flt=S.pFilter||'all'; const q=(S.pq||'').toLowerCase().trim(); const norm=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); const shown=list.filter(p=>!q||norm(p.name).includes(norm(q))||norm(p.nick).includes(norm(q))).filter(p=>flt==='all'?p.active!==false:flt==='member'?p.member&&p.active!==false:flt==='student'?p.student&&p.active!==false:flt==='guest'?!p.member&&!p.student&&p.active!==false:p.active===false);
   const cnt=k=>list.filter(p=>k==='all'?p.active!==false:k==='member'?p.member&&p.active!==false:k==='student'?p.student&&p.active!==false:k==='guest'?!p.member&&!p.student&&p.active!==false:p.active===false).length;
   let h='';
   h+=`<div class="card"><div class="row"><h2 class="grow">Joueurs <span class="muted" style="font-size:16px">${list.filter(p=>p.active!==false).length}</span></h2>${rw?`<button class="btn sm navy" data-act="add-player">+ Ajouter</button>`:''}</div>
+  <input id="pq2" placeholder="Chercher un joueur…" value="${esc(S.pq||'')}" style="margin-top:8px">
   <div class="seg sub" style="margin-top:8px">${[['all','Tous'],['member','★ Adhérents'],['guest','Participants'],['student','🎓 Étudiants'],['archived','Archivés']].map(([k,l])=>`<button class="${flt===k?'on':''}" data-pfilter="${k}">${l} <span class="muted">${cnt(k)}</span></button>`).join('')}</div>
   <p class="muted small">Tapez un joueur pour voir ses présences, ses performances${S.unlocked?' et ses sanctions':''}.</p>`;
   if(!list.length) h+=`<div class="empty">Aucun joueur. ${rw?'Ajoutez les habitués ici, ou importez une liste : un nom par ligne.':'La liste apparaîtra quand le marqueur l\'aura créée.'}</div>`;
@@ -969,7 +992,7 @@ async function exportCsv(){ const sess=periodSessions(); const ag=aggregate(sess
   const lines=[head.join(';')].concat(ag.pl.map(r=>[pname(r.id),r.sessions,r.gp,r.w,r.pts,r.fg2,r.fg3,r.ast||0,r.ftm,r.fta,r.pf,r.tech,r.uns,r.pm].join(';')));
   try{ await S.downloads.save({filename:'hoops-stats-'+S.period+'.csv',data:'﻿'+lines.join('\n')}); toast('CSV enregistré'); }catch(e){ if(e&&e.code!=='declined') toast('Export impossible'); } }
 
-document.addEventListener('input',ev=>{ const t=ev.target; if(t.id==='pq'&&S.setup){ S.setup.q=t.value; render(); } if(t.dataset.teamName&&S.setup){ S.setup.teams[t.dataset.teamName].name=t.value; } if(t.id==='sdate'&&S.setup) S.setup.date=t.value; });
+document.addEventListener('input',ev=>{ const t=ev.target; if(t.id==='pq2'){ S.pq=t.value; render(); return; } if(t.id==='pq'&&S.setup){ S.setup.q=t.value; render(); } if(t.dataset.teamName&&S.setup){ S.setup.teams[t.dataset.teamName].name=t.value; } if(t.id==='sdate'&&S.setup) S.setup.date=t.value; });
 document.addEventListener('change',ev=>{ const t=ev.target; if(t.dataset.teamCap&&S.setup){ setCaptain(S.setup,t.dataset.teamCap,t.value); render(); return; } if(t.dataset.teamColor&&S.setup){ const k=t.dataset.teamColor; const tm=S.setup.teams[k]; const wasDefault=!tm.name||tm.name===TNAMES[k]||CHASUBLES.some(c=>c[1]===tm.name); tm.color=t.value; if(wasDefault) tm.name=CHAS[t.value][1]; render(); return; } if(t.id==='tpaySel'){ S.tpay=t.value; render(); return; } if(S.sheet&&S.sheet.type==='sanction'&&(t.id==='snPid'||t.id==='snType'||t.id==='snDate')){ const x=S.sheet.sid?S.sanctions[S.sheet.sid]:null; const draft={pid:$('#snPid').value,date:$('#snDate').value,type:$('#snType').value,sanction:'',until:$('#snUntil').value,note:$('#snNote').value,fine:$('#snFine').checked,finePaid:$('#snFinePaid').checked,fineMode:$('#snFineMode').value}; if(x){ S.sanctions[S.sheet.sid]={...x,...draft,sanction:x.sanction}; } else { S.sheet.draft=draft; } S.skipPreserve=['snSanction']; render(); return; } if(t.id==='refSess'){ S.sid=t.value; render(); } if(t.id==='m1home'&&S.setup) S.setup.home=t.value; if(t.id==='m1away'&&S.setup) S.setup.away=t.value; });
 document.addEventListener('click',async ev=>{
   if(ev.target.id==='pendPill'){ retryFailed(); toast('Nouvel essai…'); return; }
@@ -1005,6 +1028,8 @@ document.addEventListener('click',async ev=>{
     case 'scorer-create': { try{ const lab=($('#scLabel')||{}).value||''; const r=await FB.createScorerLink(S.sheet.sid,lab); S.sheet.links=await FB.listScorerLinks(S.sheet.sid); S.sheet.newUrl=r.url; toast('Lien créé, valable jusqu\'à ce soir'); }catch(e){ toast('Création impossible : '+(e&&e.code||e)); } render(); break; }
     case 'scorer-revoke': { try{ await FB.revokeScorerLink(id); S.sheet.links=await FB.listScorerLinks(S.sheet.sid); toast('Lien désactivé'); }catch(e){ toast('Impossible'); } render(); break; }
     case 'scorer-copy': { const u=el.dataset.url; try{ if(navigator.share){ await navigator.share({title:'Table de marque Hoops',text:'Lien table de marque (valable aujourd\'hui)',url:u}); } else { await navigator.clipboard.writeText(u); toast('Lien copié'); } }catch(e){ try{ await navigator.clipboard.writeText(u); toast('Lien copié'); }catch(e2){ prompt('Copiez ce lien :',u); } } break; }
+    case 'me-set': { const v=($('#meSel')||{}).value; if(v){ S.me=v; try{ localStorage.setItem('hs-me',v); }catch(e){} render(); } break; }
+    case 'me-clear': { S.me=null; try{ localStorage.removeItem('hs-me'); }catch(e){} render(); break; }
     case 'theme': { let t='auto'; try{ t=localStorage.getItem('hs-theme')||'auto'; }catch(e){} const nx=t==='auto'?'light':t==='light'?'dark':'auto'; try{ localStorage.setItem('hs-theme',nx); }catch(e){} applyTheme(); toast('Thème '+(nx==='auto'?'automatique':nx==='light'?'clair':'sombre')); break; }
     case 'config-save': { const c={...S.config,target:+$('#cfTarget').value||12,minutes:+$('#cfMin').value||9,teamFoulLimit:+$('#cfTF').value||6,fineAmount:+$('#cfFine').value||45,assists:$('#cfAst').checked,seasonStart:$('#cfSeason').value||S.config.seasonStart,bureau:$('#cfBureau').value.trim()}; delete c.demo; S.config=c; save('config','main',c); toast('Réglages enregistrés'); render(); break; }
     case 'lock': if(fbMode()){ await FB.logout(); syncRole(); render(); break; } S.unlocked=false; try{localStorage.removeItem('hs-unlocked'); sessionStorage.removeItem('hs-unlocked');}catch(e){} render(); break;
