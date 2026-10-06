@@ -10,6 +10,7 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   await p.click('[data-go="players"]'); await p.click('[data-act="import-players"]'); await p.fill('#impTxt',Array.from({length:17},(_,i)=>'J'+(i+1)).join('\n')); await p.click('[data-act="import-confirm"]'); await p.waitForTimeout(200);
   await p.click('[data-go="home"]'); await p.click('[data-act="new-session"]'); await p.waitForTimeout(100);
   for(let i=0;i<17;i++){ await (await p.$$('[data-act="toggle-present"]'))[i].click(); }
+  await p.click('[data-act="setup-step"][data-id="2"]'); await p.waitForTimeout(100);
   // choose captains
   const selOpt=async(sel,v)=>p.evaluate(([q,v])=>{ const e=document.querySelector(q); e.value=v; e.dispatchEvent(new Event('change',{bubbles:true})); },[sel,v]);
   const sels=await p.$$('select[data-team-cap]'); console.log('captain selects', sels.length);
@@ -29,7 +30,7 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   await p.click('[data-act="draft-end"]'); await p.waitForTimeout(100); await p.screenshot({path:'out/d_done.png'});
   // captain chip blocked from cycling
   const capChip=await p.$('.chip.team'); await capChip.click(); await p.waitForTimeout(100);
-  await p.click('[data-act="start-session"]'); await p.waitForTimeout(300); await p.screenshot({path:'out/d_live.png'});
+  await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300); await p.screenshot({path:'out/d_live.png'});
   const bt=await p.textContent('body'); if(!/©/.test(bt)) errs.push('no captain marker on board');
   const sess=await p.evaluate(()=>{ const s=window.__hs.curSession(); return {draft:s.draft&&s.draft.picks.length, caps:['A','B','C'].map(t=>s.teams[t].captain)}; }); console.log(sess); if(!sess.draft) errs.push('draft not saved in session');
   // edit teams sheet shows captain selects

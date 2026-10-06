@@ -10,7 +10,7 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   await p.click('[data-go="players"]'); await p.click('[data-act="import-players"]'); await p.fill('#impTxt',Array.from({length:12},(_,i)=>'J'+(i+1)).join('\n')); await p.click('[data-act="import-confirm"]'); await p.waitForTimeout(200);
   await p.click('[data-go="home"]'); await p.click('[data-act="new-session"]'); await p.waitForTimeout(100);
   for(let i=0;i<12;i++){ await (await p.$$('[data-act="toggle-present"]'))[i].click(); }
-  await p.click('[data-act="auto-teams"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
+  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
   await p.screenshot({path:'out/f_board.png'});
   const state=async()=>p.evaluate(()=>{ const {S,curSession,liveMatch,elapsed,remaining}=window.__hs; const s=curSession(); const m=liveMatch(s); return {running:m.running,el:elapsed(m),rem:remaining(m),n:m.events.length,shot:S.shot,stoppedBy:m.stoppedBy}; });
   console.log('before any event', await state());

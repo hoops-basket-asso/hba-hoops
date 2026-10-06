@@ -8,7 +8,7 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   await p.fill('#pinIn','2018'); await p.click('[data-act="unlock"]');
   await p.click('[data-go="players"]'); await p.click('[data-act="import-players"]'); await p.fill('#impTxt',Array.from({length:18},(_,i)=>'J'+(i+1)).join('\n')); await p.click('[data-act="import-confirm"]'); await p.waitForTimeout(200);
   await p.click('[data-go="home"]'); await p.click('[data-act="new-session"]'); for(let i=0;i<18;i++){ await (await p.$$('[data-act="toggle-present"]'))[i].click(); }
-  await p.click('[data-act="auto-teams"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
+  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
   const mem=async()=>p.evaluate(()=>({heap:Math.round(performance.memory.usedJSHeapSize/1e6),nodes:document.getElementsByTagName('*').length,timers:0}));
   console.log('start',await mem());
   let acts=0; const t0=Date.now();

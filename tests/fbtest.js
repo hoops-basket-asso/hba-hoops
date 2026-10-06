@@ -1,4 +1,4 @@
-const { chromium } = require('playwright'); const fs=require('fs'); fs.mkdirSync('out',{recursive:true});
+const { chromium } = require('playwright'); const fs=require('fs');
 (async()=>{
   const b=await chromium.launch({...(process.env.CHROMIUM?{executablePath:process.env.CHROMIUM}:{})}); const ctx=await b.newContext({viewport:{width:420,height:900},serviceWorkers:'block'});
   const fake=fs.readFileSync('./tests/fake-firebase.js','utf8');
@@ -24,7 +24,7 @@ const { chromium } = require('playwright'); const fs=require('fs'); fs.mkdirSync
   // start a new session as bureau
   await p.click('[data-go="home"]'); await p.click('[data-act="new-session"]'); await p.waitForTimeout(200);
   for(let i=0;i<12;i++){ await (await p.$$('[data-act="toggle-present"]'))[i].click(); }
-  await p.click('[data-act="auto-teams"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(400);
+  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(400);
   const sid=await p.evaluate(()=>window.__hs.S.sid); console.log('live sid',sid);
   // create scorer link
   await p.click('[data-act="scorer-links"]'); await p.waitForTimeout(300); await p.fill('#scLabel','Karen'); await p.click('[data-act="scorer-create"]'); await p.waitForTimeout(400);
@@ -33,7 +33,7 @@ const { chromium } = require('playwright'); const fs=require('fs'); fs.mkdirSync
   // logout bureau
   await p.click('[data-go="home"]'); await p.waitForTimeout(200); await p.click('[data-act="lock"]'); await p.waitForTimeout(300); console.log('after logout pill', await p.textContent('#modePill'));
   // scorer page
-  const p2=await ctx.newPage(); p2.setDefaultTimeout(8000); p2.on('pageerror',e=>errs.push('p2:'+e.message));
+  const p2=await ctx.newPage(); p2.setDefaultTimeout(8000); p2.on('console',m=>{ if(m.type()==='error') console.log('P2CONSOLE',m.text().slice(0,200)); }); p2.on('requestfailed',r=>console.log('P2FAIL',r.url().slice(0,100))); p2.on('pageerror',e=>errs.push('p2:'+e.message));
   await p2.goto(url.replace(/^.*index\.html/,URL)); await p2.waitForTimeout(900);
   const s2=await p2.evaluate(()=>({role:FB.role,scorer:window.__hs.S.scorer,view:window.__hs.S.view,sid:window.__hs.S.sid,tabs:document.querySelectorAll('#tabs button').length}));
   console.log('scorer page',s2,'pill',await p2.textContent('#modePill'), 'quick buttons', (await p2.$$('[data-q="pt2"]')).length, 'close button hidden', !(await p2.$('[data-act="close-session"]')));

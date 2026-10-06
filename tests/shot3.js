@@ -10,7 +10,7 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   await p.click('[data-go="players"]'); await p.click('[data-act="import-players"]'); await p.fill('#impTxt',['A1','A2','A3','B1','B2','B3','C1','C2','C3'].join('\n')); await p.click('[data-act="import-confirm"]'); await p.waitForTimeout(200);
   await p.click('[data-go="home"]'); await p.click('[data-act="new-session"]'); await p.waitForTimeout(200);
   for(let i=0;i<9;i++){ await (await p.$$('[data-act="toggle-present"]'))[i].click(); await p.waitForTimeout(60); }
-  await p.click('[data-act="auto-teams"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
+  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
   await p.screenshot({path:'out/s_live.png'});
   await p.click('.pbtn'); await p.waitForTimeout(200); await p.screenshot({path:'out/s_sheet.png'});
   await p.click('[data-ev="pt2"]'); await p.waitForTimeout(100); if(await p.$('[data-ast]')) await (await p.$$('[data-ast]'))[0].click(); await p.click('.pbtn'); await p.click('[data-ev="pt3"]'); await p.waitForTimeout(100); if(await p.$('[data-ast=""]')) await p.click('[data-ast=""]'); await p.waitForTimeout(200);
