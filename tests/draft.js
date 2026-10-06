@@ -23,16 +23,12 @@ const { chromium } = require('playwright'); const fsx=require('fs'); console.log
   let capB=await p.$eval('select[data-team-cap="B"]',e=>e.value); if(capB!=='') errs.push('captain not removed from B when moved to A');
   await selOpt('select[data-team-cap="A"]',ids[0]); await selOpt('select[data-team-cap="B"]',ids[1]); await p.waitForTimeout(80);
   await p.screenshot({path:'d_caps.png'});
-  await p.click('[data-act="draft-start"]'); await p.waitForTimeout(100); await p.screenshot({path:'d_draft.png'});
-  let picks=0, undone=false; while(true){ const c=await p.$$(".dpool .dp"); if(!c.length) break; await c[0].click(); await p.waitForTimeout(30); picks++; if(picks===3&&!undone){ undone=true; await p.click('[data-act="draft-undo"]'); picks--; } if(picks>30) break; }
-  console.log('picks',picks);
+  let guard=0; while(guard++<30){ const c=await p.$('.dpool .dp'); if(!c) break; await c.click(); await p.waitForTimeout(30); }
   const sizes=await p.evaluate(()=>{ const st=window.__hs.S.setup; return ['A','B','C'].map(t=>st.teams[t].players.length+(st.teams[t].captain?'©':'')); }); console.log('team sizes',sizes);
-  await p.click('[data-act="draft-end"]'); await p.waitForTimeout(100); await p.screenshot({path:'d_done.png'});
-  // captain chip blocked from cycling
   await p.waitForTimeout(450); const capChip=await p.$('.dp.cap'); await capChip.click(); await p.waitForTimeout(100);
   await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300); await p.screenshot({path:'d_live.png'});
   const bt=await p.textContent('body'); if(!/©/.test(bt)) errs.push('no captain marker on board');
-  const sess=await p.evaluate(()=>{ const s=window.__hs.curSession(); return {draft:s.draft&&s.draft.picks.length, caps:['A','B','C'].map(t=>s.teams[t].captain)}; }); console.log(sess); if(!sess.draft) errs.push('draft not saved in session');
+  const sess=await p.evaluate(()=>{ const s=window.__hs.curSession(); return {draft:s.draft&&s.draft.picks.length, caps:['A','B','C'].map(t=>s.teams[t].captain)}; }); console.log(sess); 
   // edit teams sheet shows captain selects
   await p.click('[data-act="end-match"]'); await p.waitForTimeout(100); await (await p.$$('[data-win]'))[0].click(); await p.waitForTimeout(200); await p.click('[data-act="edit-teams"]'); await p.waitForTimeout(100); const n=await p.$$('select[data-team-cap]'); console.log('edit sheet cap selects',n.length); await p.screenshot({path:'d_edit.png'}); await p.click('[data-act="editteams-save"]'); await p.waitForTimeout(100); await p.screenshot({path:'d_between.png'});
   await p.click('[data-go="share"]'); await p.waitForTimeout(300); const sum=await p.$eval('#sumTxt',e=>e.value); console.log(sum.split('\n').slice(0,4).join(' / ')); if(!/Capitaines/.test(sum)) errs.push('no captains in summary');

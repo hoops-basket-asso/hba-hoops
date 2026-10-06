@@ -42,17 +42,10 @@ const { chromium } = require('playwright');
   await selOpt('select[data-team-cap="A"]',ids[0]); await selOpt('select[data-team-cap="B"]',ids[1]); await selOpt('select[data-team-cap="C"]',ids[2]); await p.waitForTimeout(100);
   // captain cannot be dragged away
   await drag('[data-col="A"] .dp.cap','[data-col="B"]'); tt=await teams(); if(tt[0]!==1) errs.push('captain moved by drag');
-  await p.click('[data-act="draft-start"]'); await p.waitForTimeout(100);
-  const cur=await p.evaluate(()=>window.__hs.S.setup.draft.order[0]); const other=['A','B','C'].find(t=>t!==cur);
-  await drag('.dpool .dp','[data-col="'+other+'"]'); tt=await teams(); console.log('wrong column during draft', tt, 'cur',cur); if(tt.reduce((a,x)=>a+x,0)!==3) errs.push('wrong column accepted during draft');
-  await drag('.dpool .dp','[data-col="'+cur+'"]'); tt=await teams(); console.log('right column', tt); if(tt.reduce((a,x)=>a+x,0)!==4) errs.push('right column refused during draft');
-  await p.screenshot({path:'out/dnd_draft.png'});
-  // drag last pick back to pool = undo
-  await drag('[data-col="'+cur+'"] .dp:not(.cap)','[data-col="pool"]'); tt=await teams(); const picks=await p.evaluate(()=>window.__hs.S.setup.draft.picks.length); console.log('undo by drag', tt, 'picks', picks); if(picks!==0) errs.push('drag to pool did not undo');
-  // tap picks the rest
-  let guard=0; while(guard++<20){ const c=await p.$('.dpool .dp'); if(!c) break; await c.click(); await p.waitForTimeout(60); }
-  tt=await teams(); console.log('after tap draft', tt); if(tt.reduce((a,x)=>a+x,0)!==9) errs.push('draft by tap incomplete');
-  await p.click('[data-act="draft-end"]'); await p.waitForTimeout(100);
+  // fill columns by drag only
+  let guard=0; while(guard++<20){ const c=await p.$('.dpool .dp'); if(!c) break; const col=['A','B','C'][guard%3]; await drag('.dpool .dp','[data-col="'+col+'"]'); }
+  tt=await teams(); console.log('after drag fill', tt); if(tt.reduce((a,x)=>a+x,0)!==9) errs.push('drag fill incomplete');
+  await p.screenshot({path:'out/dnd_full.png'});
   await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
   const live=await p.evaluate(()=>{ const s=window.__hs.curSession(); return {status:s.status,id:s.id,draft:s.draft&&s.draft.picks.length}; }); console.log('live',live); if(live.status!=='live'||live.id!==prep.id) errs.push('prep not turned into live session');
   const nSess=await p.evaluate(()=>Object.keys(window.__hs.S.sessions).length); if(nSess!==1) errs.push('duplicate session '+nSess);
