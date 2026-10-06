@@ -13,13 +13,14 @@
   const revive=(o)=>{ if(o&&typeof o==='object'){ if('__ts' in o) return new Timestamp(o.__ts); for(const k in o) o[k]=revive(o[k]); } return o; };
   const docRef=(path)=>({
     get:async()=>{ const d=getDoc(path); return {exists:!!d,data:()=>d?revive(JSON.parse(JSON.stringify(d))):undefined,id:path.split('/')[1]}; },
-    set:async(d)=>{ setDoc(path,d); },
+    set:async(d,opt)=>{ const cur=(opt&&opt.merge)?(getDoc(path)||{}):{}; const out={...cur}; for(const [k,v] of Object.entries(d)){ if(v&&v.__inc!=null) out[k]=(cur[k]||0)+v.__inc; else if(v&&v.__union) out[k]=[...new Set([...(cur[k]||[]),...v.__union])]; else out[k]=v; } setDoc(path,out); },
     delete:async()=>{ delDoc(path); },
     onSnapshot:(a,b,c)=>{ const cb=typeof a==='function'?a:b; const f=()=>{ const d=getDoc(path); cb({exists:!!d,data:()=>d?revive(JSON.parse(JSON.stringify(d))):undefined}); }; f(); subs.push(f); return ()=>{}; }
   });
   const colRef=(c)=>({
     doc:(id)=>docRef(c+'/'+id),
     get:async()=>{ const docs=Object.entries(data[c]||{}).map(([id,d])=>({id,data:()=>revive(JSON.parse(JSON.stringify(d)))})); return {docs,empty:!docs.length}; },
+    orderBy:()=>({ limit:(n)=>({ get:async()=>{ const docs=Object.entries(data[c]||{}).sort((a,b)=>a[0]<b[0]?1:-1).slice(0,n).map(([id,d])=>({id,data:()=>d})); return {docs,empty:!docs.length}; } }) }),
     where:(f,op,v)=>({ get:async()=>{ const docs=Object.entries(data[c]||{}).filter(([id,d])=>d[f]===v).map(([id,d])=>({id,data:()=>revive(JSON.parse(JSON.stringify(d)))})); return {docs,empty:!docs.length}; } }),
     onSnapshot:(a,b,c2)=>{ const cb=typeof a==='function'?a:b; const f=()=>{ const docs=Object.entries(data[c]||{}).map(([id,d])=>({id,data:()=>revive(JSON.parse(JSON.stringify(d)))})); cb({docs,empty:!docs.length,metadata:{fromCache:false}}); }; f(); subs.push(f); return ()=>{}; }
   });
@@ -31,5 +32,5 @@
     signOut:async()=>{ user=null; localStorage.removeItem('fakeauth'); authSubs.forEach(f=>f(null)); },
     sendPasswordResetEmail:async()=>{} };
   try{ const u=localStorage.getItem('fakeauth'); if(u) user=JSON.parse(u); }catch(e){}
-  window.firebase={ initializeApp:()=>{}, auth:()=>authObj, firestore:Object.assign(()=>fsObj,{Timestamp,FieldValue:{serverTimestamp:()=>({__ts:Date.now()})}}) };
+  window.firebase={ initializeApp:()=>{}, auth:()=>authObj, firestore:Object.assign(()=>fsObj,{Timestamp,FieldValue:{serverTimestamp:()=>({__ts:Date.now()}),increment:(n)=>({__inc:n}),arrayUnion:(...a)=>({__union:a})},FieldPath:{documentId:()=>'__id'}}) };
 })();

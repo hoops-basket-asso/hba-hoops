@@ -36,8 +36,12 @@
     const un = auth.onAuthStateChanged(async u=>{ await resolveRole(u); FB.listeners.forEach(f=>f()); res(); });
   });
 
-  // lien marqueur : connexion anonyme automatique
-  if(FB.scorerToken && !auth.currentUser){ auth.signInAnonymously().catch(()=>{}); }
+  // connexion anonyme pour tout visiteur (nécessaire au lien marqueur et au compteur de fréquentation ; aucune donnée personnelle)
+  FB.ready.then(()=>{ if(!auth.currentUser){ auth.signInAnonymously().catch(()=>{}); } });
+  // compteur de fréquentation : 1 ouverture par session d'appli, appareil identifié par un jeton aléatoire local (pas de cookie tiers, pas de nom)
+  FB.countVisit = async ()=>{ try{ if(sessionStorage.getItem('hs-visit')) return; let did=localStorage.getItem('hs-did'); if(!did){ did=Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b=>b.toString(16).padStart(2,'0')).join(''); localStorage.setItem('hs-did',did); } await FB.ready; if(!auth.currentUser) await auth.signInAnonymously(); const day=new Date().toISOString().slice(0,10); await fs.doc('visits/'+day).set({count:firebase.firestore.FieldValue.increment(1),devices:firebase.firestore.FieldValue.arrayUnion(did)},{merge:true}); sessionStorage.setItem('hs-visit','1'); }catch(e){} };
+  FB.visitStats = async (days=14)=>{ const out=[]; const q=await fs.collection('visits').orderBy(firebase.firestore.FieldPath.documentId(),'desc').limit(days).get(); q.docs.forEach(d=>{ const x=d.data(); out.push({day:d.id,count:x.count||0,devices:(x.devices||[]).length}); }); return out; };
+  setTimeout(()=>FB.countVisit(),1500);
 
   FB.login = async (email,pass)=>{ await auth.signInWithEmailAndPassword(email.trim(),pass); await resolveRole(auth.currentUser); FB.listeners.forEach(f=>f()); return FB.role; };
   FB.logout = async ()=>{ await auth.signOut(); FB.role='viewer'; FB.email=null; FB.listeners.forEach(f=>f()); };

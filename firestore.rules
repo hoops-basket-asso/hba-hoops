@@ -44,6 +44,12 @@ service cloud.firestore {
       allow read: if signedIn();
       allow write: if isBureau();
     }
+    // Fréquentation : chaque visiteur (connexion anonyme) incrémente le compteur du jour ; lecture bureau.
+    match /visits/{day} {
+      allow read: if isBureau();
+      allow create, update: if signedIn() && request.resource.data.keys().hasOnly(['count', 'devices']);
+      allow delete: if isBureau();
+    }
     // Données sensibles : bureau uniquement.
     match /sanctions/{id} { allow read, write: if isBureau(); }
     match /treasury/{id}  { allow read, write: if isBureau(); }
