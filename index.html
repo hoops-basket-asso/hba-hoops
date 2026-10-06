@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-10-06 12:11';</script>
+window.HS_VERSION = '2026-10-06 12:28';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -430,6 +430,7 @@ function findIncident(iid){ for(const s of Object.values(S.sessions)){ const i=(
 const pname = id => (S.players[id]&&S.players[id].name) || (S.demo&&DEMO.players[id]&&DEMO.players[id].name) || '?';
 const pshort = id => { const p=S.players[id]; if(!p) return pname(id); if(p.nick) return p.nick; const n=p.name.replace(/\s*\(.*\)\s*/,'').trim(); const parts=n.split(/\s+/); return parts.length>1&&/^[A-ZÀ-Ý]\.?$/.test(parts[1])?parts[0]:n; };
 const narrow = () => window.innerWidth<=480;
+const pdisp = id => { const sh=pshort(id); const dup=Object.values(S.players).some(p=>p.id!==id&&p.active!==false&&pshort(p.id)===sh); return dup?pname(id):sh; };
 
 // ---------- badges (computed, never stored) ----------
 const BADGES={hot:['🔥','Chaud bouillant'],sniper:['🎯','Sniper'],wall:['🧱','Le Mur'],unbeaten:['🏅','Invaincu'],streak:['📅','Fidèle'],pillar:['🏛️','Pilier'],centurion:['💯','Centurion'],record:['🚀','Record perso'],cool:['🧊','Sang-froid'],magnet:['🧲','Aimant à victoires'],maestro:['🎩','Chef d\'orchestre']};
@@ -723,7 +724,7 @@ function render(){ try{ renderInner(); }catch(err){ console.error(err); const m=
 function renderInner(){
   const forms=captureForms();
   const main=$('#main'); const tabs=$('#tabs'); const pill=$('#modePill');
-  pill.className='pill '+(S.demo?'':(S.unlocked&&S.canWrite!==false?'live':'ro')); pill.textContent=S.demo?'Mode démo':(S.scorer?'Marqueur':(S.unlocked&&S.canWrite!==false?'Table de marque':'Consultation'));
+  pill.className='pill '+(S.demo?'':(S.unlocked&&S.canWrite!==false?'live':'ro')); pill.textContent=S.demo?'Mode démo':(S.scorer?'✎ Marqueur':(S.unlocked&&S.canWrite!==false?'🔓 Bureau':'Consultation')); pill.title=S.scorer?'Vous pouvez saisir la table de marque de cette séance':(S.unlocked?'Connecté comme membre du bureau : saisie et gestion':'Lecture seule : stats et classements');
   if(S.scorer){ S.view='live'; if(FB.scorerSid) S.sid=FB.scorerSid; }
   const T=S.scorer?[]:[['home','🏠','Accueil'],['stats','📊','Stats'],['players','👥','Joueurs'],['share','📣','Résumé']]; if(!S.demo&&!S.scorer&&(!fbMode()||S.unlocked)) T.push(['bureau',S.unlocked?'🗂️':'🔒','Bureau']);
   tabs.innerHTML=T.map(([v,i,l])=>`<button data-go="${v}" class="${S.view===v||(v==='home'&&['setup','live'].includes(S.view))||(v==='bureau'&&['discipline','treasury','settings'].includes(S.view))?'on':''}"><span class="ic">${i}</span>${l}</button>`).join('');
@@ -928,7 +929,11 @@ function vDiscipline(){
   let h=bureauSeg('discipline')+`<div class="card"><div class="row"><h2 class="grow">Discipline</h2>${rw?`<button class="btn sm danger" data-act="add-sanction">+ Sanction</button>`:''}</div>
   <p class="muted small">Saison ${esc(seasonBounds().start.slice(0,4))}-${esc(seasonBounds().end.slice(0,4))}. Le compteur de récidive suit le barème : 3 sanctions graves (B ou C) = radiation. Amende : carafe sur place ou ${S.config.fineAmount||45} € sur le compte de l'association.</p>
   ${(()=>{ const oi=openIncidents(); if(!oi.length) return ''; return `<h3 style="margin:6px 0">À traiter : ${oi.length} incident${oi.length>1?'s':''}</h3>`+oi.map(i=>`<div class="alert warn"><b>${esc(pname(i.pid))}</b> · ${esc(fmtShort(i.date))}${i.matchN?' · match '+i.matchN:''} · ${esc((INCIDENTS.find(x=>x[0]===i.kind)||[])[1]||i.kind)}${i.note?' · '+esc(i.note):''}${rw?`<div class="row" style="margin-top:8px"><button class="btn sm primary" data-act="sanction-from" data-id="${i.id}">Créer la sanction</button><button class="btn sm ghost" data-act="incident-dismiss" data-id="${i.id}">Classer sans suite</button></div>`:''}</div>`).join(''); })()}
-  ${sanc.length?sanc.map(x=>`<div class="lead" ${rw?`style="cursor:pointer" data-act="edit-sanction" data-id="${x.id}"`:''}><div class="ico"><span class="tag ${x.cat}">${x.cat}</span></div><div><div class="who">${esc(pname(x.pid))} <span class="muted small" style="font-weight:500">· ${esc(fmtShort(x.date))}</span></div><div class="what">${esc(x.type)} — ${esc(x.sanction||'')}${x.until?' · jusqu\'au '+esc(fmtShort(x.until)):''}${x.fine?(x.finePaid?' · 🍺 réglée':' · <b style="color:var(--bad)">🍺 amende à régler</b>'):''}${x.note?' · '+esc(x.note):''}</div></div><div class="big num" style="font-size:18px">${x.nth?x.nth+'e':''}</div></div>`).join(''):'<div class="empty">Aucune sanction enregistrée.</div>'}</div>`;
+  ${(()=>{ const flt=S.dFilter||'all'; const shown=sanc.filter(x=>flt==='all'?true:flt==='due'?(x.fine&&!x.finePaid):flt==='active'?(x.until&&x.until>=today()):x.cat===flt); const cnt=k=>sanc.filter(x=>k==='all'?true:k==='due'?(x.fine&&!x.finePaid):k==='active'?(x.until&&x.until>=today()):x.cat===k).length;
+    const shortS=x=>{ const m=(x.sanction||'').match(/(\d+)\s*séance/); return (m?m[1]+' séance'+(m[1]>1?'s':''):(x.sanction||'—').replace(/\s*\+\s*carafe/i,'').slice(0,22))+(x.until?' → '+fmtShort(x.until):''); };
+    const _=0;
+    return `<div class="seg sub" style="margin-top:8px">${[['all','Toutes'],['due','🍺 À régler'],['active','En cours'],['A','Cat. A'],['B','Cat. B'],['C','Cat. C']].map(([k,l])=>`<button class="${flt===k?'on':''}" data-dfilter="${k}">${l} <span class="muted">${cnt(k)}</span></button>`).join('')}</div>
+    ${shown.length?`<div class="tbl"><table><thead><tr><th>Joueur</th><th>Cat.</th><th>Sanction</th><th title="Amende">🍺</th></tr></thead><tbody>${shown.map(x=>`<tr ${rw?`data-act="edit-sanction" data-id="${x.id}" style="cursor:pointer"`:''}><td class="name"><b>${esc(pname(x.pid))}</b>${x.nth>1?` <span class="muted small">${x.nth}e</span>`:''}<div class="muted small">${esc(fmtShort(x.date))}</div></td><td><span class="tag ${x.cat}">${x.cat}</span></td><td class="small">${esc(shortS(x))}</td><td class="num">${x.fine?(x.finePaid?'<span style="color:var(--good)" title="réglée">✔</span>':'<b style="color:var(--bad)" title="à régler">due</b>'):'<span class="muted">—</span>'}</td></tr>`).join('')}</tbody></table></div><p class="muted small">Tapez une ligne pour le détail et la modification. A = contestation / technique, B = blocage de séance, C = violence.</p>`:'<div class="empty">Aucune sanction dans cette sélection.</div>'}`; })()}</div>`;
   if(multi.length) h+=`<div class="card"><h2>Récidive <span class="muted" style="font-size:15px;font-family:var(--body);font-weight:500">joueurs à surveiller</span></h2>${multi.map(([pid,l])=>{ const grave=l.filter(x=>x.cat!=='A').length; return `<div class="lead" data-act="player-detail" data-id="${pid}" style="cursor:pointer"><div class="ico">${grave>=2?'🔴':grave===1?'🟠':'🟡'}</div><div><div class="who">${esc(pname(pid))}</div><div class="what">${l.length} sanction${l.length>1?'s':''} · ${grave} grave${grave>1?'s':''} (B/C) sur 3 avant radiation</div></div></div>`; }).join('')}</div>`;
   return h;
 }
@@ -1148,10 +1153,11 @@ document.addEventListener('change',ev=>{ const t=ev.target; if(t.dataset.teamCap
 document.addEventListener('click',async ev=>{
   if(ev.target.id==='pendPill'){ retryFailed(); toast('Nouvel essai…'); return; }
   const stop=ev.target.closest('[data-stop]'); const bg=ev.target.closest('.sheet-bg');
-  const el=ev.target.closest('[data-pstatus],[data-pfilter],[data-stats-seg],[data-bureau-seg],[data-act],[data-go],[data-period],[data-sort],[data-ev],[data-win],[data-ast]');
+  const el=ev.target.closest('[data-dfilter],[data-pstatus],[data-pfilter],[data-stats-seg],[data-bureau-seg],[data-act],[data-go],[data-period],[data-sort],[data-ev],[data-win],[data-ast]');
   if(!el){ if(bg&&!stop){ S.sheet=null; S.subOut=null; render(); } return; }
   if(el.dataset.go){ go(el.dataset.go==='bureau'?(S.bureauView||'discipline'):el.dataset.go); return; }
   if(el.dataset.pstatus){ const v=el.dataset.pstatus; $('#pestatus').value=v; el.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.pstatus===v)); return; }
+  if(el.dataset.dfilter){ S.dFilter=el.dataset.dfilter; render(); return; }
   if(el.dataset.pfilter){ S.pFilter=el.dataset.pfilter; render(); return; }
   if(el.dataset.statsSeg){ S.statsSeg=el.dataset.statsSeg; render(); return; }
   if(el.dataset.bureauSeg){ go(el.dataset.bureauSeg); return; }
