@@ -1,10 +1,11 @@
-const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.html'; require('fs').mkdirSync('out',{recursive:true}); const fs=require('fs');
+const { chromium } = require('playwright'); const fs=require('fs'); fs.mkdirSync('out',{recursive:true});
 (async()=>{
   const b=await chromium.launch({...(process.env.CHROMIUM?{executablePath:process.env.CHROMIUM}:{})}); const ctx=await b.newContext({viewport:{width:420,height:900}});
   const fake=fs.readFileSync('./tests/fake-firebase.js','utf8');
   await ctx.route(/gstatic\.com\/firebasejs\//, r=>r.fulfill({contentType:'application/javascript',body:'/* noop */'}));
   await ctx.route(/gstatic\.com\/firebasejs\/.*firebase-app-compat/, r=>r.fulfill({contentType:'application/javascript',body:fake}));
   await ctx.route(/fonts\.googleapis|fonts\.gstatic/, r=>r.fulfill({contentType:'text/css',body:''}));
+  await ctx.route(/sw\.js$/, r=>r.fulfill({status:404,body:''}));
   const p=await ctx.newPage(); p.setDefaultTimeout(8000); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
   const URL='http://127.0.0.1:8099/index.html';
   await p.goto(URL); await p.waitForTimeout(800);
@@ -19,7 +20,7 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   console.log('after import',st, 'pill', await p.textContent('#modePill'));
   await p.screenshot({path:'./out/fb_home.png'});
   // stats of imported session
-  await p.click('[data-go="stats"]'); await p.waitForTimeout(400); const t=await p.textContent('#main'); console.log('stats has player', /Joueur 01/.test(t), 'approx', /approximatif/.test(t));
+  await p.click('[data-go="stats"]'); await p.waitForTimeout(400); await p.click('[data-stats-seg="teams"]'); await p.waitForTimeout(200); const t=await p.textContent('#main'); console.log('stats has Hervé', /Hervé/.test(t), 'approx', /approximatif/.test(t));
   // start a new session as bureau
   await p.click('[data-go="home"]'); await p.click('[data-act="new-session"]'); await p.waitForTimeout(200);
   for(let i=0;i<12;i++){ await (await p.$$('[data-act="toggle-present"]'))[i].click(); }
