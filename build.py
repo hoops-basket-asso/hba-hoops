@@ -5,6 +5,9 @@ root = pathlib.Path(__file__).parent
 app = (root/'src/app.html').read_text(encoding='utf-8')
 shim = (root/'src/fb-shim.js').read_text(encoding='utf-8')
 cfg = (root/'src/config.js').read_text(encoding='utf-8')
+import datetime, zoneinfo
+stamp = datetime.datetime.now(zoneinfo.ZoneInfo('Europe/Paris')).strftime('%Y-%m-%d %H:%M')
+cfg = cfg + '\nwindow.HS_VERSION = ' + repr(stamp) + ';'
 head = f'''<!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#151515"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black">
