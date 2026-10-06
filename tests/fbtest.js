@@ -1,6 +1,6 @@
 const { chromium } = require('playwright'); const fs=require('fs'); fs.mkdirSync('out',{recursive:true});
 (async()=>{
-  const b=await chromium.launch({...(process.env.CHROMIUM?{executablePath:process.env.CHROMIUM}:{})}); const ctx=await b.newContext({viewport:{width:420,height:900}});
+  const b=await chromium.launch({...(process.env.CHROMIUM?{executablePath:process.env.CHROMIUM}:{})}); const ctx=await b.newContext({viewport:{width:420,height:900},serviceWorkers:'block'});
   const fake=fs.readFileSync('./tests/fake-firebase.js','utf8');
   await ctx.route(/gstatic\.com\/firebasejs\//, r=>r.fulfill({contentType:'application/javascript',body:'/* noop */'}));
   await ctx.route(/gstatic\.com\/firebasejs\/.*firebase-app-compat/, r=>r.fulfill({contentType:'application/javascript',body:fake}));
