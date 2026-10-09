@@ -1,6 +1,7 @@
 // ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
+  if(new URLSearchParams(location.search).get('mode')==='test'){ return; } // ?mode=test : entraînement local, aucune connexion à la base de l'association
   if(!cfg || !window.firebase){ return; } // sans config : l'appli tombe en mode entraînement local
   firebase.initializeApp(cfg);
   const auth = firebase.auth();
