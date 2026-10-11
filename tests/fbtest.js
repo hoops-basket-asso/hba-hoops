@@ -1,7 +1,7 @@
 const { chromium } = require('playwright'); const fs=require('fs');
 (async()=>{
-  const b=await chromium.launch({...(process.env.CHROMIUM?{executablePath:process.env.CHROMIUM}:{})}); const ctx=await b.newContext({viewport:{width:420,height:900},serviceWorkers:'block'});
-  const fake=fs.readFileSync('./tests/fake-firebase.js','utf8');
+  const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}); const ctx=await b.newContext({viewport:{width:420,height:900},serviceWorkers:'block'});
+  const fake=fs.readFileSync('/tmp/fake-firebase.js','utf8');
   await ctx.route(/gstatic\.com\/firebasejs\//, r=>r.fulfill({contentType:'application/javascript',body:'/* noop */'}));
   await ctx.route(/gstatic\.com\/firebasejs\/.*firebase-app-compat/, r=>r.fulfill({contentType:'application/javascript',body:fake}));
   await ctx.route(/fonts\.googleapis|fonts\.gstatic/, r=>r.fulfill({contentType:'text/css',body:''}));
@@ -13,12 +13,16 @@ const { chromium } = require('playwright'); const fs=require('fs');
   // bootstrap login
   await p.fill('#fbEmail','w.simbnag@gmail.com'); await p.fill('#fbPass','x'); await p.click('[data-act="fb-login"]'); await p.waitForTimeout(500);
   console.log('after login: import card', !!(await p.$('#impFile')), 'role', await p.evaluate(()=>FB.role));
-  await p.setInputFiles('#impFile','./tests/fixture-export.json'); await p.fill('#bureauEmails','w.simbnag@gmail.com\nclaude@example.com\nstephane@example.com');
+  await p.setInputFiles('#impFile','tests/fixture-export.json'); await p.fill('#bureauEmails','w.simbnag@gmail.com\nclaude@example.com\nstephane@example.com');
   await p.click('[data-act="fb-import"]'); await p.waitForTimeout(1500);
   const st=await p.evaluate(()=>({role:FB.role,players:Object.keys(window.__hs.S.players).length,sessions:Object.keys(window.__hs.S.sessions).length,unlocked:window.__hs.S.unlocked}));
   const sanc=await p.evaluate(()=>Object.keys(window.__hs.S.sanctions).length); console.log('sanctions visible after import',sanc); if(sanc!==6) errs.push('sanctions not loaded');
   console.log('after import',st, 'pill', await p.textContent('#modePill'));
-  await p.screenshot({path:'./out/fb_home.png'});
+  await p.screenshot({path:'out/fb_home.png'});
+  // restore flow : modify a session in a dump and restore
+  { const dump=JSON.parse(require('fs').readFileSync('tests/fixture-export.json','utf8')); const sid=Object.keys(dump.sessions)[0]; dump.sessions[sid].statsNote='restauré'; require('fs').writeFileSync('/tmp/restore.json',JSON.stringify({sessions:{[sid]:dump.sessions[sid]}}));
+    await p.click('[data-go="bureau"]'); await p.waitForTimeout(150); await p.click('[data-bureau-seg="settings"]').catch(()=>{}); await p.waitForTimeout(150); await p.setInputFiles('#restFile','/tmp/restore.json'); p.once('dialog',d=>d.accept()); await p.click('[data-act="fb-restore"]'); await p.waitForTimeout(800);
+    const note=await p.evaluate(id=>window.__hs.S.sessions[id]&&window.__hs.S.sessions[id].statsNote,sid); console.log('restored note',note); if(note!=='restauré') errs.push('restore failed'); }
   // stats of imported session
   await p.click('[data-go="stats"]'); await p.waitForTimeout(400); await p.click('[data-stats-seg="teams"]'); await p.waitForTimeout(200); const t=await p.textContent('#main'); console.log('stats has Hervé', /Hervé/.test(t), 'approx', /approximatif/.test(t));
   // start a new session as bureau
@@ -28,7 +32,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
   const sid=await p.evaluate(()=>window.__hs.S.sid); console.log('live sid',sid);
   // create scorer link
   await p.click('[data-act="scorer-links"]'); await p.waitForTimeout(300); await p.fill('#scLabel','Karen'); await p.click('[data-act="scorer-create"]'); await p.waitForTimeout(400);
-  const url=await p.evaluate(()=>window.__hs.S.sheet&&window.__hs.S.sheet.newUrl); console.log('scorer url',url); await p.screenshot({path:'./out/fb_link.png'});
+  const url=await p.evaluate(()=>window.__hs.S.sheet&&window.__hs.S.sheet.newUrl); console.log('scorer url',url); await p.screenshot({path:'out/fb_link.png'});
   await p.click('[data-act="sheet-close"] button[data-act="sheet-close"]').catch(()=>{});
   // logout bureau
   await p.click('[data-go="home"]'); await p.waitForTimeout(200); await p.click('[data-act="lock"]'); await p.waitForTimeout(300); console.log('after logout pill', await p.textContent('#modePill'));
@@ -39,7 +43,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
   console.log('scorer page',s2,'pill',await p2.textContent('#modePill'), 'quick buttons', (await p2.$$('[data-q="pt2"]')).length, 'close button hidden', !(await p2.$('[data-act="close-session"]')));
   await (await p2.$$('[data-q="pt2"]'))[0].click(); await p2.waitForTimeout(300); await p2.click('[data-act="ast-pick"][data-id=""]'); await p2.waitForTimeout(400);
   const saved=await p2.evaluate(()=>{ const d=JSON.parse(localStorage.getItem('fakefs')); const s=Object.values(d.sessions).find(x=>x.status==='live'); return {events:s.matches[0].events.length, token:s.scorerToken}; }); console.log('scorer write',saved);
-  await p2.screenshot({path:'./out/fb_scorer.png'});
+  await p2.screenshot({path:'out/fb_scorer.png'});
   // viewer sees the live score (p is viewer now)
   await p.waitForTimeout(500); await p.click('[data-act="open-live"]').catch(()=>{}); await p.waitForTimeout(300); const vt=await p.textContent('#main'); console.log('viewer sees live', /Match 1/.test(vt));
   console.log('errors',errs); await b.close();
