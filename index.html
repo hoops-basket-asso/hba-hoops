@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-10-11 14:48';</script>
+window.HS_VERSION = '2026-10-11 15:11';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -641,46 +641,46 @@ function periodSessionsFor(period,ref){ const keep={p:S.period,s:S.sid}; S.perio
 
 async function summaryImage(sess){
   await (document.fonts&&document.fonts.ready||Promise.resolve());
-  const ss=sessionStats(sess); const rows=Object.values(ss.pl);
-  const c=document.createElement('canvas'); c.width=1080; c.height=1350; const x=c.getContext('2d');
-  const NAVY='#1B2A41',OR='#E8702A',LG='#F4F1EC';
-  x.fillStyle=LG; x.fillRect(0,0,1080,1350); x.fillStyle=NAVY; x.fillRect(0,0,1080,230); x.fillStyle=OR; x.fillRect(0,230,1080,12);
-  x.fillStyle=OR; x.font='700 28px "Barlow Condensed", Impact, sans-serif'; x.fillText('HOOPS BASKET ASSOCIATION',60,70);
-  x.fillStyle='#fff'; x.font='800 72px "Barlow Condensed", Impact, sans-serif'; x.fillText('Le résumé du dimanche',60,150);
-  x.font='500 30px Barlow, system-ui, sans-serif'; x.fillStyle='#C9D0DD'; x.fillText(fmtDate(sess.date)+' · '+ss.done+' matchs · '+ss.players+' joueurs',60,205);
-  let y=300;
+  const ss=sessionStats(sess); const rows=Object.values(ss.pl); const tn=t=>(sess.teams[t]&&(sess.teams[t].name||TNAMES[t]))||t;
+  const W=1080; const big=document.createElement('canvas'); big.width=W; big.height=2600; const x=big.getContext('2d');
+  const INK='#151515',OR='#E4692B',CREAM='#F7F4EE',CARD='#FFFFFF',MUTED='#6B7280',GOOD='#01A54E';
+  const F=(w,px,cond)=>x.font=w+' '+px+'px '+(cond?'"Barlow Condensed", Impact, "Arial Narrow", sans-serif':'Barlow, system-ui, -apple-system, sans-serif');
+  const fit=(txt,max)=>{ let t=String(txt); while(x.measureText(t).width>max&&t.length>3) t=t.slice(0,-2)+'…'; return t; };
+  const label=(txt,y)=>{ F(700,24); x.fillStyle=OR; x.fillText(txt.toUpperCase(),60,y); x.fillStyle='#E3DFD6'; x.fillRect(60+x.measureText(txt.toUpperCase()).width+16,y-9,W-120-x.measureText(txt.toUpperCase()).width-16,3); };
+  x.fillStyle=CREAM; x.fillRect(0,0,W,big.height);
+  // header
+  x.fillStyle=INK; x.fillRect(0,0,W,250); [['#151515',0],['#01A54E',1],['#E53935',2],['#FABF25',3],['#1B2A41',4]].forEach(([c,i])=>{ x.fillStyle=c; x.fillRect(i*W/5,250,W/5,10); });
+  F(700,28,true); x.fillStyle=OR; x.fillText('HOOPS BASKET ASSOCIATION',60,72);
+  F(800,84,true); x.fillStyle='#fff'; x.fillText('Le résumé du dimanche',60,160);
+  F(500,30); x.fillStyle='#C9D0DD'; x.fillText(fmtDate(sess.date)+' · '+ss.done+' match'+(ss.done>1?'s':'')+' · '+ss.players+' joueurs',60,215);
+  let y=320;
+  // teams podium
   const tRank=Object.entries(ss.teams).sort((a,b)=>b[1].w-a[1].w||(b[1].pf-b[1].pa)-(a[1].pf-a[1].pa));
-  const col={A:tcol(sess.teams,'A'),B:tcol(sess.teams,'B'),C:tcol(sess.teams,'C'),D:tcol(sess.teams,'D')};
-  x.fillStyle=NAVY; x.font='700 26px Barlow, system-ui, sans-serif'; x.fillText('ÉQUIPES',60,y); y+=20;
-  const bw=(960-20*(tRank.length-1))/Math.max(1,tRank.length);
-  tRank.forEach(([t,v],i)=>{ const bx=60+i*(bw+20); x.fillStyle=i===0?NAVY:'#fff'; roundRect(x,bx,y,bw,140,16); x.fill(); x.fillStyle=col[t]; x.beginPath(); x.arc(bx+34,y+38,12,0,7); x.fill(); x.strokeStyle='rgba(0,0,0,.3)'; x.lineWidth=2; x.stroke();
-    x.fillStyle=i===0?'#fff':NAVY; x.font='700 30px Barlow, system-ui, sans-serif'; x.fillText((sess.teams[t].name||TNAMES[t]).slice(0,14),bx+56,y+48);
-    x.font='800 56px "Barlow Condensed", Impact, sans-serif'; x.fillStyle=i===0?OR:NAVY; x.fillText(v.w+' V – '+v.l+' D',bx+24,y+112); if(i===0){x.font='700 24px Barlow, system-ui, sans-serif'; x.fillStyle='#fff'; x.fillText('🏆',bx+bw-56,y+48);} });
-  y+=190;
-  const top=[...rows].sort((a,b)=>b.pts-a.pts); const sniper=[...rows].sort((a,b)=>b.fg3-a.fg3)[0]; const pm=[...rows].sort((a,b)=>b.pm-a.pm)[0];
-  const ft=[...rows].filter(r=>r.fta>=3).sort((a,b)=>pct(b.ftm,b.fta)-pct(a.ftm,a.fta))[0];
-  const tech=rows.reduce((a,r)=>a+r.tech,0), uns=rows.reduce((a,r)=>a+r.uns,0);
-  const awards=[]; { const mv=mvpPick(rows); if(mv) awards.push(['👑','MVP',pname(mv.r.id),'indice '+Math.round(mv.v)]); } if(top[0])awards.push(['🔥','Meilleur marqueur',pname(top[0].id),top[0].pts+' pts']); if(sniper&&sniper.fg3)awards.push(['🎯','Sniper',pname(sniper.id),sniper.fg3+' × 3 pts']);
-  if(pm&&pm.pm>0)awards.push(['🧱','Meilleur +/-',pname(pm.id),'+'+pm.pm]); if(ft)awards.push(['🆓','Lancers francs',pname(ft.id),ft.ftm+'/'+ft.fta]);
-  awards.push(['🧊','Fair-play',tech+' tech. · '+uns+' antisp.','']);
-  x.fillStyle=NAVY; x.font='700 26px Barlow, system-ui, sans-serif'; x.fillText('LES RÉCOMPENSES',60,y); y+=20;
-  awards.forEach(a=>{ x.fillStyle='#fff'; roundRect(x,60,y,960,86,14); x.fill(); x.font='40px sans-serif'; x.fillStyle=NAVY; x.fillText(a[0],80,y+58); x.font='700 22px Barlow, system-ui, sans-serif'; x.fillStyle='#6B7280'; x.fillText(a[1].toUpperCase(),150,y+36); x.font='700 32px Barlow, system-ui, sans-serif'; x.fillStyle=NAVY; x.fillText(a[2],150,y+72); x.font='800 44px "Barlow Condensed", Impact, sans-serif'; x.fillStyle=OR; x.textAlign='right'; x.fillText(a[3],1000,y+62); x.textAlign='left'; y+=100; });
-  y+=30; x.fillStyle=NAVY; x.font='700 26px Barlow, system-ui, sans-serif'; x.fillText('TOP 5 MARQUEURS',60,y); y+=24;
-  const mx=Math.max(1,...top.slice(0,5).map(r=>r.pts));
-  top.slice(0,5).forEach((r,i)=>{ x.fillStyle=NAVY; x.font='700 30px Barlow, system-ui, sans-serif'; x.fillText((i+1)+'. '+pname(r.id),60,y+34); x.fillStyle='#E3DFD6'; roundRect(x,480,y+8,440,32,8); x.fill(); x.fillStyle=i===0?OR:NAVY; roundRect(x,480,y+8,Math.max(20,440*r.pts/mx),32,8); x.fill(); x.font='800 36px "Barlow Condensed", Impact, sans-serif'; x.fillStyle=NAVY; x.textAlign='right'; x.fillText(r.pts+' pts',1020,y+38); x.textAlign='left'; y+=54; });
-  x.fillStyle=NAVY; x.fillRect(0,1290,1080,60); x.fillStyle='#fff'; x.font='500 22px Barlow, system-ui, sans-serif'; x.fillText('Hoops Stats · stats complètes dans l\'appli',60,1328);
-  return c;
+  label(sess.teamsApprox?'Équipes (classement approximatif)':'Équipes du jour',y); y+=24;
+  const bw=(W-120-20*(tRank.length-1))/Math.max(1,tRank.length);
+  tRank.forEach(([t,v],i)=>{ const bx=60+i*(bw+20); const c=tcol(sess.teams,t); x.fillStyle=i===0?INK:CARD; roundRect(x,bx,y,bw,170,18); x.fill(); x.fillStyle=c; x.fillRect(bx,y+170-8,bw,8); x.beginPath(); x.arc(bx+36,y+42,14,0,7); x.fill(); x.strokeStyle='rgba(0,0,0,.35)'; x.lineWidth=2; x.stroke();
+    F(700,30); x.fillStyle=i===0?'#fff':INK; x.fillText(fit(tn(t),bw-110),bx+60,y+52); if(i===0){ F(400,34); x.fillText('🏆',bx+bw-58,y+54); }
+    F(800,58,true); x.fillStyle=i===0?OR:INK; x.fillText(v.w+' V – '+v.l+' D',bx+24,y+118);
+    const cap=sess.teams[t]&&sess.teams[t].captain; if(cap){ F(500,20); x.fillStyle=i===0?'#C9D0DD':MUTED; x.fillText(fit('© '+pshort(cap),bw-48),bx+24,y+150); } });
+  y+=170+44;
+  // MVP hero
+  const mv=mvpPick(rows); if(mv){ const r=mv.r; x.fillStyle=OR; roundRect(x,60,y,W-120,170,20); x.fill(); F(400,70); x.fillStyle='#fff'; x.fillText('👑',88,y+108); F(700,24); x.fillStyle='rgba(255,255,255,.85)'; x.fillText('MVP DE LA SÉANCE',190,y+52); F(800,64,true); x.fillStyle='#fff'; x.fillText(fit(pname(r.id),W-120-150-60),190,y+118); F(500,26); x.fillStyle='rgba(255,255,255,.9)'; x.fillText(r.pts+' pts · '+(r.ast||0)+' passe'+((r.ast||0)>1?'s':'')+' déc. · '+r.w+' V – '+(r.gp-r.w)+' D · indice '+Math.round(mv.v),190,y+152); y+=170+36; }
+  // awards grid
+  const top=[...rows].sort((a,b)=>b.pts-a.pts); const sniper=[...rows].filter(r=>r.fg3).sort((a,b)=>b.fg3-a.fg3)[0]; const pm=[...rows].sort((a,b)=>b.pm-a.pm)[0]; const asr=[...rows].filter(r=>r.ast).sort((a,b)=>b.ast-a.ast)[0];
+  const ft=[...rows].filter(r=>r.fta>=3).sort((a,b)=>pct(b.ftm,b.fta)-pct(a.ftm,a.fta))[0]; const tech=rows.reduce((a,r)=>a+r.tech,0), uns=rows.reduce((a,r)=>a+r.uns,0);
+  const A=[]; if(top[0]) A.push(['🔥','Meilleur marqueur',pname(top[0].id),top[0].pts+' pts']); if(asr) A.push(['🎩','Meilleur passeur',pname(asr.id),asr.ast+' PD']); if(sniper) A.push(['🎯','Sniper',pname(sniper.id),sniper.fg3+' × 3 pts']);
+  if(pm&&pm.pm>0) A.push(['🧱','Meilleur +/-',pname(pm.id),'+'+pm.pm]); if(ft) A.push(['🆓','Lancers francs',pname(ft.id),ft.ftm+'/'+ft.fta]); A.push(['🧊','Fair-play',tech+uns?tech+' tech. · '+uns+' antisp.':'Zéro faute grave','']);
+  if(A.length){ label('Les récompenses',y); y+=24; const cw=(W-120-20)/2; A.forEach((a,i)=>{ const cx=60+(i%2)*(cw+20), cy=y+Math.floor(i/2)*126; x.fillStyle=CARD; roundRect(x,cx,cy,cw,110,16); x.fill(); F(400,40); x.fillStyle=INK; x.fillText(a[0],cx+22,cy+66); F(700,20); x.fillStyle=MUTED; x.fillText(a[1].toUpperCase(),cx+86,cy+36); let vw=0; if(a[3]){ F(800,36,true); vw=x.measureText(a[3]).width+16; x.fillStyle=OR; x.textAlign='right'; x.fillText(a[3],cx+cw-20,cy+84); x.textAlign='left'; } F(700,30); x.fillStyle=INK; x.fillText(fit(a[2],cw-106-vw),cx+86,cy+76); }); y+=Math.ceil(A.length/2)*126+24; }
+  // top 5 scorers
+  if(top.length){ label('Top 5 marqueurs',y); y+=30; const mx=Math.max(1,...top.slice(0,5).map(r=>r.pts)); top.slice(0,5).forEach((r,i)=>{ F(700,30); x.fillStyle=INK; x.fillText(fit((i+1)+'. '+pname(r.id),380),60,y+34); x.fillStyle='#E3DFD6'; roundRect(x,460,y+6,420,34,10); x.fill(); x.fillStyle=i===0?OR:INK; roundRect(x,460,y+6,Math.max(24,420*r.pts/mx),34,10); x.fill(); F(800,38,true); x.fillStyle=INK; x.textAlign='right'; x.fillText(r.pts+' pts',W-60,y+38); x.textAlign='left'; y+=56; }); y+=20; }
+  // badges
+  const bd=badgesForSession(sess); if(bd.length){ label('Badges du jour',y); y+=30; const by={}; bd.forEach(b=>(by[b.pid]=by[b.pid]||[]).push(b)); Object.entries(by).slice(0,6).forEach(([pid,l])=>{ F(700,28); x.fillStyle=INK; x.fillText(fit(pname(pid),340),60,y+30); F(400,30); x.fillText(l.map(b=>b.icon).join(' '),420,y+32); F(500,24); x.fillStyle=MUTED; x.fillText(fit(l.map(b=>b.label).join(' · '),W-60-520),520,y+30); y+=46; }); y+=20; }
+  // NBA wink (one line)
+  const nb=nbaDayHighlights(sess)[0]; if(nb){ x.fillStyle=CARD; roundRect(x,60,y,W-120,112,16); x.fill(); F(400,40); x.fillText('🏀',84,y+68); F(700,20); x.fillStyle=MUTED; x.fillText('CLIN D\'ŒIL NBA',150,y+38); F(700,28); x.fillStyle=INK; const txt=pname(nb.pid)+' · '+(nb.l.text||'').replace(/<[^>]+>/g,''); F(600,26); const words=txt.split(' '); let line='', lines=[]; words.forEach(w=>{ if(x.measureText(line+' '+w).width>W-120-110&&line){ lines.push(line); line=w; } else line=line?line+' '+w:w; }); lines.push(line); x.fillStyle=INK; F(600,26); x.fillText(lines[0],150,y+72); if(lines[1]){ F(500,24); x.fillStyle=MUTED; x.fillText(fit(lines.slice(1).join(' '),W-120-110),150,y+100); } y+=112+24; }
+  // footer
+  x.fillStyle=INK; x.fillRect(0,y,W,90); F(500,22); x.fillStyle='#fff'; x.fillText('Hoops Stats · stats complètes, ladder et badges dans l\'appli',60,y+38); F(700,24,true); x.fillStyle=OR; x.fillText('hoops-basket-asso.github.io/hba-hoops',60,y+70); y+=90;
+  const c=document.createElement('canvas'); c.width=W; c.height=y; c.getContext('2d').drawImage(big,0,0); return c;
 }
-async function statsImage(ag,sess){ await (document.fonts&&document.fonts.ready||Promise.resolve()); const rows=[...ag.pl].sort((a,b)=>b.pts-a.pts).slice(0,12); const c=document.createElement('canvas'); c.width=1080; c.height=260+rows.length*72+140; const x=c.getContext('2d');
-  const INK='#151515',OR='#E4692B',CREAM='#F7F4EE'; x.fillStyle=CREAM; x.fillRect(0,0,c.width,c.height); x.fillStyle=INK; x.fillRect(0,0,1080,200);
-  x.fillStyle=OR; x.font='700 26px "Barlow Condensed", Impact, sans-serif'; x.fillText('HOOPS BASKET ASSOCIATION',60,62);
-  const lab={session:'Séance',month:'Mois',quarter:'Trimestre',season:'Saison',all:'Depuis le début'}[S.period]||''; x.fillStyle='#fff'; x.font='800 64px "Barlow Condensed", Impact, sans-serif'; x.fillText('Classement · '+lab,60,135);
-  x.font='500 26px Barlow, system-ui, sans-serif'; x.fillStyle='#C9D0DD'; x.fillText(sess.length===1?fmtDate(sess[0].date):fmtShort(sess[sess.length-1].date)+' → '+fmtShort(sess[0].date)+' · '+ag.sessions+' séances · '+ag.matches+' matchs',60,180);
-  ['#01A54E','#EE312B','#FABF25','#4156A7'].forEach((col,i)=>{ x.fillStyle=col; x.fillRect(i*270,200,270,10); });
-  let y=250; x.fillStyle='#6B6B70'; x.font='700 20px Barlow, system-ui, sans-serif'; [['#',60],['JOUEUR',110],['PTS',540],['MJ',640],['% V',770],['3 PTS',880],['PD',960]].forEach(([t,px])=>{ x.textAlign=px>500?'right':'left'; x.fillText(t,px>500?px+60:px,y); }); x.textAlign='left'; y+=20;
-  rows.forEach((r,i)=>{ x.fillStyle=i%2?'#FFFFFF':'#F0ECE3'; x.fillRect(40,y,1000,64); x.fillStyle=i<3?OR:INK; x.font='800 34px "Barlow Condensed", Impact, sans-serif'; x.fillText(String(i+1),60,y+44); x.fillStyle=INK; x.font='700 28px Barlow, system-ui, sans-serif'; x.fillText(pname(r.id).slice(0,22),110,y+43);
-    x.font='700 30px "Barlow Condensed", Impact, sans-serif'; x.textAlign='right'; [[r.pts,600],[r.gp,700],[pct(r.w,r.gp)+' %',830],[r.fg3,940],[r.ast||0,1020]].forEach(([v,px])=>x.fillText(String(v),px,y+44)); x.textAlign='left'; y+=72; });
-  x.fillStyle=INK; x.fillRect(0,c.height-70,1080,70); x.fillStyle='#fff'; x.font='500 22px Barlow, system-ui, sans-serif'; x.fillText('Hoops Stats · stats indicatives et ludiques, saisies par le marqueur du dimanche',60,c.height-28); return c; }
 function roundRect(x,l,t,w,h,r){ x.beginPath(); x.moveTo(l+r,t); x.arcTo(l+w,t,l+w,t+h,r); x.arcTo(l+w,t+h,l,t+h,r); x.arcTo(l,t+h,l,t,r); x.arcTo(l,t,l+w,t,r); x.closePath(); }
 
 // ---------- demo data (in memory only, never saved) ----------
