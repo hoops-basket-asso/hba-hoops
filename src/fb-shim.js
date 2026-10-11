@@ -92,7 +92,9 @@
   };
 
   // --- export complet (bureau) ---
-  FB.exportAll = async ()=>{ const out={}; for(const c of ['config','players','sessions','sanctions','payments','treasury','scorerTokens']){ const q=await fs.collection(c).get(); out[c]={}; q.docs.forEach(d=>out[c][d.id]=d.data()); } return out; };
+  FB.exportAll = async ()=>{ const out={}; out.config={}; for(const id of ['main','bureau']){ try{ const d=await fs.doc('config/'+id).get(); if(d.exists) out.config[id]=d.data(); }catch(e){} }
+    out._errors=[]; for(const c of ['players','sessions','sanctions','payments','treasury','scorerTokens']){ try{ const q=await fs.collection(c).get(); out[c]={}; q.docs.forEach(d=>out[c][d.id]=d.data()); }catch(e){ out._errors.push(c+': '+(e&&e.code||e)); } }
+    if(!out._errors.length) delete out._errors; return out; };
 
   // --- téléchargements (remplace la capacité "downloads" de l'artefact) ---
   FB.downloads = { save: async ({filename,data})=>{ const blob = data instanceof Blob ? data : new Blob([data]); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },2000); return {status:'saved'}; } };
