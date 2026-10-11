@@ -549,6 +549,16 @@ async function summaryImage(sess){
   x.fillStyle=INK; x.fillRect(0,y,W,90); F(500,22); x.fillStyle='#fff'; x.fillText('Hoops Stats · stats complètes, ladder et badges dans l\'appli',60,y+38); F(700,24,true); x.fillStyle=OR; x.fillText('hoops-basket-asso.github.io/hba-hoops',60,y+70); y+=90;
   const c=document.createElement('canvas'); c.width=W; c.height=y; c.getContext('2d').drawImage(big,0,0); return c;
 }
+async function statsImage(ag,sess){ await (document.fonts&&document.fonts.ready||Promise.resolve()); const rows=[...ag.pl].sort((a,b)=>b.pts-a.pts).slice(0,12); const c=document.createElement('canvas'); c.width=1080; c.height=260+rows.length*72+140; const x=c.getContext('2d');
+  const INK='#151515',OR='#E4692B',CREAM='#F7F4EE'; x.fillStyle=CREAM; x.fillRect(0,0,c.width,c.height); x.fillStyle=INK; x.fillRect(0,0,1080,200);
+  x.fillStyle=OR; x.font='700 26px "Barlow Condensed", Impact, sans-serif'; x.fillText('HOOPS BASKET ASSOCIATION',60,62);
+  const lab={session:'Séance',month:'Mois',quarter:'Trimestre',season:'Saison',all:'Depuis le début'}[S.period]||''; x.fillStyle='#fff'; x.font='800 64px "Barlow Condensed", Impact, sans-serif'; x.fillText('Classement · '+lab,60,135);
+  x.font='500 26px Barlow, system-ui, sans-serif'; x.fillStyle='#C9D0DD'; x.fillText(sess.length===1?fmtDate(sess[0].date):fmtShort(sess[sess.length-1].date)+' → '+fmtShort(sess[0].date)+' · '+ag.sessions+' séances · '+ag.matches+' matchs',60,180);
+  ['#01A54E','#EE312B','#FABF25','#4156A7'].forEach((col,i)=>{ x.fillStyle=col; x.fillRect(i*270,200,270,10); });
+  let y=250; x.fillStyle='#6B6B70'; x.font='700 20px Barlow, system-ui, sans-serif'; [['#',60],['JOUEUR',110],['PTS',540],['MJ',640],['% V',770],['3 PTS',880],['PD',960]].forEach(([t,px])=>{ x.textAlign=px>500?'right':'left'; x.fillText(t,px>500?px+60:px,y); }); x.textAlign='left'; y+=20;
+  rows.forEach((r,i)=>{ x.fillStyle=i%2?'#FFFFFF':'#F0ECE3'; x.fillRect(40,y,1000,64); x.fillStyle=i<3?OR:INK; x.font='800 34px "Barlow Condensed", Impact, sans-serif'; x.fillText(String(i+1),60,y+44); x.fillStyle=INK; x.font='700 28px Barlow, system-ui, sans-serif'; x.fillText(pname(r.id).slice(0,22),110,y+43);
+    x.font='700 30px "Barlow Condensed", Impact, sans-serif'; x.textAlign='right'; [[r.pts,600],[r.gp,700],[pct(r.w,r.gp)+' %',830],[r.fg3,940],[r.ast||0,1020]].forEach(([v,px])=>x.fillText(String(v),px,y+44)); x.textAlign='left'; y+=72; });
+  x.fillStyle=INK; x.fillRect(0,c.height-70,1080,70); x.fillStyle='#fff'; x.font='500 22px Barlow, system-ui, sans-serif'; x.fillText('Hoops Stats · stats indicatives et ludiques, saisies par le marqueur du dimanche',60,c.height-28); return c; }
 function roundRect(x,l,t,w,h,r){ x.beginPath(); x.moveTo(l+r,t); x.arcTo(l+w,t,l+w,t+h,r); x.arcTo(l+w,t+h,l,t+h,r); x.arcTo(l,t+h,l,t,r); x.arcTo(l,t,l+w,t,r); x.closePath(); }
 
 // ---------- demo data (in memory only, never saved) ----------
