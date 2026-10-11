@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-10-11 14:24';</script>
+window.HS_VERSION = '2026-10-11 14:36';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -910,7 +910,7 @@ function evLabel(e,s){ const n=esc(pname(e.pid||e.in)); const tn=s.teams[e.team]
 function matchJournal(s){ const rw=S.unlocked&&S.canWrite!==false&&!S.demo; if(!rw||s.status!=='closed'||s.format==='cent') return ''; const tn=t=>s.teams[t]&&(s.teams[t].name||TNAMES[t]); const done=s.matches.map((m,i)=>({m,i})).filter(x=>x.m.status==='done'); if(!done.length) return '';
   const cur=S.jm!=null&&s.matches[S.jm]?S.jm:done[done.length-1].i; const m=s.matches[cur];
   const st=matchState(m,s);
-  return `<div class="card"><h2>Journal des matchs <span class="muted" style="font-size:14px;font-family:var(--body);font-weight:500">correction après coup</span></h2><p class="muted small">Choisissez un match puis tapez une ligne pour changer de joueur, la valeur du panier ou la supprimer. Les stats se recalculent aussitôt.</p>
+  return `<div class="card"><div class="row"><h2 class="grow">Journal des matchs <span class="muted" style="font-size:14px;font-family:var(--body);font-weight:500">correction après coup</span></h2><button class="btn sm ghost" data-act="fix-results" title="Vainqueur, supprimer ou ajouter un match">✎ Résultats</button></div><p class="muted small">Choisissez un match puis tapez une ligne pour changer de joueur, la valeur du panier ou la supprimer. Les stats se recalculent aussitôt.</p>
   <div class="chips" style="margin-bottom:10px">${done.map(({m:x,i})=>{ const sx=matchState(x,s); return `<button class="chip ${i===cur?'on':''}" data-act="jm" data-id="${i}">M${x.n} · ${esc(tn(x.home))} ${sx.score[x.home]}–${sx.score[x.away]} ${esc(tn(x.away))}</button>`; }).join('')}</div>
   <div class="log">${[...m.events].map((e,i)=>({e,i})).reverse().map(({e,i})=>`<div ${['pt','ft','ast','foul','tech','uns'].includes(e.type)?`data-act="edit-ev" data-id="${i}" data-mi="${cur}" style="cursor:pointer"`:''}><span class="t num">${mmss(Math.max(0,(S.config.minutes*60000)-(e.el||0)))}</span><span>${evLabel(e,s)}</span>${['pt','ft','ast','foul','tech','uns'].includes(e.type)?'<span class="muted" style="margin-left:auto">✎</span>':''}</div>`).join('')||'<div class="muted">Aucune action.</div>'}</div></div>`; }
 function teamTable(s,ss){ const tn=t=>s.teams[t].name||TNAMES[t];
