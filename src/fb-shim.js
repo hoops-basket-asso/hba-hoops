@@ -53,9 +53,10 @@
   FB.bootstrapBureau = async (emails)=>{ await fs.doc('config/bureau').set({emails}); await resolveRole(auth.currentUser); FB.listeners.forEach(f=>f()); };
 
   // --- lien marqueur ---
-  FB.createScorerLink = async (sid,label)=>{
+  FB.createScorerLink = async (sid,label,dateIso)=>{
     const token = Array.from(crypto.getRandomValues(new Uint8Array(9))).map(b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join('');
     const end = new Date(); end.setHours(23,59,0,0);
+    if(dateIso&&/^\d{4}-\d{2}-\d{2}$/.test(dateIso)){ const d=new Date(dateIso+'T23:59:00'); if(d>end) end.setTime(d.getTime()); } // lien créé la veille : valable jusqu'au soir de la séance
     await fs.doc('scorerTokens/'+token).set({ sid, label:label||'', expires: firebase.firestore.Timestamp.fromDate(end), createdBy: FB.email||'', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
     const url = location.origin + location.pathname + '?marqueur=' + token + '&seance=' + encodeURIComponent(sid);
     return { token, url, expires:end };
