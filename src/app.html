@@ -286,7 +286,7 @@ function mvpPickPM(rows,minGp){ return [...rows].filter(r=>r.gp>=minGp).map(r=>(
 function leaders(rows,scope){ const min=scope==='day'?MIN_DAY:seasonMin(rows); const ok=rows.filter(r=>(r.gp||0)>=min); const best=(f,cond)=>{ const c=ok.filter(r=>!cond||cond(r)); return c.length?[...c].sort((a,b)=>f(b)-f(a))[0]:null; };
   const o={min,n:ok.length};
   o.mvp=scope==='day'?mvpPick(ok):mvpPickPM(ok,min);
-  o.scorer=best(r=>perM(r,'pts'),r=>r.pts>0); o.passer=best(r=>perM(r,'ast'),r=>(r.ast||0)>0); o.sniper=best(r=>r.fg3,r=>r.fg3>0);
+  o.scorer=best(r=>perM(r,'pts'),r=>r.pts>0); o.passer=best(r=>perM(r,'ast'),r=>(r.ast||0)>=(scope==='day'?3:10)); o.sniper=best(r=>r.fg3,r=>r.fg3>0);
   o.impact=best(r=>impPerMatch(r),r=>(r.nImp||0)>=(scope==='day'?2:5)&&impPerMatch(r)>0);
   o.ft=best(r=>pct(r.ftm,r.fta),r=>r.fta>=(scope==='day'?6:15));
   o.clean=best(r=>-perM(r,'pf')-3*((r.tech||0)+(r.uns||0)),r=>!(r.tech||r.uns)); o.win=best(r=>pct(r.w,r.gp),r=>r.gp>=(scope==='day'?4:min));
