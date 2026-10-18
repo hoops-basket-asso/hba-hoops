@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-10-18 17:09';</script>
+window.HS_VERSION = '2026-10-18 19:03';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -631,7 +631,7 @@ function timelineCard(s){ const tl=matchTimeline(s); if(!tl.length) return ''; c
   return `<div class="card"><h2>Chronologie des matchs</h2><p class="muted small" style="margin:2px 0 8px">${tl.length} match${tl.length>1?'s':''} saisi${tl.length>1?'s':''}${dur?' · '+fmtTime(first.start)+' → '+fmtTime(last.end)+' ('+dur+' min)':''}. Un trou de plus de 5 min entre deux matchs = un match non enregistré.</p><div class="tbl"><table><thead><tr><th>#</th><th>Heure</th><th>Match</th><th class="num">Act.</th></tr></thead><tbody>${tl.map((r,i)=>{ const gap=i?Math.round((r.start-tl[i-1].end)/60000):0; const hw=r.winner===r.home; return `${gap>5?`<tr><td colspan="4" class="small" style="text-align:center;background:color-mix(in srgb,var(--warn) 14%,transparent)">⚠ ${gap} min sans saisie</td></tr>`:''}<tr><td class="num">${r.n}</td><td class="small num" style="white-space:nowrap">${r.start?fmtTime(r.start):'–'}<br><span class="muted">${r.end?fmtTime(r.end):'–'}</span></td><td style="white-space:nowrap">${dot(s.teams,r.home)} <span style="${hw?'font-weight:800':'color:var(--muted)'}">${esc(r.hn)}</span> <b class="num">${r.hs}–${r.as}</b> ${dot(s.teams,r.away)} <span style="${hw?'color:var(--muted)':'font-weight:800'}">${esc(r.an)}</span>${r.reason==='points'?'':' <span class="muted small">⏱</span>'}</td><td class="num ${r.thin?'':'muted'}">${r.nEv}${r.thin?' ⚠':''}</td></tr>`; }).join('')}</tbody></table></div><p class="muted small" style="margin-top:6px">Vainqueur en gras · ⏱ = fini au temps · Act. = actions saisies${tl.some(r=>r.thin)?' (⚠ peu d\'actions : stats incomplètes)':''}.</p></div>`; }
 function summaryText(sess){
   const ss=sessionStats(sess); const rows=Object.values(ss.pl);
-  const tRank=Object.entries(ss.teams).sort((a,b)=>b[1].w-a[1].w||(b[1].pf-b[1].pa)-(a[1].pf-a[1].pa));
+  const tRank=teamRank(ss);
   const top=[...rows].sort((a,b)=>perM(b,'pts')-perM(a,'pts')||b.pts-a.pts);
   const LD=leaders(rows,'day'); const sniper=LD.sniper, pm=LD.impact, ft=LD.ft; const tech=LD.tech, uns=LD.uns;
   const tn=t=>sess.teams[t].name||TNAMES[t];
@@ -680,7 +680,7 @@ async function summaryImage(sess){
   F(500,30); x.fillStyle='#C9D0DD'; x.fillText(fmtDate(sess.date)+' · '+ss.done+' match'+(ss.done>1?'s':'')+' · '+ss.players+' joueurs',60,215);
   let y=320;
   // teams podium
-  const tRank=Object.entries(ss.teams).sort((a,b)=>b[1].w-a[1].w||(b[1].pf-b[1].pa)-(a[1].pf-a[1].pa));
+  const tRank=teamRank(ss);
   label(sess.teamsApprox?'Équipes (classement approximatif)':'Équipes du jour',y); y+=24;
   const bw=(W-120-20*(tRank.length-1))/Math.max(1,tRank.length);
   tRank.forEach(([t,v],i)=>{ const bx=60+i*(bw+20); const c=tcol(sess.teams,t); x.fillStyle=i===0?INK:CARD; roundRect(x,bx,y,bw,170,18); x.fill(); x.fillStyle=c; x.fillRect(bx,y+170-8,bw,8); x.beginPath(); x.arc(bx+36,y+42,14,0,7); x.fill(); x.strokeStyle='rgba(0,0,0,.35)'; x.lineWidth=2; x.stroke();
@@ -831,7 +831,7 @@ function vHome(){
   h+=`</div>`;
   h+=`<div class="card"><h2>Séances passées</h2>`;
   if(!past.length) h+=`<div class="empty">Aucune séance enregistrée. La première apparaîtra ici avec ses équipes, ses matchs et son MVP.${!S.demo?'<br><button class="btn sm ghost" data-act="demo-on" style="margin-top:10px">Voir une démo avec des données fictives</button>':''}</div>`;
-  else h+=past.slice(0,12).map(s=>{ const ss=sessionStats(s); const mvx=mvpPick(Object.values(ss.pl)); const top=mvx?{id:mvx.r.id,pts:mvx.r.pts}:null; const tw=Object.entries(ss.teams).sort((a,b)=>b[1].w-a[1].w)[0];
+  else h+=past.slice(0,12).map(s=>{ const ss=sessionStats(s); const mvx=mvpPick(Object.values(ss.pl)); const top=mvx?{id:mvx.r.id,pts:mvx.r.pts}:null; const tw=teamRank(ss)[0];
     return `<div class="lead" style="cursor:pointer" data-act="stats-of" data-id="${s.id}"><div class="ico">🏀</div><div><div class="who">${esc(fmtDate(s.date))}</div><div class="what">${ss.done} matchs · ${ss.players} joueurs${tw&&!s.teamsApprox?' · 🏆 '+esc(s.teams[tw[0]].name||TNAMES[tw[0]]):''}${s.excluded?' · <b>hors stats</b>':s.teamsApprox?' · ⚠️ classement approx.':''}${top&&!s.excluded?' · 👑 '+esc(pname(top.id)):''}</div></div><div class="big">›</div></div>`; }).join('');
   h+=`</div>`;
   if(!live&&S.loaded&&S.unlocked){ h+=`<p class="center" style="margin:4px 0 8px"><button class="btn sm ghost" data-act="home-more">${S.homeMore?'Masquer la vue joueur ▲':'Voir ce que voient les joueurs (dernière séance, ladder, mes stats) ▼'}</button></p>`; if(S.homeMore) h+=homeDigest(past.filter(x=>!x.excluded)); }
@@ -841,7 +841,7 @@ function vHome(){
 function homeDigest(past){
   let h=''; const b=seasonBounds(); const season=past.filter(s=>s.date>=b.start&&s.date<b.end); const ag=season.length?aggregate(season):null; const rows=ag?ag.pl:[];
   // 1. last session
-  const last=past[0]; if(last){ const ss=sessionStats(last); const tn=t=>last.teams[t]&&(last.teams[t].name||TNAMES[t]); const tw=Object.entries(ss.teams).sort((a,b)=>b[1].w-a[1].w||(b[1].pf-b[1].pa)-(a[1].pf-a[1].pa))[0]; const mv=mvpPick(Object.values(ss.pl)); const top=[...Object.values(ss.pl)].sort((a,b)=>b.pts-a.pts)[0];
+  const last=past[0]; if(last){ const ss=sessionStats(last); const tn=t=>last.teams[t]&&(last.teams[t].name||TNAMES[t]); const tw=teamRank(ss)[0]; const mv=mvpPick(Object.values(ss.pl)); const top=[...Object.values(ss.pl)].sort((a,b)=>b.pts-a.pts)[0];
     h+=`<div class="card"><div class="row"><h2 class="grow">Dernière séance</h2><span class="muted small">${esc(fmtDate(last.date))}</span></div><div class="tiles" style="margin-top:8px"><div class="tile acc"><div class="k">${last.teamsApprox?'Résultat':'Équipe du jour'}</div><div class="v" style="font-size:20px">${last.teamsApprox?'≈ égalité':(tw?dot(last.teams,tw[0])+' '+esc(tn(tw[0])):'—')}</div><div class="s">${last.teamsApprox?esc((last.resultNote||'').slice(0,60)):(tw?tw[1].w+' V – '+tw[1].l+' D':'')}</div></div><div class="tile"><div class="k">👑 MVP</div><div class="v" style="font-size:20px">${mv?esc(pshort(mv.r.id)):'—'}</div><div class="s">${mv?mv.r.pts+' pts · '+(mv.r.ast||0)+' PD · '+mv.r.w+' V':''}</div></div></div><div class="row small muted" style="margin-top:8px;justify-content:space-between"><span>${ss.done} match${ss.done>1?'s':''} · ${ss.players} joueurs${top?' · 🔥 '+esc(pshort(top.id))+' '+top.pts+' pts':''}</span><button class="btn sm ghost" data-act="stats-of" data-id="${last.id}">Détail</button></div></div>`; }
   // 2. season ladder
   if(rows.length){ const LD=leaders(rows,'season'); const mv=LD.mvp, top=LD.scorer, asr=LD.passer, sn=LD.sniper, win=LD.win, imp=LD.impact;
@@ -954,8 +954,9 @@ function matchJournal(s){ const rw=S.unlocked&&S.canWrite!==false&&!S.demo; if(!
   return `<div class="card"><div class="row"><h2 class="grow">Journal des matchs <span class="muted" style="font-size:14px;font-family:var(--body);font-weight:500">correction après coup</span></h2><button class="btn sm ghost" data-act="fix-results" title="Vainqueur, supprimer ou ajouter un match">✎ Résultats</button></div><p class="muted small">Choisissez un match puis tapez une ligne pour changer de joueur, la valeur du panier ou la supprimer. Les stats se recalculent aussitôt.</p>
   <div class="chips" style="margin-bottom:10px">${done.map(({m:x,i})=>{ const sx=matchState(x,s); return `<button class="chip ${i===cur?'on':''}" data-act="jm" data-id="${i}">M${x.n} · ${esc(tn(x.home))} ${sx.score[x.home]}–${sx.score[x.away]} ${esc(tn(x.away))}</button>`; }).join('')}</div>
   <div class="log">${[...m.events].map((e,i)=>({e,i})).reverse().map(({e,i})=>`<div ${['pt','ft','ast','foul','tech','uns'].includes(e.type)?`data-act="edit-ev" data-id="${i}" data-mi="${cur}" style="cursor:pointer"`:''}><span class="t num">${mmss(Math.max(0,(S.config.minutes*60000)-(e.el||0)))}</span><span>${evLabel(e,s)}</span>${['pt','ft','ast','foul','tech','uns'].includes(e.type)?'<span class="muted" style="margin-left:auto">✎</span>':''}</div>`).join('')||'<div class="muted">Aucune action.</div>'}</div></div>`; }
+function teamRank(ss){ const r=([t,v])=>({p:pct(v.w,v.w+v.l),w:v.w,d:v.pf-v.pa}); return Object.entries(ss.teams).sort((a,b)=>{ const x=r(a),y=r(b); return y.p-x.p||y.w-x.w||y.d-x.d; }); }
 function teamTable(s,ss){ const tn=t=>s.teams[t].name||TNAMES[t];
-  const rows=Object.entries(ss.teams).sort((a,b)=>b[1].w-a[1].w||(b[1].pf-b[1].pa)-(a[1].pf-a[1].pa));
+  const rows=teamRank(ss);
   if(!rows.length) return '';
   const centHdr=s.format==='cent'?(()=>{ const cum={}; s.matches.filter(x=>x.status==='done').forEach(x=>{ const st=matchState(x,s); cum[x.home]=(cum[x.home]||0)+st.score[x.home]; cum[x.away]=(cum[x.away]||0)+st.score[x.away]; }); return `<p class="small">Match à 100 points : <b>${esc(tn('A'))} ${cum.A||0} – ${cum.B||0} ${esc(tn('B'))}</b> · V/D = quart-temps gagnés</p>`; })():'';
   const approx=s.teamsApprox?`<p class="small" style="padding:8px 10px;border-radius:10px;background:rgba(228,105,43,.12);border-left:4px solid var(--accent)">⚠️ <b>Classement approximatif.</b> ${esc(s.resultNote||'Les résultats du jour n\'ont pas tous été saisis.')}</p>`:'';
@@ -979,7 +980,7 @@ function matchJournal(s){ const rw=S.unlocked&&S.canWrite!==false&&!S.demo; if(!
   <div class="chips" style="margin-bottom:10px">${done.map(({m:x,i})=>{ const sx=matchState(x,s); return `<button class="chip ${i===cur?'on':''}" data-act="jm" data-id="${i}">M${x.n} · ${esc(tn(x.home))} ${sx.score[x.home]}–${sx.score[x.away]} ${esc(tn(x.away))}</button>`; }).join('')}</div>
   <div class="log">${[...m.events].map((e,i)=>({e,i})).reverse().map(({e,i})=>`<div ${['pt','ft','ast','foul','tech','uns'].includes(e.type)?`data-act="edit-ev" data-id="${i}" data-mi="${cur}" style="cursor:pointer"`:''}><span class="t num">${mmss(Math.max(0,(S.config.minutes*60000)-(e.el||0)))}</span><span>${evLabel(e,s)}</span>${['pt','ft','ast','foul','tech','uns'].includes(e.type)?'<span class="muted" style="margin-left:auto">✎</span>':''}</div>`).join('')||'<div class="muted">Aucune action.</div>'}</div></div>`; }
 function teamTable(s,ss){ const tn=t=>s.teams[t].name||TNAMES[t];
-  const rows=Object.entries(ss.teams).sort((a,b)=>b[1].w-a[1].w||(b[1].pf-b[1].pa)-(a[1].pf-a[1].pa));
+  const rows=teamRank(ss);
   if(!rows.length) return '';
   const centHdr=s.format==='cent'?(()=>{ const cum={}; s.matches.filter(x=>x.status==='done').forEach(x=>{ const st=matchState(x,s); cum[x.home]=(cum[x.home]||0)+st.score[x.home]; cum[x.away]=(cum[x.away]||0)+st.score[x.away]; }); return `<p class="small">Match à 100 points : <b>${esc(tn('A'))} ${cum.A||0} – ${cum.B||0} ${esc(tn('B'))}</b> · V/D = quart-temps gagnés</p>`; })():'';
   const approx=s.teamsApprox?`<p class="small" style="padding:8px 10px;border-radius:10px;background:rgba(228,105,43,.12);border-left:4px solid var(--accent)">⚠️ <b>Classement approximatif.</b> ${esc(s.resultNote||'Les résultats du jour n\'ont pas tous été saisis.')}</p>`:'';
