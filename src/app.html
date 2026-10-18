@@ -233,7 +233,7 @@ function matchKey(m){ let k=m.events.length+'|'+(m.winner||'')+'|'+(m.status||''
 function matchState(m, sess){
   const mk=matchKey(m); if(m._memo&&m._memo.k===mk) return m._memo.st; const st=matchStateRaw(m,sess); m._memo={k:mk,st}; return st; }
 function matchStateRaw(m, sess){
-  const st={score:{},fouls:{},teamFouls:{},on:{},pm:{},pl:{},time:{},hasSubs:false};
+  const st={score:{},fouls:{},teamFouls:{},on:{},pm:{},pl:{},time:{},hasSubs:false,subsBy:{}};
   const since={}; for(const t of [m.home,m.away]){ st.score[t]=0; st.fouls[t]=0; st.teamFouls[t]=0; st.on[t]=[...(m.lineup[t]||[])]; st.on[t].forEach(x=>{ since[x]=0; }); }
   const P = pid => st.pl[pid] || (st.pl[pid]={pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0});
   const other = t => t===m.home? m.away : m.home;
@@ -244,7 +244,7 @@ function matchStateRaw(m, sess){
     else if(e.type==='ast'){ P(e.pid).ast++; }
     else if(e.type==='tech'){ P(e.pid).tech++; }
     else if(e.type==='uns'){ P(e.pid).uns++; }
-    else if(e.type==='sub'){ const arr=st.on[e.team]; const i=arr.indexOf(e.out); if(i>=0) arr[i]=e.in; else arr.push(e.in); st.hasSubs=true; const el=e.el||0; if(since[e.out]!=null){ st.time[e.out]=(st.time[e.out]||0)+Math.max(0,el-since[e.out]); delete since[e.out]; } since[e.in]=el; }
+    else if(e.type==='sub'){ const arr=st.on[e.team]; const i=arr.indexOf(e.out); if(i>=0) arr[i]=e.in; else arr.push(e.in); st.hasSubs=true; st.subsBy[e.team]=(st.subsBy[e.team]||0)+1; const el=e.el||0; if(since[e.out]!=null){ st.time[e.out]=(st.time[e.out]||0)+Math.max(0,el-since[e.out]); delete since[e.out]; } since[e.in]=el; }
   }
   st.dur=Math.max(1,m.status==='done'?(m.elapsedMs||0):elapsed(m)); for(const [pid,el0] of Object.entries(since)){ st.time[pid]=(st.time[pid]||0)+Math.max(0,st.dur-el0); }
   return st;
@@ -260,13 +260,13 @@ function sessionStats(sess){ const c=S._cache.stats[sess.id]; const sig=sigOf(se
 function sessionStatsRaw(sess){
   const teams={}; TEAMS.forEach(t=>{ if(sess.teams&&sess.teams[t]&&sess.teams[t].players.length) teams[t]={w:0,l:0,pf:0,pa:0}; });
   const pl={};
-  const P = id => pl[id] || (pl[id]={id,gp:0,w:0,pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,imp:0,nImp:0});
+  const P = id => pl[id] || (pl[id]={id,gp:0,gpApprox:0,w:0,pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,imp:0,nImp:0});
   let done=0;
   for(const m of sess.matches){
     if(m.status!=='done') continue; done++;
     const st=matchState(m,sess);
     for(const t of [m.home,m.away]){ const o=t===m.home?m.away:m.home; if(!teams[t]) continue; teams[t].pf+=st.score[t]; teams[t].pa+=st.score[o]; if(m.winner===t) teams[t].w++; else teams[t].l++;
-      const roster=(m.roster&&m.roster[t===m.home?'home':'away'])||sess.teams[t].players||[]; for(const pid of roster){ if(!(st.time[pid]>0)) continue; const p=P(pid); p.gp++; if(m.winner===t)p.w++; }
+      const roster=(m.roster&&m.roster[t===m.home?'home':'away'])||sess.teams[t].players||[]; const tracked=!!st.subsBy[t]||!!m.fiveOk; for(const pid of roster){ if(tracked&&!(st.time[pid]>0)) continue; const p=P(pid); p.gp++; if(m.winner===t)p.w++; if(!tracked) p.gpApprox=(p.gpApprox||0)+1; }
       if(st.hasSubs&&sess.format!=='cent'){ const margin=st.score[t]-st.score[o]; for(const pid of roster){ const tm=st.time[pid]||0; if(tm<15000||tm>st.dur-15000) continue; const x=st.pl[pid]||{pm:0}; const p=P(pid); p.imp=(p.imp||0)+((x.pm||0)-margin*tm/st.dur); p.nImp=(p.nImp||0)+1; } } }
     for(const [pid,x] of Object.entries(st.pl)){ const p=P(pid); for(const k of ['pts','fg2','fg3','fta','ftm','pf','tech','uns','pm','ast']) p[k]+=(x[k]||0); }
   }
@@ -296,9 +296,9 @@ function ptsLabel(r){ return fmt1(perM(r,'pts'))+' pts/match · '+r.pts+' pts en
 function mvpPick(rows,minGp=1){ return [...rows].filter(r=>r.gp>=minGp).map(r=>({r,v:mvpScore(r)})).sort((a,b)=>b.v-a.v||b.r.pts-a.r.pts)[0]||null; }
 function mvpLabel(x){ return `indice ${Math.round(x.v)} · ${x.r.pts} pts, ${x.r.ast||0} PD, ${x.r.w} V${x.r.nImp?', impact '+impLabel(x.r):''}${x.r.pf?', '+x.r.pf+' F':''}`; }
 function aggregate(sessions){
-  const pl={}; const P = id => pl[id] || (pl[id]={id,sessions:0,gp:0,w:0,pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,imp:0,nImp:0});
+  const pl={}; const P = id => pl[id] || (pl[id]={id,sessions:0,gp:0,gpApprox:0,w:0,pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,imp:0,nImp:0});
   let matches=0;
-  for(const s of sessions){ const ss=sessionStats(s); matches+=ss.done; for(const [pid,x] of Object.entries(ss.pl)){ const p=P(pid); p.sessions++; for(const k of ['gp','w','pts','fg2','fg3','fta','ftm','pf','tech','uns','pm','ast','imp','nImp']) p[k]+=(x[k]||0); } }
+  for(const s of sessions){ const ss=sessionStats(s); matches+=ss.done; for(const [pid,x] of Object.entries(ss.pl)){ const p=P(pid); p.sessions++; for(const k of ['gp','gpApprox','w','pts','fg2','fg3','fta','ftm','pf','tech','uns','pm','ast','imp','nImp']) p[k]+=(x[k]||0); } }
   return {pl:Object.values(pl),matches,sessions:sessions.length};
 }
 function inStats(s){ return !!s&&(s.status==='closed'||s.status==='live')&&!s.excluded; }
@@ -891,9 +891,9 @@ function vStats(){
   else R.top+=leadersCard({pl:Object.fromEntries(rows.map(r=>[r.id,r]))},'sur la période');
   const allCols=[['pts','Pts'],['sessions','Prés.'],['gp','MJ'],['w','V'],['wp','% V'],['ppm','Pts/M'],['fg3','3 pts'],['ast','PD'],['ftp','LF %'],['imp','Impact'],['pm','+/-'],['pf','F'],['tech','T'],['uns','AS']]; const cols=S.fullCols?allCols:allCols.filter(c=>['pts','gp','ppm','ast','imp','wp'].includes(c[0])); const minG=S.period==='session'?MIN_DAY:seasonMin(rows);
   const val=(r,k)=>({wp:pct(r.w,r.gp),ppm:r.gp?Math.round(10*r.pts/r.gp)/10:0,ftp:r.fta?pct(r.ftm,r.fta):-1,imp:impPerMatch(r)??-99})[k]??r[k];
-  const disp=(r,k)=>({wp:pct(r.w,r.gp)+' %',ppm:(r.gp?Math.round(10*r.pts/r.gp)/10:0).toLocaleString('fr-FR'),ftp:r.fta?pct(r.ftm,r.fta)+' % <span class="muted small">('+r.ftm+'/'+r.fta+')</span>':'–',pm:(r.pm>0?'+':'')+r.pm,imp:impLabel(r)})[k]??r[k];
+  const disp=(r,k)=>({wp:pct(r.w,r.gp)+' %',ppm:(r.gp?Math.round(10*r.pts/r.gp)/10:0).toLocaleString('fr-FR'),ftp:r.fta?pct(r.ftm,r.fta)+' % <span class="muted small">('+r.ftm+'/'+r.fta+')</span>':'–',pm:(r.pm>0?'+':'')+r.pm,imp:impLabel(r),gp:r.gpApprox?r.gp+'<span class="muted small" title="'+r.gpApprox+' match(s) sans remplacements saisis : toute l\'équipe comptée">*</span>':r.gp})[k]??r[k];
   const sorted=[...rows].sort((a,b)=>(val(a,S.sort.k)-val(b,S.sort.k))*S.sort.d|| b.pts-a.pts);
-  R.rank+=`<div class="card"><div class="row"><h2 class="grow">Classement des joueurs</h2><button class="btn sm ghost" data-act="cols-toggle">${S.fullCols?'Vue simple':'Toutes les colonnes'}</button></div><p class="muted small">Tapez un en-tête pour trier. Prés. = séances jouées, MJ = matchs joués, Pts/M = points par match, PD = passes décisives, ≈ = moins de ${minG} matchs (hors récompenses), F = fautes, T = techniques, AS = antisportives. <b>Impact</b> = ce que l'équipe fait en plus (ou en moins) par match quand le joueur est sur le terrain, en points ; compté seulement sur les matchs où le joueur a eu du temps sur le terrain <i>et</i> sur le banc (≈ = moins de 3 matchs ; – = jamais remplacé, pas de mesure possible).</p><div class="tbl"><table><thead><tr><th>Joueur</th>${cols.map(([k,l])=>`<th class="${S.sort.k===k?'sorted':''}" data-sort="${k}">${l}${S.sort.k===k?(S.sort.d>0?' ↑':' ↓'):''}</th>`).join('')}</tr></thead><tbody>${sorted.map((r,i)=>`<tr data-act="player-detail" data-id="${r.id}" style="cursor:pointer"><td class="name"><span class="rank">${i+1}</span>${esc(pname(r.id))}${r.gp<minG?' <span class="muted small" title="moins de '+minG+' matchs">≈</span>':''}</td>${cols.map(([k])=>`<td class="num">${disp(r,k)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+  R.rank+=`<div class="card"><div class="row"><h2 class="grow">Classement des joueurs</h2><button class="btn sm ghost" data-act="cols-toggle">${S.fullCols?'Vue simple':'Toutes les colonnes'}</button></div><p class="muted small">Tapez un en-tête pour trier. Prés. = séances jouées, MJ = matchs joués, Pts/M = points par match, PD = passes décisives, ≈ = moins de ${minG} matchs (hors récompenses), MJ* = des matchs sans cinq de départ ni remplacements saisis, où toute l'équipe est comptée, F = fautes, T = techniques, AS = antisportives. <b>Impact</b> = ce que l'équipe fait en plus (ou en moins) par match quand le joueur est sur le terrain, en points ; compté seulement sur les matchs où le joueur a eu du temps sur le terrain <i>et</i> sur le banc (≈ = moins de 3 matchs ; – = jamais remplacé, pas de mesure possible).</p><div class="tbl"><table><thead><tr><th>Joueur</th>${cols.map(([k,l])=>`<th class="${S.sort.k===k?'sorted':''}" data-sort="${k}">${l}${S.sort.k===k?(S.sort.d>0?' ↑':' ↓'):''}</th>`).join('')}</tr></thead><tbody>${sorted.map((r,i)=>`<tr data-act="player-detail" data-id="${r.id}" style="cursor:pointer"><td class="name"><span class="rank">${i+1}</span>${esc(pname(r.id))}${r.gp<minG?' <span class="muted small" title="moins de '+minG+' matchs">≈</span>':''}</td>${cols.map(([k])=>`<td class="num">${disp(r,k)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
   <div class="row" style="margin-top:10px"><button class="btn sm navy" data-act="share-stats">📣 Image du classement à partager</button>${S.downloads?`<button class="btn sm ghost" data-act="export-csv">Exporter en CSV</button>`:''}</div><div id="statsImg" style="margin-top:10px"></div></div>`;
   const segs=[['rank','Classement'],['top','Podium & badges'],['teams','Équipes'],['nba','NBA']].filter(([k])=>R[k]);
   const cur=R[S.statsSeg]?S.statsSeg:'rank';
@@ -1269,7 +1269,7 @@ document.addEventListener('click',async ev=>{
     case 'confirm-yes': { const {kind,pid,team}=S.sheet; S.sheet=null; if(m){ addEvent(s,m,{type:kind,team,pid}); toastUndo((kind==='tech'?'Technique':'Antisportive')+' · '+pname(pid)); } render(); break; }
     case 'five': { if(m&&!m.events.length){ S.sheet={type:'five'}; render(); } break; }
     case 'five-toggle': { if(!m||m.events.length) break; const t=el.dataset.team; const L=m.lineup[t]=m.lineup[t]||[]; const all=(m.roster&&m.roster[t===m.home?'home':'away'])||s.teams[t].players; const cap=Math.min(5,all.length); const i=L.indexOf(id); if(i>=0) L.splice(i,1); else { if(L.length>=cap){ toast(cap+' joueurs maximum : retirez-en un d\'abord'); break; } L.push(id); } render(); break; }
-    case 'five-ok': { if(!m) break; const bad=[m.home,m.away].find(t=>{ const all=(m.roster&&m.roster[t===m.home?'home':'away'])||s.teams[t].players; return (m.lineup[t]||[]).length<Math.min(5,all.length); }); if(bad){ toast('Il manque des joueurs pour '+(s.teams[bad].name||bad)); break; } delete m._memo; saveSession(s,['matches']); S.sheet=null; toast('Cinq de départ enregistré'); render(); break; }
+    case 'five-ok': { if(!m) break; const bad=[m.home,m.away].find(t=>{ const all=(m.roster&&m.roster[t===m.home?'home':'away'])||s.teams[t].players; return (m.lineup[t]||[]).length<Math.min(5,all.length); }); if(bad){ toast('Il manque des joueurs pour '+(s.teams[bad].name||bad)); break; } m.fiveOk=true; delete m._memo; saveSession(s,['matches']); S.sheet=null; toast('Cinq de départ enregistré'); render(); break; }
     case 'sub-cancel': S.subOut=null; S.subIn=null; render(); break;
     case 'end-match': S.sheet={type:'end'}; render(); break;
     case 'undo-match': { const last=s.matches.filter(x=>x.status==='done').slice(-1)[0]; if(last&&!m){ last.status='live'; last.winner=null; saveSession(s,['matches','nextHome','nextAway']); toast('Match '+last.n+' rouvert'); render(); } break; }
