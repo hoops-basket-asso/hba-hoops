@@ -23,9 +23,9 @@ const { chromium } = require('playwright');
   await (await p.$$('[data-q="foul"]'))[1].click(); await p.waitForTimeout(100); console.log('events',await ev());
   // last actions strip & correction: change +3 to +2 via edit
   const le=await p.$$('.lastev'); console.log('last strip rows',le.length); await p.screenshot({path:'q_last.png'});
-  await le[1].click(); await p.waitForTimeout(100); await p.screenshot({path:'q_edit.png'}); const v2=await p.$('[data-act="ev-val"][data-id="2"]'); if(v2) await v2.click(); else errs.push('no ev-val'); await p.waitForTimeout(100); console.log('events after fix',await ev());
+  await le[1].click(); await p.waitForTimeout(320); await p.screenshot({path:'q_edit.png'}); const v2=await p.$('[data-act="ev-val"][data-id="2"]'); if(v2) await v2.click(); else errs.push('no ev-val'); await p.waitForTimeout(100); console.log('events after fix',await ev());
   // reassign the foul to another player
-  await (await p.$$('.lastev'))[0].click(); await p.waitForTimeout(100); await (await p.$$('[data-act="ev-reassign"]'))[0].click(); await p.waitForTimeout(100); console.log('events after reassign',await ev());
+  await (await p.$$('.lastev'))[0].click(); await p.waitForTimeout(320); await (await p.$$('[data-act="ev-reassign"]'))[0].click(); await p.waitForTimeout(100); console.log('events after reassign',await ev());
   // bench-first substitution
   const benchBtn=await p.$$('.prow.bench .pbtn'); console.log('bench',benchBtn.length); await benchBtn[0].click(); await p.waitForTimeout(100); await p.screenshot({path:'q_sub.png'});
   const hint=await p.textContent('body'); console.log('sub hint', /entre\. Tapez le joueur qui sort/.test(hint));

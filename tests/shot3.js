@@ -12,9 +12,9 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   for(let i=0;i<9;i++){ await (await p.$$('[data-act="toggle-present"]'))[i].click(); await p.waitForTimeout(60); }
   await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
   await p.screenshot({path:'out/s_live.png'});
-  await p.click('.pbtn'); await p.waitForTimeout(200); await p.screenshot({path:'out/s_sheet.png'});
-  await p.click('[data-ev="pt2"]'); await p.waitForTimeout(100); if(await p.$('[data-ast]')) await (await p.$$('[data-ast]'))[0].click(); await p.click('.pbtn'); await p.click('[data-ev="pt3"]'); await p.waitForTimeout(100); if(await p.$('[data-ast=""]')) await p.click('[data-ast=""]'); await p.waitForTimeout(200);
-  await p.click('.pbtn'); await p.click('[data-act="incident-for"]'); await p.waitForTimeout(200); await p.click('[data-act="incident-kind"][data-id="blocage"]'); await p.click('[data-act="incident-save"]'); await p.waitForTimeout(200);
+  await p.click('.pbtn'); await p.waitForTimeout(320); await p.waitForTimeout(200); await p.screenshot({path:'out/s_sheet.png'});
+  await p.click('[data-ev="pt2"]'); await p.waitForTimeout(100); if(await p.$('[data-ast]')) await (await p.$$('[data-ast]'))[0].click(); await p.click('.pbtn'); await p.waitForTimeout(320); await p.click('[data-ev="pt3"]'); await p.waitForTimeout(100); if(await p.$('[data-ast=""]')) await p.click('[data-ast=""]'); await p.waitForTimeout(200);
+  await p.click('.pbtn'); await p.waitForTimeout(320); await p.click('[data-act="incident-for"]'); await p.waitForTimeout(200); await p.click('[data-act="incident-kind"][data-id="blocage"]'); await p.click('[data-act="incident-save"]'); await p.waitForTimeout(200);
   await p.click('[data-act="end-match"]'); await p.waitForTimeout(100); await (await p.$$('[data-win]'))[0].click(); await p.waitForTimeout(200);
   await p.screenshot({path:'out/s_between.png'});
   await p.click('[data-go="bureau"]'); await p.click('[data-bureau-seg="discipline"]'); await p.waitForTimeout(200); await p.screenshot({path:'out/s_disc.png'});

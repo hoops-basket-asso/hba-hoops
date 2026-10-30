@@ -11,7 +11,7 @@ const { chromium } = require('playwright');
     await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
     // first basket -> prominent assist prompt
     await (await p.$$('.prow:not(.bench) [data-q="pt2"]'))[0].click(); await p.waitForTimeout(80);
-    const ast=await p.$('.strip.ast'); if(!ast) errs.push('no assist strip'); else { const t=await ast.textContent(); if(!/Passe décisive sur le \+2/.test(t)) errs.push('assist text '+t); const big=await p.$$('.strip.ast .chip.big'); if(big.length<2) errs.push('assist buttons '+big.length); }
+    const ast=await p.$('.astbar'); if(!ast) errs.push('no assist strip'); else { const t=await ast.textContent(); if(!/Passe décisive sur le \+2/.test(t)) errs.push('assist text '+t); const big=await p.$$('.astbar .chip.big'); if(big.length<2) errs.push('assist buttons '+big.length); }
     if(date==='2026-10-11') await p.screenshot({path:'out/s_ast.png'});
     await p.click('[data-act="ast-pick"][data-id=""]'); await p.waitForTimeout(80);
     const sh=await p.evaluate(()=>window.__hs.S.shot); if(sh!=null) errs.push('shot clock before last minute');
@@ -46,7 +46,7 @@ const { chromium } = require('playwright');
   await p.click('[data-act="stats-of"][data-id="'+id1011+'"]'); await p.waitForTimeout(200); await p.click('[data-stats-seg="teams"]'); await p.waitForTimeout(150);
   const jm=await p.$$('[data-act="jm"]'); console.log('journal matches', jm.length); if(!jm.length) errs.push('no journal');
   const before=await p.evaluate(id=>{ const s=window.__hs.S.sessions[id]; const e=s.matches[0].events.find(x=>x.type==='pt'); return e.pid; },id1011);
-  const lines=await p.$$('.log [data-act="edit-ev"][data-mi]'); if(!lines.length) errs.push('no editable lines'); else { await lines[lines.length-1].click(); await p.waitForTimeout(120); await p.screenshot({path:'out/s_edit.png'}); const rs=await p.$$('[data-act="ev-reassign"]'); if(!rs.length) errs.push('no reassign'); else await rs[0].click(); await p.waitForTimeout(150); }
+  const lines=await p.$$('.log [data-act="edit-ev"][data-mi]'); if(!lines.length) errs.push('no editable lines'); else { await lines[lines.length-1].click(); await p.waitForTimeout(320); await p.screenshot({path:'out/s_edit.png'}); const rs=await p.$$('[data-act="ev-reassign"]'); if(!rs.length) errs.push('no reassign'); else await rs[0].click(); await p.waitForTimeout(150); }
   const after=await p.evaluate(id=>{ const s=window.__hs.S.sessions[id]; const e=s.matches[0].events.find(x=>x.type==='pt'); return e.pid; },id1011);
   console.log('reassigned', before, '->', after); if(before===after) errs.push('reassign on closed session failed');
   t=await p.textContent('#main'); console.log('still on stats', /Journal des matchs/.test(t));

@@ -15,7 +15,7 @@ const { chromium } = require('playwright');
   const state=async()=>p.evaluate(()=>{ const {S,curSession,liveMatch,elapsed,remaining}=window.__hs; const s=curSession(); const m=liveMatch(s); return {running:m.running,el:elapsed(m),rem:remaining(m),n:m.events.length,shot:S.shot,stoppedBy:m.stoppedBy}; });
   console.log('before any event', await state());
   // first event auto-starts the clock
-  await (await p.$$('.prow:not(.bench) .pbtn'))[0].click(); await p.click('[data-ev="pt2"]'); if(await p.$('[data-ast]')) await (await p.$$('[data-ast]'))[0].click();
+  await (await p.$$('.prow:not(.bench) .pbtn'))[0].click(); await p.waitForTimeout(320); await p.click('[data-ev="pt2"]'); if(await p.$('[data-ast]')) await (await p.$$('[data-ast]'))[0].click();
   await p.waitForTimeout(300); const s1=await state(); console.log('after pt2', s1); if(!s1.running) errs.push('clock did not auto-start');
   if(s1.shot!=null) errs.push('shot clock should not run before last minute: '+s1.shot);
   // out of bounds button
@@ -23,7 +23,7 @@ const { chromium } = require('playwright');
   const s2=await state(); if(s2.n!==3) errs.push('out event not recorded');
   // simulate last minute: jump elapsedMs to 8m10s
   await p.evaluate(()=>{ const {curSession,liveMatch}=window.__hs; const s=curSession(); const m=liveMatch(s); m.elapsedMs=8*60000+10000; m.startedAt=Date.now(); });
-  await (await p.$$('.prow:not(.bench) .pbtn'))[1].click(); await p.click('[data-ev="foul"]'); await p.waitForTimeout(200);
+  await (await p.$$('.prow:not(.bench) .pbtn'))[1].click(); await p.waitForTimeout(320); await p.click('[data-ev="foul"]'); await p.waitForTimeout(200);
   const s3=await state(); console.log('after foul in last minute', s3); if(s3.running) errs.push('clock did not stop on whistle in last minute');
   await p.screenshot({path:'f_lastmin.png'});
   // shot clock should be paused while game clock stopped
@@ -32,16 +32,16 @@ const { chromium } = require('playwright');
   await p.click('[data-act="clock-toggle"]'); await p.waitForTimeout(2200); const sh3=await p.evaluate(()=>window.__hs.S.shot); console.log('shot after resume',sh3); if(sh3>=sh2) errs.push('shot clock not running after resume');
   // 14s button
   const b14=await p.$('[data-act="shot"][data-s="14"]'); if(b14){ await b14.click(); const v=await p.evaluate(()=>window.__hs.S.shot); if(v!==14) errs.push('14s button -> '+v); } else errs.push('no 14s button');
-  await p.evaluate(()=>{ window.__hs.S.shot=2; }); await p.waitForTimeout(3200); { const sv=await p.evaluate(()=>window.__hs.S.shot); const bt=await p.textContent('body'); console.log('shot expiry in match',sv, /Temps d'attaque écoulé/.test(bt)); if(sv!==null) errs.push('shot not expired'); }
+  await p.evaluate(()=>{ window.__hs.S.shot=2; window.__hs.S.shotEnd=Date.now()+2000; }); await p.waitForTimeout(3200); { const sv=await p.evaluate(()=>window.__hs.S.shot); const bt=await p.textContent('body'); console.log('shot expiry in match',sv, /Temps d'attaque écoulé/.test(bt)); if(sv!==null) errs.push('shot not expired'); }
   // technique confirm sheet
-  await (await p.$$('.prow:not(.bench) .pbtn'))[2].click(); await p.click('[data-ev="tech"]'); await p.waitForTimeout(100);
+  await (await p.$$('.prow:not(.bench) .pbtn'))[2].click(); await p.waitForTimeout(320); await p.click('[data-ev="tech"]'); await p.waitForTimeout(320);
   const cy=await p.$('[data-act="confirm-yes"]'); if(!cy) errs.push('no confirm sheet for tech'); await p.screenshot({path:'f_confirm.png'}); if(cy) await cy.click(); await p.waitForTimeout(100);
   // journal edit: reassign first event
-  const ed=await p.$$('[data-act="edit-ev"]'); console.log('editable journal lines', ed.length); if(!ed.length) errs.push('no edit-ev'); else { await ed[ed.length-1].click(); await p.waitForTimeout(100); await p.screenshot({path:'f_editev.png'}); const rs=await p.$$('[data-act="ev-reassign"]'); if(rs.length) await rs[rs.length-1].click(); else errs.push('no reassign buttons'); }
+  const ed=await p.$$('[data-act="edit-ev"]'); console.log('editable journal lines', ed.length); if(!ed.length) errs.push('no edit-ev'); else { await ed[ed.length-1].click(); await p.waitForTimeout(320); await p.screenshot({path:'f_editev.png'}); const rs=await p.$$('[data-act="ev-reassign"]'); if(rs.length) await rs[rs.length-1].click(); else errs.push('no reassign buttons'); }
   await p.waitForTimeout(100);
   { const st=await p.$('[data-act="sound-test"]'); if(st){ await st.click(); await p.waitForTimeout(100); } else errs.push('no sound-test button'); }
   // undo toast
-  await (await p.$$('.prow:not(.bench) .pbtn'))[0].click(); await p.click('[data-ev="pt3"]'); if(await p.$('[data-ast]')) await (await p.$$('[data-ast]'))[0].click(); await p.waitForTimeout(100);
+  await (await p.$$('.prow:not(.bench) .pbtn'))[0].click(); await p.waitForTimeout(320); await p.click('[data-ev="pt3"]'); if(await p.$('[data-ast]')) await (await p.$$('[data-ast]'))[0].click(); await p.waitForTimeout(100);
   const tt=await p.textContent('body'); if(!/Annuler/.test(tt)) errs.push('no undo toast');
   // end of time -> end sheet
   await p.evaluate(()=>{ const {curSession,liveMatch,manageClock}=window.__hs; const s=curSession(); const m=liveMatch(s); m.elapsedMs=9*60000-600; m.startedAt=Date.now(); m.running=true; manageClock(); });

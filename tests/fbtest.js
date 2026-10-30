@@ -1,7 +1,7 @@
 const { chromium } = require('playwright'); const fs=require('fs');
 (async()=>{
   const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}); const ctx=await b.newContext({viewport:{width:420,height:900},serviceWorkers:'block'});
-  const fake=fs.readFileSync('/tmp/fake-firebase.js','utf8');
+  const fake=fs.readFileSync('tests/fake-firebase.js','utf8');
   await ctx.route(/gstatic\.com\/firebasejs\//, r=>r.fulfill({contentType:'application/javascript',body:'/* noop */'}));
   await ctx.route(/gstatic\.com\/firebasejs\/.*firebase-app-compat/, r=>r.fulfill({contentType:'application/javascript',body:fake}));
   await ctx.route(/fonts\.googleapis|fonts\.gstatic/, r=>r.fulfill({contentType:'text/css',body:''}));

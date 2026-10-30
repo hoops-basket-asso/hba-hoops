@@ -15,12 +15,13 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   const t0=Date.now(); let matches=0, acts=0;
   for(let mtc=0; mtc<15; mtc++){
     for(let k=0;k<40;k++){
-      const btns=await p.$$('.prow:not(.bench) .pbtn'); if(!btns.length) break; await btns[Math.floor(Math.random()*btns.length)].click(); acts++;
+      const btns=await p.$$('.prow:not(.bench) .pbtn'); if(!btns.length) break; await btns[Math.floor(Math.random()*btns.length)].click(); await p.waitForTimeout(320); acts++;
       const sheet=await p.$('.sheet'); if(!sheet) continue;
       if(await p.$('[data-win]')){ await (await p.$$('[data-win]'))[0].click(); break; }
       const evs=['pt2','pt3','ft1','ft0','foul','tech','uns','subout']; const ev=evs[Math.floor(Math.random()*evs.length)];
-      const e=await p.$(`[data-ev="${ev}"]`); if(e){ await e.click(); const cy=await p.$('[data-act="confirm-yes"]'); if(cy) await cy.click(); } else { const c=await p.$('[data-act="sheet-close"] button[data-act="sheet-close"]'); if(c) await c.click(); }
-      if(await p.$('[data-ast]')){ const a=await p.$$('[data-ast]'); await a[Math.floor(Math.random()*a.length)].click(); }
+      const e=await p.$(`[data-ev="${ev}"]`); if(e){ await e.click(); await p.waitForTimeout(320); const cy=await p.$('[data-act="confirm-yes"]'); if(cy) await cy.click(); await p.waitForTimeout(100); } else { const c=await p.$('[data-act="sheet-close"] button[data-act="sheet-close"]'); if(c) await c.click(); }
+      if(await p.$('[data-ast]')){ const a=await p.$$('[data-ast]'); await a[Math.floor(Math.random()*a.length)].click({timeout:3000}).catch(()=>{}); await p.waitForTimeout(100); }
+      { const left=await p.$('.sheet [data-act="sheet-close"]'); if(left&&!(await p.$('[data-win]'))){ await left.click({timeout:3000}).catch(()=>{}); await p.waitForTimeout(100); } }
       if(await p.$('[data-win]')){ await (await p.$$('[data-win]'))[0].click(); break; }
       if(ev==='subout'){ const bench=await p.$$('.prow.bench .pbtn'); if(bench.length) await bench[0].click(); else await p.click('[data-act="sub-cancel"]').catch(()=>{}); }
       if(k%9===0){ const u=await p.$('[data-act="undo"]:not([disabled])'); if(u) await u.click(); }

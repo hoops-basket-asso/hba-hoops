@@ -15,14 +15,14 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   let acts=0, quarters=0, t0=Date.now();
   while(acts<600){
     const over=await p.evaluate(()=>!!document.querySelector('[data-act="start-match-cent"]')||/Match terminé/.test(document.body.innerText)); if(over) break;
-    const btns=await p.$$('.prow:not(.bench) .pbtn'); if(!btns.length) break; await btns[Math.floor(Math.random()*btns.length)].click(); acts++;
+    const btns=await p.$$('.prow:not(.bench) .pbtn'); if(!btns.length) break; await btns[Math.floor(Math.random()*btns.length)].click(); await p.waitForTimeout(320); acts++;
     if(!(await p.$('.sheet'))) continue;
     const evs=['pt2','pt2','pt3','ft1','foul','foul','tech','subout']; const ev=evs[Math.floor(Math.random()*evs.length)];
-    const e=await p.$(`[data-ev="${ev}"]`); if(e) await e.click(); { const cy=await p.$('[data-act="confirm-yes"]'); if(cy) await cy.click(); }
+    const e=await p.$(`[data-ev="${ev}"]`); if(e) await e.click(); await p.waitForTimeout(320); { const cy=await p.$('[data-act="confirm-yes"]'); if(cy) await cy.click(); }
     if(await p.$('[data-ast]')){ const a=await p.$$('[data-ast]'); await a[Math.floor(Math.random()*a.length)].click(); }
     if(ev==='subout'){ const bench=await p.$$('.prow.bench .pbtn'); if(bench.length) await bench[0].click(); else await p.click('[data-act="sub-cancel"]').catch(()=>{}); }
     if(acts%7===0){ const u=await p.$('[data-act="undo"]:not([disabled])'); if(u) await u.click(); }
-    const txt=await p.evaluate(()=>document.body.innerText); const q=(txt.match(/quart-temps (\d)\/4/)||[])[1]; if(q&&+q>quarters){ quarters=+q; await p.screenshot({path:'c_q'+q+'.png'}); }
+    const txt=await p.evaluate(()=>document.body.innerText); const q=(txt.match(/(?:quart-temps|QT) (\d)\/4/)||[])[1]; if(q&&+q>quarters){ quarters=+q; await p.screenshot({path:'c_q'+q+'.png'}); }
   }
   await p.waitForTimeout(1500);
   const info=await p.evaluate(()=>({txt:document.body.innerText.slice(0,500),w:window.__w,fail:window.__fail,last:window.__last}));
