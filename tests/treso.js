@@ -27,6 +27,12 @@ const { chromium } = require('playwright'); const fs=require('fs');
   // suppression
   await p.click('[data-act="ledger-del"]'); await p.waitForTimeout(300); const cs2=await p.evaluate(()=>window.__hs.cashState()); E(cs2.packPaid===0,'suppression mouvement échouée');
   await p.fill('#lgDate','2026-10-15'); await p.fill('#lgAmt','4 500'); await p.fill('#lgLabel','1er virement Hoops Factory'); await p.selectOption('#lgCat','pack_out'); await p.click('[data-act="ledger-add"]'); await p.waitForTimeout(300);
+  // cotisations : une partielle (288/300) après le solde de départ, une complète avant (déjà dans le solde)
+  await p.evaluate(()=>{ const S=window.__hs.S; const m=Object.values(S.players).filter(x=>x.member&&x.active!==false); const c={}; c[m[0].id]={amt:288,at:'2026-10-20'}; c[m[1].id]={amt:300,at:'2026-09-10'}; S.treasury.cotis=c; window.__hs.render(); }); await p.waitForTimeout(300);
+  const cc=await p.evaluate(()=>window.__hs.cashState()); console.log('cotisations', {cotEur:cc.cotEur,cotCash:cc.cotCash,cotLeft:cc.cotLeft,unpaid:cc.unpaid.length,partial:cc.partial});
+  E(cc.cotCash===288&&cc.cotEur===588,'cotisation antérieure au solde comptée en caisse'); E(cc.partial.length===1&&cc.partialEur===12,'écart partiel non détecté'); E(cc.cotLeft===(cc.members-2)*300+12,'cotLeft faux: '+cc.cotLeft);
+  t=await txt(); E(/12 € d'écart/.test(t)&&/288 € reçus sur 300/.test(t),'détail écart non affiché');
+  await p.evaluate(()=>{ window.__hs.S.treasury.cotis={}; window.__hs.render(); }); await p.waitForTimeout(200);
   // enveloppes
   await p.click('[data-act="budget-edit"]'); await p.waitForTimeout(300); await p.fill('#bbBbq','1500'); await p.fill('#bbMem','600'); await p.fill('#bbEq','150'); await p.click('[data-act="budget-save"]'); await p.waitForTimeout(400);
   t=await txt(); E(/BBQ d'été/.test(t)&&/900 €/.test(t),'enveloppe BBQ nette (900) absente'); E(/Apport au pack/.test(t),'enveloppe pack N+1 absente');
