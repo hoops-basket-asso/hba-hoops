@@ -83,8 +83,8 @@ const { chromium } = require('playwright'); const fs=require('fs');
 
   // ---- 6. point d'équilibre ----
   await p.click('[data-go="bureau"]'); await p.waitForTimeout(200); await p.click('[data-bureau-seg="treasury"]'); await p.waitForTimeout(300);
-  const be=await p.evaluate(()=>{ const c=document.querySelector('#breakEven'); return c&&c.innerText; }); console.log('équilibre:', (be||'').replace(/\n/g,' | ').slice(0,200));
-  E(be&&/Coût d'une séance/i.test(be)&&/Projection/i.test(be),'carte point d\'équilibre absente');
+  const be=await p.evaluate(()=>{ const c=document.querySelector('#projCard'); return c&&c.innerText; }); console.log('équilibre:', (be||'').replace(/\n/g,' | ').slice(0,200));
+  E(be&&/Participations \/ séance/i.test(be)&&/Excédent prévu/i.test(be),'carte point d\'équilibre absente');
 
   // ---- 7. image bilan de saison ----
   await p.click('[data-go="stats"]'); await p.waitForTimeout(300); await p.click('[data-period="season"]').catch(()=>{}); await p.waitForTimeout(300); await p.click('[data-stats-seg="top"]').catch(()=>{}); await p.waitForTimeout(300);
