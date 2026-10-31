@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-10-31 09:24';</script>
+window.HS_VERSION = '2026-10-31 09:39';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -1178,11 +1178,11 @@ function vTreasury(){
     ${cs.packDue>0&&cs.balance<cs.packDue?`<div class="alert" style="margin-top:10px">Le solde ne couvre pas le reste dû au Hoops : il manque <b>${eur(cs.packDue-cs.balance)}</b>. ${cotLeft?'Cotisations encore attendues : '+eur(cotLeft)+' ('+cotTxt+').':''}</div>`:''}
     <p class="muted small" style="margin-top:8px">Cotisations et participations confirmées sont reprises automatiquement. Le reste (paiement du pack, matériel, BBQ…) se saisit dans <b>Mouvements</b>. <button class="btn sm ghost" data-act="opening-edit">Solde de départ</button></p></div>`;
     // 2. pack
-    const pu=100*hu.packDays/packDays, po=100*hu.offered/packDays; const costPerDay=pk.cost/(hu.packDays+hu.offered||1); const remainPack=Math.max(0,packDays-hu.packDays);
+    const pu=100*hu.packDays/packDays, po=100*hu.offered/packDays; const costPerDay=pk.cost/(packDays+hu.offered); const remainPack=Math.max(0,packDays-hu.packDays);
     R.over+=`<div class="card" id="packCard"><h2>Le pack d'heures <span class="muted" style="display:block;font-size:14px;font-family:var(--body);font-weight:500">${pk.hours} h = ${packDays} dimanches · ${eur(pk.cost)}</span></h2>
     <div class="gauge" title="${hu.packDays} dimanches sur le pack, ${hu.offered} offerts"><i class="u" style="width:${Math.min(100,pu)}%"></i><i style="width:${Math.min(100-Math.min(100,pu),po)}%;background:var(--good)"></i></div>
     <div class="row small muted" style="justify-content:space-between;margin-top:6px;flex-wrap:wrap;gap:6px"><span>■ ${hu.packDays} joué${hu.packDays>1?'s':''} sur le pack (${hu.used} h${hu.extra?', dont '+hu.extra+' h sup.':''})</span><span><i class="dot" style="background:var(--good)"></i> ${hu.offered} offert${hu.offered>1?'s':''} par le Hoops</span><span>${remainPack} restant${remainPack>1?'s':''}</span></div>
-    <div class="tiles" style="margin-top:10px"><div class="tile"><div class="k">Heures consommées</div><div class="v num">${hu.used}<span style="font-size:16px;font-weight:600"> / ${pk.hours} h</span></div><div class="s">chiffre à rapprocher avec le Hoops</div></div><div class="tile"><div class="k">Coût réel par dimanche joué</div><div class="v num">${hu.packDays+hu.offered?eur(costPerDay):'—'}</div><div class="s">${eur(pk.cost/packDays)} sur le pack seul · baisse avec chaque dimanche offert</div></div></div>
+    <div class="tiles" style="margin-top:10px"><div class="tile"><div class="k">Heures consommées</div><div class="v num">${hu.used}<span style="font-size:16px;font-weight:600"> / ${pk.hours} h</span></div><div class="s">chiffre à rapprocher avec le Hoops</div></div><div class="tile"><div class="k">Coût par dimanche</div><div class="v num">${eur(costPerDay)}</div><div class="s">${eur(pk.cost)} ÷ (${packDays} dimanches du pack${hu.offered?' + '+hu.offered+' offert'+(hu.offered>1?'s':''):''}) · baisse à chaque dimanche offert</div></div></div>
     <p class="muted small" style="margin-top:8px">Au-delà du ${packDays}e dimanche joué, les séances passent d'elles-mêmes en « offert ». Dimanches à venir d'ici fin de saison : ${remainSund}${remainSund>remainPack?' (dont '+(remainSund-remainPack)+' au-delà du pack)':''}.</p>
     <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-act="pack-edit">Modifier le pack</button><button class="btn sm ghost" data-tre-seg="cal">Calendrier</button></div></div>`;
     // 3. projection + enveloppes
