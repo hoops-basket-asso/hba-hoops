@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-11-01 15:42';</script>
+window.HS_VERSION = '2026-11-01 16:19';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -854,7 +854,7 @@ function matchPasteName(name){ const n=normName(name); if(!n) return {kind:'empt
   if(/^(liste|dimanche|samedi|seance|inscri|hoops|basket|present|extra|retard|rdv|rendez|total|merci|bonjour|salut|hello|\d)/.test(n)||/\b(novembre|decembre|janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|\d{1,2}h)\b/.test(n)||toks.length>4) return {kind:'header'};
   return {kind:'unknown',cands:sub.map(p=>p.id)}; }
 function parsePasteList(text){ const seen=new Set(); return String(text||'').split(/\r?\n/).map(raw=>({raw:raw.trim(),name:parsePasteLine(raw)})).filter(x=>x.raw).map(x=>{ const r={...x,...matchPasteName(x.name)}; if(r.kind==='ok'){ if(seen.has(r.pid)) r.kind='dup'; seen.add(r.pid); } return r; }); }
-function nextSession(){ const nx=S.config.next||{}; const td=today(); let date=nx.date&&nx.date>=td?nx.date:null; const manual=!!date; if(!date){ const d=new Date(td+'T12:00:00'); d.setDate(d.getDate()+((7-d.getDay())%7)); date=isoLocal(d); }
+function nextSession(){ const nx=S.config.next||{}; const td=today(); const over=dt=>dt===td&&(Object.values(S.sessions).some(x=>x.date===td&&x.status==='closed')||new Date().getHours()>=14); let date=nx.date&&nx.date>=td&&!over(nx.date)?nx.date:null; const manual=!!date; if(!date){ const d=new Date(td+'T12:00:00'); d.setDate(d.getDate()+((7-d.getDay())%7)); if(over(isoLocal(d))) d.setDate(d.getDate()+7); date=isoLocal(d); }
   let status=manual?(nx.status||'ok'):'ok', note=manual?(nx.note||''):''; const di=dayInfo(date); if(!manual&&di&&di.h===0){ status='cancelled'; note=note||'Pas de séance ce dimanche (calendrier du bureau)'; }
   const prep=Object.values(S.sessions).find(x=>x.status==='setup'&&x.date===date); return {date,manual,time:nx.time||'11h – 13h',place:nx.place||'Hoops Factory Aubervilliers',status,note,prep}; }
 function closeChecklist(s){ if(!s) return []; const out=[]; const ms=s.matches||[]; const cent=s.format==='cent'; const live=liveMatch(s);
@@ -1560,7 +1560,7 @@ document.addEventListener('click',async ev=>{
   } }catch(err){ console.error(err); toast('Action impossible : '+(err&&err.message||err)); render(); }
 });
 window.addEventListener('error',e=>{ console.error(e.error||e.message); }); window.addEventListener('unhandledrejection',e=>{ console.error(e.reason); toast('Une action a échoué : '+((e.reason&&e.reason.message)||'erreur')); });
-window.__hs={S,mergePlayers,savePlayer,cashState,hoursUsed,sundays,saveCalendar,dayInfo,parsePasteList,matchPasteName,similarPlayers,curSession,liveMatch,elapsed,remaining,manageClock,render,startSession,aggregate,mvpScore,pname,sessionStats};
+window.__hs={S,mergePlayers,savePlayer,nextSession,cashState,hoursUsed,sundays,saveCalendar,dayInfo,parsePasteList,matchPasteName,similarPlayers,curSession,liveMatch,elapsed,remaining,manageClock,render,startSession,aggregate,mvpScore,pname,sessionStats};
 boot();
 })();
 </script>
