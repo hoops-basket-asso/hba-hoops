@@ -21,7 +21,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
   E(nextTxt&&/Prochaine séance/.test(nextTxt),'carte prochaine séance absente');
   // bureau édite : annulée
   await p.click('[data-act="next-edit"]'); await p.waitForTimeout(300); E(!!(await p.$('#nxDate')),'formulaire prochaine séance absent');
-  const nextSunday=await p.evaluate(()=>{ const d=new Date(); d.setDate(d.getDate()+((7-d.getDay())%7)); return d.toISOString().slice(0,10); });
+  const nextSunday=await p.evaluate(()=>{ const d=new Date(); d.setDate(d.getDate()+(((7-d.getDay())%7)||7)); return d.toISOString().slice(0,10); });
   await p.fill('#nxDate',nextSunday); await p.selectOption('#nxStatus','cancelled'); await p.fill('#nxNote','Gymnase fermé'); await p.click('[data-act="next-save"]'); await p.waitForTimeout(400);
   const nextTxt2=await p.evaluate(()=>{ const c=document.querySelector('#nextCard'); return c&&c.innerText; }); E(/Annulée/.test(nextTxt2||'')&&/Gymnase fermé/.test(nextTxt2||''),'annulation non affichée: '+nextTxt2);
   // retour à confirmée pour la suite
