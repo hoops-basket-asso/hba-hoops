@@ -8,7 +8,7 @@ const { chromium } = require('playwright');
   await p.click('[data-go="players"]'); await p.click('[data-act="import-players"]'); await p.fill('#impTxt',Array.from({length:12},(_,i)=>'J'+(i+1)).join('\n')); await p.click('[data-act="import-confirm"]'); await p.waitForTimeout(200);
   await p.click('[data-go="home"]'); await p.click('[data-act="new-session"]'); await p.waitForTimeout(100);
   for(let i=0;i<12;i++){ await (await p.$$('[data-act="toggle-present"]'))[i].click(); }
-  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
+  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(350); await p.click('[data-act="five-ok"][data-run="1"]',{timeout:1500}).catch(()=>{}); await p.waitForTimeout(100); await p.waitForTimeout(300);
   const state=()=>p.evaluate(()=>{ const {S,curSession,liveMatch}=window.__hs; const s=curSession(); const m=liveMatch(s); const st=(()=>{ let h=0; m.events.forEach(e=>{ if(e.type==='pt'&&s.teams[m.home].players.includes(e.pid)) h+=e.v; }); return h; })(); return {running:m.running,stoppedBy:m.stoppedBy,home:st,sheet:S.sheet&&S.sheet.type,toast:S.toast&&S.toast.msg}; });
   const score2=async()=>{ await (await p.$$('.prow:not(.bench) [data-q="pt2"]'))[0].click(); await p.waitForTimeout(80); const a=await p.$('[data-act="ast-pick"][data-id=""]'); if(a) await a.click({timeout:500}).catch(()=>{}); await p.waitForTimeout(80); };
   for(let i=0;i<5;i++) await score2();

@@ -26,7 +26,7 @@ const { chromium } = require('playwright'); const fsx=require('fs'); console.log
   let guard=0; while(guard++<30){ const c=await p.$('.dpool .dp'); if(!c) break; await c.click(); await p.waitForTimeout(30); }
   const sizes=await p.evaluate(()=>{ const st=window.__hs.S.setup; return ['A','B','C'].map(t=>st.teams[t].players.length+(st.teams[t].captain?'©':'')); }); console.log('team sizes',sizes);
   await p.waitForTimeout(450); const capChip=await p.$('.dp.cap'); await capChip.click(); await p.waitForTimeout(100);
-  await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300); await p.screenshot({path:'d_live.png'});
+  await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(350); await p.click('[data-act="five-ok"][data-run="1"]',{timeout:1500}).catch(()=>{}); await p.waitForTimeout(100); await p.waitForTimeout(300); await p.screenshot({path:'d_live.png'});
   const bt=await p.textContent('body'); if(!/©/.test(bt)) errs.push('no captain marker on board');
   const sess=await p.evaluate(()=>{ const s=window.__hs.curSession(); return {draft:s.draft&&s.draft.picks.length, caps:['A','B','C'].map(t=>s.teams[t].captain)}; }); console.log(sess); 
   // edit teams sheet shows captain selects

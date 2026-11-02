@@ -8,7 +8,7 @@ const { chromium } = require('playwright');
   await p.click('[data-go="players"]'); await p.click('[data-act="import-players"]'); await p.fill('#impTxt',Array.from({length:18},(_,i)=>'J'+(i+1)).join('\n')); await p.click('[data-act="import-confirm"]'); await p.waitForTimeout(200);
   await p.click('[data-go="home"]'); await p.click('[data-act="new-session"]'); await p.waitForTimeout(100);
   for(let i=0;i<18;i++){ await (await p.$$('[data-act="toggle-present"]'))[i].click(); }
-  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
+  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(350); await p.click('[data-act="five-ok"][data-run="1"]',{timeout:1500}).catch(()=>{}); await p.waitForTimeout(100); await p.waitForTimeout(300);
   const fb=await p.$('[data-act="five"]'); if(!fb) errs.push('no five button'); else { await fb.click(); await p.waitForTimeout(150); }
   const chips=await p.$$('[data-act="five-toggle"]'); console.log('five chips', chips.length);
   const onBefore=await p.evaluate(()=>{ const m=window.__hs.liveMatch(window.__hs.curSession()); return {A:[...m.lineup[m.home]],B:[...m.lineup[m.away]]}; });
@@ -30,7 +30,7 @@ const { chromium } = require('playwright');
   await p.click('[data-act="end-match"]'); await p.waitForTimeout(100); await (await p.$$('[data-win]'))[0].click(); await p.waitForTimeout(200);
   const gp=await p.evaluate(()=>{ const s=window.__hs.curSession(); const ss=window.__hs.sessionStats(s); return Object.values(ss.pl).map(r=>r.gp); }); console.log('gp values', gp, 'players with gp', gp.filter(x=>x>0).length); if(gp.filter(x=>x>0).length!==10) errs.push('gp should be 10 on-court players, got '+gp.filter(x=>x>0).length);
   // next match between same teams: lineup carries over
-  await p.click('[data-act="start-match"]').catch(()=>{}); await p.waitForTimeout(200);
+  await p.click('[data-act="start-match"]').catch(()=>{}); await p.waitForTimeout(350); await p.click('[data-act="five-ok"][data-run="1"]',{timeout:1500}).catch(()=>{}); await p.waitForTimeout(100); await p.waitForTimeout(200);
   const m2=await p.evaluate(()=>{ const s=window.__hs.curSession(); const m=window.__hs.liveMatch(s); return m?{home:m.home,l:m.lineup[m.home]}:null; }); console.log('match2', m2&&m2.home, m2&&JSON.stringify(m2.l)===JSON.stringify(onAfter.A)?'lineup carried':'different');
   console.log('errors',errs); await b.close();
 })().catch(e=>{console.error(String(e).slice(0,500));process.exit(1);});

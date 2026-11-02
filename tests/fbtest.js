@@ -28,7 +28,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
   // start a new session as bureau
   await p.click('[data-go="home"]'); await p.click('[data-act="new-session"]'); await p.waitForTimeout(200);
   for(let i=0;i<12;i++){ await (await p.$$('[data-act="toggle-present"]'))[i].click(); }
-  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(400);
+  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(350); await p.click('[data-act="five-ok"][data-run="1"]',{timeout:1500}).catch(()=>{}); await p.waitForTimeout(100); await p.waitForTimeout(400);
   const sid=await p.evaluate(()=>window.__hs.S.sid); console.log('live sid',sid);
   // create scorer link
   await p.click('[data-act="scorer-links"]'); await p.waitForTimeout(300); await p.fill('#scLabel','Karen'); await p.click('[data-act="scorer-create"]'); await p.waitForTimeout(400);

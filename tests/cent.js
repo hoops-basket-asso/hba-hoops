@@ -11,7 +11,7 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   await p.click('[data-go="home"]'); await p.click('[data-act="new-session"]'); await p.waitForTimeout(100);
     for(let i=0;i<14;i++){ await (await p.$$('[data-act="toggle-present"]'))[i].click(); }
   await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="fmt"][data-id="cent"]'); await p.waitForTimeout(100); await p.click('[data-act="auto-teams"]'); await p.waitForTimeout(100); await p.screenshot({path:'out/c_setup.png'});
-  await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300); await p.screenshot({path:'out/c_live.png'});
+  await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(350); await p.click('[data-act="five-ok"][data-run="1"]',{timeout:1500}).catch(()=>{}); await p.waitForTimeout(100); await p.waitForTimeout(300); await p.screenshot({path:'out/c_live.png'});
   let acts=0, quarters=0, t0=Date.now();
   while(acts<600){
     const over=await p.evaluate(()=>!!document.querySelector('[data-act="start-match-cent"]')||/Match terminé/.test(document.body.innerText)); if(over) break;

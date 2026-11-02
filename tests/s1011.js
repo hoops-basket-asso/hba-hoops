@@ -8,7 +8,7 @@ const { chromium } = require('playwright');
   await p.click('[data-go="players"]'); await p.click('[data-act="import-players"]'); await p.fill('#impTxt',Array.from({length:12},(_,i)=>'J'+(i+1)).join('\n')); await p.click('[data-act="import-confirm"]'); await p.waitForTimeout(200);
   const playSession=async(date)=>{ await p.click('[data-go="home"]'); await p.click('[data-act="new-session"]'); await p.waitForTimeout(100); await p.evaluate(d=>{ window.__hs.S.setup.date=d; },date);
     for(let i=0;i<12;i++){ await (await p.$$('[data-act="toggle-present"]'))[i].click(); }
-    await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
+    await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(350); await p.click('[data-act="five-ok"][data-run="1"]',{timeout:1500}).catch(()=>{}); await p.waitForTimeout(100); await p.waitForTimeout(300);
     // first basket -> prominent assist prompt
     await (await p.$$('.prow:not(.bench) [data-q="pt2"]'))[0].click(); await p.waitForTimeout(80);
     const ast=await p.$('.astbar'); if(!ast) errs.push('no assist strip'); else { const t=await ast.textContent(); if(!/Passe décisive sur le \+2/.test(t)) errs.push('assist text '+t); const big=await p.$$('.astbar .chip.big'); if(big.length<2) errs.push('assist buttons '+big.length); }
@@ -23,7 +23,7 @@ const { chromium } = require('playwright');
   // last-minute behaviour on a live match
   await p.click('[data-go="home"]'); await p.click('[data-act="new-session"]'); await p.waitForTimeout(100); await p.evaluate(()=>{ window.__hs.S.setup.date='2026-10-18'; });
   for(let i=0;i<12;i++){ await (await p.$$('[data-act="toggle-present"]'))[i].click(); }
-  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
+  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(350); await p.click('[data-act="five-ok"][data-run="1"]',{timeout:1500}).catch(()=>{}); await p.waitForTimeout(100); await p.waitForTimeout(300);
   await (await p.$$('.prow:not(.bench) [data-q="pt2"]'))[0].click(); await p.waitForTimeout(60); await p.click('[data-act="ast-pick"][data-id=""]'); await p.waitForTimeout(60);
   await p.evaluate(()=>{ const {curSession,liveMatch}=window.__hs; const m=liveMatch(curSession()); m.elapsedMs=8*60000+1000; m.startedAt=Date.now(); });
   await p.waitForTimeout(900); const lm=await p.evaluate(()=>({shot:window.__hs.S.shot, btn:!!document.querySelector('[data-act="shot"]'), toast:window.__hs.S.toast&&window.__hs.S.toast.msg})); console.log('last minute', lm); if(lm.shot==null||!lm.btn) errs.push('last minute not armed');

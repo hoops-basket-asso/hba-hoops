@@ -46,7 +46,7 @@ const { chromium } = require('playwright');
   let guard=0; while(guard++<20){ const c=await p.$('.dpool .dp'); if(!c) break; const col=['A','B','C'][guard%3]; await drag('.dpool .dp','[data-col="'+col+'"]'); }
   tt=await teams(); console.log('after drag fill', tt); if(tt.reduce((a,x)=>a+x,0)!==9) errs.push('drag fill incomplete');
   await p.screenshot({path:'out/dnd_full.png'});
-  await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
+  await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(350); await p.click('[data-act="five-ok"][data-run="1"]',{timeout:1500}).catch(()=>{}); await p.waitForTimeout(100); await p.waitForTimeout(300);
   const live=await p.evaluate(()=>{ const s=window.__hs.curSession(); return {status:s.status,id:s.id,draft:s.draft&&s.draft.picks.length}; }); console.log('live',live); if(live.status!=='live'||live.id!==prep.id) errs.push('prep not turned into live session');
   const nSess=await p.evaluate(()=>Object.keys(window.__hs.S.sessions).length); if(nSess!==1) errs.push('duplicate session '+nSess);
   console.log('errors',errs); await b.close();

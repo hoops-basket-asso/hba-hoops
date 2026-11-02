@@ -28,7 +28,7 @@ const { chromium } = require('playwright');
   // invalid date ignored
   await p.evaluate(()=>{ const e=document.querySelector('#sdate'); e.value=''; e.dispatchEvent(new Event('input',{bubbles:true})); }); const dt=await p.evaluate(()=>window.__hs.S.setup.date); if(!/^\d{4}-\d{2}-\d{2}$/.test(dt)) errs.push('empty date accepted');
   // auto + launch
-  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
+  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(350); await p.click('[data-act="five-ok"][data-run="1"]',{timeout:1500}).catch(()=>{}); await p.waitForTimeout(100); await p.waitForTimeout(300);
   const sid=await p.evaluate(()=>window.__hs.S.sid); console.log('live', sid);
   // simulate another device: setup still open on a prep already live -> refused
   await p.evaluate(()=>{ const s=window.__hs.S.sessions; const live=Object.values(s)[0]; window.__hs.S.setup={id:live.id,date:live.date,present:[...live.present],nteams:3,format:'rotation',teams:JSON.parse(JSON.stringify(live.teams)),home:'A',away:'B',q:'',step:3}; window.__hs.S.view='setup'; window.__hs.S.sheet=null; });
