@@ -128,7 +128,7 @@ textarea{width:100%;min-height:220px;font:16px/1.4 ui-monospace,Menlo,monospace;
 const S = {
   db:null, downloads:null, user:null, canWrite:null,
   players:{}, sessions:{}, sanctions:{}, treasury:{pack:null,calendar:null,cotis:null}, payments:{}, config:{pin:'2018', seasonStart:'2026-09-01', target:12, minutes:9, teamFoulLimit:6, fineAmount:45, badgeHot:20, badgeSniper:3, badgeUnbeatenMin:4, badgeStreak:5, badgePillar:10, badgeCenturion:100, badgeCool:8, badgeMagnetMin:30, badgeMaestro:5, assists:true, demo:false},
-  view:'home', period:'session', tday:null, tpay:null, sort:{k:'pts',d:-1}, unlocked:false, sid:null, setup:null, sheet:null, sel:null, subOut:null, toast:null,
+  view:'home', period:'session', tday:null, tpay:null, sort:{k:'idx',d:-1}, unlocked:false, sid:null, setup:null, sheet:null, sel:null, subOut:null, toast:null,
   demo:false, loaded:false, saving:{}, dirty:{}, clockTimer:null
 };
 const $ = (s,el=document)=>el.querySelector(s);
@@ -277,13 +277,13 @@ function sessionStats(sess){ const c=S._cache.stats[sess.id]; const sig=sigOf(se
 function sessionStatsRaw(sess){
   const teams={}; TEAMS.forEach(t=>{ if(sess.teams&&sess.teams[t]&&sess.teams[t].players.length) teams[t]={w:0,l:0,pf:0,pa:0}; });
   const pl={};
-  const P = id => pl[id] || (pl[id]={id,gp:0,gpApprox:0,w:0,pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,imp:0,nImp:0});
+  const P = id => pl[id] || (pl[id]={id,gp:0,gpApprox:0,w:0,pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,imp:0,nImp:0,min:0,chp:0});
   let done=0;
   for(const m of sess.matches){
     if(m.status!=='done') continue; done++;
     const st=matchState(m,sess);
     for(const t of [m.home,m.away]){ const o=t===m.home?m.away:m.home; if(!teams[t]) continue; teams[t].pf+=st.score[t]; teams[t].pa+=st.score[o]; if(m.winner===t) teams[t].w++; else teams[t].l++;
-      const roster=(m.roster&&m.roster[t===m.home?'home':'away'])||sess.teams[t].players||[]; const tracked=!!st.subsBy[t]||!!m.fiveOk; for(const pid of roster){ if(tracked&&!(st.time[pid]>0)) continue; const p=P(pid); p.gp++; if(m.winner===t)p.w++; if(!tracked) p.gpApprox=(p.gpApprox||0)+1; }
+      const roster=(m.roster&&m.roster[t===m.home?'home':'away'])||sess.teams[t].players||[]; const tracked=!!st.subsBy[t]||!!m.fiveOk; for(const pid of roster){ if(tracked&&!(st.time[pid]>0)) continue; const p=P(pid); p.gp++; if(m.winner===t)p.w++; if(!tracked) p.gpApprox=(p.gpApprox||0)+1; const share=tracked&&st.dur?Math.min(1,(st.time[pid]||0)/st.dur):1; if(tracked) p.min+=(st.time[pid]||0); p.chp+=(m.winner===t?2:1)*share; }
       if(st.hasSubs&&sess.format!=='cent'){ const margin=st.score[t]-st.score[o]; for(const pid of roster){ const tm=st.time[pid]||0; if(tm<15000||tm>st.dur-15000) continue; const x=st.pl[pid]||{pm:0}; const p=P(pid); p.imp=(p.imp||0)+((x.pm||0)-margin*tm/st.dur); p.nImp=(p.nImp||0)+1; } } }
     for(const [pid,x] of Object.entries(st.pl)){ const p=P(pid); for(const k of ['pts','fg2','fg3','fta','ftm','pf','tech','uns','pm','ast']) p[k]+=(x[k]||0); }
   }
@@ -313,9 +313,9 @@ function ptsLabel(r){ return fmt1(perM(r,'pts'))+' pts/match · '+r.pts+' pts en
 function mvpPick(rows,minGp=1){ return [...rows].filter(r=>r.gp>=minGp).map(r=>({r,v:mvpScore(r)})).sort((a,b)=>b.v-a.v||b.r.pts-a.r.pts)[0]||null; }
 function mvpLabel(x){ return `indice ${Math.round(x.v)} · ${x.r.pts} pts, ${x.r.ast||0} PD, ${x.r.w} V${x.r.nImp?', impact '+impLabel(x.r):''}${x.r.pf?', '+x.r.pf+' F':''}`; }
 function aggregate(sessions){
-  const pl={}; const P = id => pl[id] || (pl[id]={id,sessions:0,gp:0,gpApprox:0,w:0,pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,imp:0,nImp:0});
+  const pl={}; const P = id => pl[id] || (pl[id]={id,sessions:0,gp:0,gpApprox:0,w:0,pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,imp:0,nImp:0,min:0,chp:0});
   let matches=0;
-  for(const s of sessions){ const ss=sessionStats(s); matches+=ss.done; for(const [pid,x] of Object.entries(ss.pl)){ const p=P(pid); p.sessions++; for(const k of ['gp','gpApprox','w','pts','fg2','fg3','fta','ftm','pf','tech','uns','pm','ast','imp','nImp']) p[k]+=(x[k]||0); } }
+  for(const s of sessions){ const ss=sessionStats(s); matches+=ss.done; for(const [pid,x] of Object.entries(ss.pl)){ const p=P(pid); p.sessions++; for(const k of ['gp','gpApprox','w','pts','fg2','fg3','fta','ftm','pf','tech','uns','pm','ast','imp','nImp','min','chp']) p[k]+=(x[k]||0); } }
   return {pl:Object.values(pl),matches,sessions:sessions.length};
 }
 function inStats(s){ return !!s&&(s.status==='closed'||s.status==='live')&&!s.excluded; }
@@ -384,6 +384,8 @@ const AWARDS=[
   {k:'sixth',icon:'🪑',name:'Sixième homme',desc:'meilleur joueur parmi ceux présents moins d\'un dimanche sur deux'},
   {k:'jokic',icon:'🃏',name:'Trophée Jokić',desc:'meilleur passeur hors meneurs (min. 10 passes)'},
   {k:'lopez',icon:'🛰️',name:'Trophée Brook Lopez',desc:'le plus de paniers à 3 points parmi les intérieurs (AF et pivots)'},
+  {k:'ironman',icon:'🦾',name:'Iron Man',desc:'le plus de minutes sur le terrain (matchs avec cinq de départ ou remplacements saisis)'},
+  {k:'champ',icon:'🏆',name:'Champion de la saison',desc:'championnat : 2 points par victoire, 1 par défaite, au prorata des minutes jouées'},
 ];
 function seasonAwards(){ const b=seasonBounds(); const sess=Object.values(S.sessions).filter(s=>s.status==='closed'&&s.date>=b.start&&s.date<b.end).sort((x,y)=>x.date<y.date?-1:1); const n=sess.length; if(!n) return {sess:[],rows:[],list:[]};
   const sig=sess.map(sigOf).join(';')+'|'+Object.keys(S.sanctions).length; if(S._cache.season&&S._cache.season.sig===sig) return S._cache.season.v; const v=seasonAwardsRaw(sess,n); S._cache.season={sig,v}; return v; }
@@ -406,6 +408,8 @@ function seasonAwardsRaw(sess,n){ const b=seasonBounds();
   const posOf=id=>(S.players[id]||{}).pos||''; const anyPos=rows.some(r=>posOf(r.id));
   if(anyPos){ list.push({...AWARDS[10],w:pick(r=>posOf(r.id)&&posOf(r.id)!=='M'&&(r.ast||0)>=10,r=>r.ast||0,x=>`${x.r.ast} passes décisives (${posLabel(posOf(x.r.id)).toLowerCase()})`)});
     list.push({...AWARDS[11],w:pick(r=>['AF','P'].includes(posOf(r.id))&&r.fg3>0,r=>r.fg3,x=>`${x.r.fg3} paniers à 3 pts (${posLabel(posOf(x.r.id)).toLowerCase()})`)}); }
+  list.push({...AWARDS.find(a=>a.k==='ironman'),w:pick(r=>r.min>0,r=>r.min,x=>`${Math.round(x.r.min/60000)} min sur le terrain · ${x.r.gp} matchs`)});
+  list.push({...AWARDS.find(a=>a.k==='champ'),w:pick(r=>r.gp>0,r=>r.chp||0,x=>`${fmt1(x.r.chp||0)} pts · ${x.r.w} V – ${x.r.gp-x.r.w} D · ${Math.round((x.r.min||0)/60000)} min`)});
   return {sess,rows,list,n}; }
 const MOIS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 function monthAwards(){ const b=seasonBounds(); const sess=Object.values(S.sessions).filter(x=>x.status==='closed'&&inStats(x)&&x.date>=b.start&&x.date<b.end); const sig=sess.map(sigOf).join(';'); if(S._cache.month&&S._cache.month.sig===sig) return S._cache.month.v;
@@ -538,7 +542,7 @@ function summaryText(sess){
   L.push('');
   if(sess.format==='cent'){ const cum={}; sess.matches.filter(x=>x.status==='done').forEach(x=>{ const st=matchState(x,sess); cum[x.home]=(cum[x.home]||0)+st.score[x.home]; cum[x.away]=(cum[x.away]||0)+st.score[x.away]; }); L.push('🏆 Match à 100 points : '+tn('A')+' '+(cum.A||0)+' – '+(cum.B||0)+' '+tn('B')+' ('+sess.matches.filter(x=>x.status==='done').map(x=>{ const st=matchState(x,sess); return 'QT'+x.quarter+' '+st.score[x.home]+'-'+st.score[x.away]; }).join(', ')+')'); L.push(''); }
   else if(sess.teamsApprox){ L.push('⚠️ '+(sess.resultNote||'Résultats du jour non consignés match par match.')); L.push(''); }
-  else if(tRank.length){ L.push('🏆 Équipe du jour : '+tn(tRank[0][0])+' ('+tRank[0][1].w+' V – '+tRank[0][1].l+' D)'); tRank.slice(1).forEach(([t,x])=>L.push('   '+tn(t)+' : '+x.w+' V – '+x.l+' D')); L.push(''); }
+  else if(tRank.length){ const t0=tRank[0][0]; L.push('🏆 Équipe du jour : '+tn(t0)+' ('+tRank[0][1].w+' V – '+tRank[0][1].l+' D)'+(sess.teams[t0].players&&sess.teams[t0].players.length?' · '+sess.teams[t0].players.map(pid=>pname(pid)+(sess.teams[t0].captain===pid?' ©':'')).join(', '):'')); tRank.slice(1).forEach(([t,x])=>L.push('   '+tn(t)+' : '+x.w+' V – '+x.l+' D')); L.push(''); }
   { const mv=LD.mvp; if(mv) L.push('👑 MVP : '+pname(mv.r.id)+' — '+mvpLabel(mv)); }
   if(LD.scorer) L.push('🔥 Meilleur marqueur : '+pname(LD.scorer.id)+' — '+ptsLabel(LD.scorer));
   if(sniper) L.push('🎯 Sniper : '+pname(sniper.id)+' — '+sniper.fg3+' panier'+(sniper.fg3>1?'s':'')+' à 3 pts');
@@ -563,7 +567,7 @@ function periodSessionsFor(period,ref){ const keep={p:S.period,s:S.sid}; S.perio
 async function summaryImage(sess){
   await (document.fonts&&document.fonts.ready||Promise.resolve());
   const ss=sessionStats(sess); const rows=Object.values(ss.pl); const tn=t=>(sess.teams[t]&&(sess.teams[t].name||TNAMES[t]))||t;
-  const W=1080; const big=document.createElement('canvas'); big.width=W; big.height=2600; const x=big.getContext('2d');
+  const W=1080; const big=document.createElement('canvas'); big.width=W; big.height=2900; const x=big.getContext('2d');
   const INK='#151515',OR='#E4692B',CREAM='#F7F4EE',CARD='#FFFFFF',MUTED='#6B7280',GOOD='#01A54E';
   const F=(w,px,cond)=>x.font=w+' '+px+'px '+(cond?'"Barlow Condensed", Impact, "Arial Narrow", sans-serif':'Barlow, system-ui, -apple-system, sans-serif');
   const fit=(txt,max)=>{ let t=String(txt); while(x.measureText(t).width>max&&t.length>3) t=t.slice(0,-2)+'…'; return t; };
@@ -583,7 +587,7 @@ async function summaryImage(sess){
     F(700,30); x.fillStyle=i===0?'#fff':INK; x.fillText(fit(tn(t),bw-110),bx+60,y+52); if(i===0){ F(400,34); x.fillText('🏆',bx+bw-58,y+54); }
     F(800,58,true); x.fillStyle=i===0?OR:INK; x.fillText(v.w+' V – '+v.l+' D',bx+24,y+118);
     const cap=sess.teams[t]&&sess.teams[t].captain; if(cap){ F(500,20); x.fillStyle=i===0?'#C9D0DD':MUTED; x.fillText(fit('© '+pshort(cap),bw-48),bx+24,y+150); } });
-  y+=170+44;
+  y+=170; if(!sess.teamsApprox&&tRank.length&&tRank[0][1].w>0){ const t0=tRank[0][0]; F(600,22); x.fillStyle=MUTED; x.fillText(fit('🏆 Équipe du jour · '+(sess.teams[t0].players||[]).map(pname).join(', '),W-120),60,y+34); y+=34; } y+=44;
   // MVP hero
   const LD=leaders(rows,'day'); const mv=LD.mvp; if(mv){ const r=mv.r; x.fillStyle=OR; roundRect(x,60,y,W-120,170,20); x.fill(); F(400,70); x.fillStyle='#fff'; x.fillText('👑',88,y+108); F(700,24); x.fillStyle='rgba(255,255,255,.85)'; x.fillText('MVP DE LA SÉANCE',190,y+52); F(800,64,true); x.fillStyle='#fff'; x.fillText(fit(pname(r.id),W-120-150-60),190,y+118); F(500,26); x.fillStyle='rgba(255,255,255,.9)'; x.fillText(r.pts+' pts · '+(r.ast||0)+' passe'+((r.ast||0)>1?'s':'')+' déc. · '+r.w+' V – '+(r.gp-r.w)+' D · indice '+Math.round(mv.v),190,y+152); y+=170+36; }
   // awards grid
@@ -929,7 +933,7 @@ function leadersCard(ss,label){ const rows=Object.values(ss.pl); if(!rows.length
   const ft=[...rows].filter(r=>r.fta>=3).sort((a,b)=>pct(b.ftm,b.fta)-pct(a.ftm,a.fta))[0]; const win=[...rows].filter(r=>r.gp>=3).sort((a,b)=>pct(b.w,b.gp)-pct(a.w,a.gp))[0]; const asr=[...rows].filter(r=>r.ast).sort((a,b)=>b.ast-a.ast)[0];
   const L=[]; { const mv=mvpPick(rows); if(mv) L.push(['👑','MVP · indice '+Math.round(mv.v),pname(mv.r.id),mv.r.pts+' pts · '+(mv.r.ast||0)+' PD · '+mv.r.w+' V']); } if(top)L.push(['🔥','Meilleur marqueur',pname(top.id),top.pts+' pts']); if(sn)L.push(['🎯','Sniper · paniers à 3',pname(sn.id),sn.fg3+'×3']); if(pm)L.push(['🧱','Impact · +/- relatif à l\'équipe, par match',pname(pm.id),impLabel(pm)]); if(asr)L.push(['🎩','Passeur · passes décisives',pname(asr.id),asr.ast+' PD']);
   if(ft)L.push(['🆓','Lancers francs',pname(ft.id),ft.ftm+'/'+ft.fta]); if(win)L.push(['🏅','Meilleur % victoires',pname(win.id),pct(win.w,win.gp)+' %']);
-  if(label!=='de la séance'){ const ch=[...rows].sort((a,b)=>(b.gp+b.w)-(a.gp+a.w)||b.w-a.w)[0]; if(ch&&ch.gp) L.push(['🏆','Championnat · 2 pts la victoire, 1 la défaite',pname(ch.id),(ch.gp+ch.w)+' pts ('+ch.w+' V · '+(ch.gp-ch.w)+' D)']); }
+  if(label!=='de la séance'){ const ch=[...rows].sort((a,b)=>(b.chp||0)-(a.chp||0)||b.w-a.w)[0]; if(ch&&ch.gp) L.push(['🏆','Championnat · 2 pts V, 1 pt D, au prorata des minutes',pname(ch.id),fmt1(ch.chp||0)+' pts ('+ch.w+' V · '+(ch.gp-ch.w)+' D)']); const im=[...rows].filter(r=>r.min>0).sort((a,b)=>b.min-a.min)[0]; if(im) L.push(['🦾','Iron Man · le plus de minutes sur le terrain',pname(im.id),Math.round(im.min/60000)+' min']); }
   return `<div class="card"><h2>Récompenses <span class="muted" style="font-size:15px;font-family:var(--body);font-weight:500">${esc(label)}</span></h2>${L.map(a=>`<div class="lead"><div class="ico">${a[0]}</div><div><div class="who">${esc(a[2])}</div><div class="what">${a[1]}</div></div><div class="big num">${esc(a[3])}</div></div>`).join('')}</div>`; }
 
 function vStats(){
@@ -960,11 +964,11 @@ function vStats(){
     if(nb.length) R.nba+=`<div class="card"><h2>Clin d'œil NBA <span class="muted" style="font-size:15px;font-family:var(--body);font-weight:500">${sess.length===1?'du jour':'sur la période'}</span></h2><p class="muted small">Vos ratios comparés à des saisons NBA depuis 1995. 9 de vos matchs ≈ 1 match NBA en points.</p>${nb.map(x=>`<div class="lead" data-act="player-detail" data-id="${x.pid}" style="cursor:pointer"><div class="ico">🏀</div><div><div class="who">${esc(pname(x.pid))}</div><div class="what">${x.l.text}</div></div></div>`).join('')}</div>`; }
   if(sess.length===1){ const ss=sessionStats(sess[0]); R.teams+=teamTable(sess[0],ss); R.top+=leadersCard(ss,'de la séance'); if(sess[0].format!=='cent') R.teams+=timelineCard(sess[0]); R.teams+=matchJournal(sess[0]); }
   else R.top+=leadersCard({pl:Object.fromEntries(rows.map(r=>[r.id,r]))},'sur la période');
-  const allCols=[['pts','Pts'],['champ','Champ.'],['sessions','Prés.'],['gp','MJ'],['w','V'],['wp','% V'],['ppm','Pts/M'],['fg3','3 pts'],['ast','PD'],['ftp','LF %'],['imp','Impact'],['pm','+/-'],['pf','F'],['tech','T'],['uns','AS']]; const cols=S.fullCols?allCols:allCols.filter(c=>['pts','gp','ppm','ast','imp','wp'].concat(S.period==='session'?[]:['champ']).includes(c[0])); const minG=S.period==='session'?MIN_DAY:seasonMin(rows);
-  const val=(r,k)=>({champ:r.gp+r.w,wp:pct(r.w,r.gp),ppm:r.gp?Math.round(10*r.pts/r.gp)/10:0,ftp:r.fta?pct(r.ftm,r.fta):-1,imp:impPerMatch(r)??-99})[k]??r[k];
-  const disp=(r,k)=>({champ:'<b>'+(r.gp+r.w)+'</b>',wp:pct(r.w,r.gp)+' %',ppm:(r.gp?Math.round(10*r.pts/r.gp)/10:0).toLocaleString('fr-FR'),ftp:r.fta?pct(r.ftm,r.fta)+' % <span class="muted small">('+r.ftm+'/'+r.fta+')</span>':'–',pm:(r.pm>0?'+':'')+r.pm,imp:impLabel(r),gp:r.gpApprox?r.gp+'<span class="muted small" title="'+r.gpApprox+' match(s) sans remplacements saisis : toute l\'équipe comptée">*</span>':r.gp})[k]??r[k];
-  const sorted=[...rows].sort((a,b)=>(val(a,S.sort.k)-val(b,S.sort.k))*S.sort.d|| b.pts-a.pts);
-  R.rank+=`<div class="card"><div class="row"><h2 class="grow">Classement des joueurs</h2><button class="btn sm ghost" data-act="cols-toggle">${S.fullCols?'Vue simple':'Toutes les colonnes'}</button></div><details class="legend"><summary class="muted small">Lire les colonnes · trier</summary><p class="muted small">Tapez un en-tête pour trier. <b>Champ.</b> = classement championnat : 2 points par victoire, 1 par défaite, 0 si on ne joue pas (récompense la présence autant que les résultats). Prés. = séances jouées, MJ = matchs joués, Pts/M = points par match, PD = passes décisives, ≈ = moins de ${minG} matchs (hors récompenses), MJ* = des matchs sans cinq de départ ni remplacements saisis, où toute l'équipe est comptée, F = fautes, T = techniques, AS = antisportives. <b>Impact</b> = ce que l'équipe fait en plus (ou en moins) par match quand le joueur est sur le terrain, en points ; compté seulement sur les matchs où le joueur a eu du temps sur le terrain <i>et</i> sur le banc (≈ = moins de 3 matchs ; – = jamais remplacé, pas de mesure possible).</p></details><div class="tbl"><table><thead><tr><th>Joueur</th>${cols.map(([k,l])=>`<th class="${S.sort.k===k?'sorted':''}" data-sort="${k}">${l}${S.sort.k===k?(S.sort.d>0?' ↑':' ↓'):''}</th>`).join('')}</tr></thead><tbody>${sorted.map((r,i)=>`<tr data-act="player-detail" data-id="${r.id}" style="cursor:pointer"><td class="name"><span class="rank">${i+1}</span>${esc(pname(r.id))}${r.gp<minG?' <span class="muted small" title="moins de '+minG+' matchs">≈</span>':''}</td>${cols.map(([k])=>`<td class="num">${disp(r,k)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+  const allCols=[['idx','Indice'],['pts','Pts'],['min','Min'],['champ','Champ.'],['sessions','Prés.'],['gp','MJ'],['w','V'],['wp','% V'],['ppm','Pts/M'],['fg3','3 pts'],['ast','PD'],['ftp','LF %'],['imp','Impact'],['pm','+/-'],['pf','F'],['tech','T'],['uns','AS']]; const cols=S.fullCols?allCols:allCols.filter(c=>['idx','pts','min','gp','ast','wp'].concat(S.period==='session'?[]:['champ']).includes(c[0])); const nS=sess.length; const minPres=S.period==='session'?0:Math.ceil(nS/2); const elig=r=>(r.sessions||1)>=minPres&&r.gp>=minG; const minG=S.period==='session'?MIN_DAY:seasonMin(rows);
+  const val=(r,k)=>({idx:r.gp?mvpScore(r)/r.gp:-99,min:r.min||0,champ:r.chp||0,wp:pct(r.w,r.gp),ppm:r.gp?Math.round(10*r.pts/r.gp)/10:0,ftp:r.fta?pct(r.ftm,r.fta):-1,imp:impPerMatch(r)??-99})[k]??r[k];
+  const disp=(r,k)=>({idx:'<b>'+(r.gp?fmt1(mvpScore(r)/r.gp):'–')+'</b>',min:r.min?Math.round(r.min/60000):'–',champ:'<b>'+fmt1(r.chp||0)+'</b>',wp:pct(r.w,r.gp)+' %',ppm:(r.gp?Math.round(10*r.pts/r.gp)/10:0).toLocaleString('fr-FR'),ftp:r.fta?pct(r.ftm,r.fta)+' % <span class="muted small">('+r.ftm+'/'+r.fta+')</span>':'–',pm:(r.pm>0?'+':'')+r.pm,imp:impLabel(r),gp:r.gpApprox?r.gp+'<span class="muted small" title="'+r.gpApprox+' match(s) sans remplacements saisis : toute l\'équipe comptée">*</span>':r.gp})[k]??r[k];
+  const sorted=[...rows].sort((a,b)=>(S.sort.k==='idx'?(elig(b)-elig(a)):0)||(val(a,S.sort.k)-val(b,S.sort.k))*S.sort.d|| b.pts-a.pts);
+  R.rank+=`<div class="card"><div class="row"><h2 class="grow">Classement des joueurs</h2><button class="btn sm ghost" data-act="cols-toggle">${S.fullCols?'Vue simple':'Toutes les colonnes'}</button></div><details class="legend"><summary class="muted small">Lire les colonnes · trier</summary><p class="muted small">Tapez un en-tête pour trier. <b>Indice</b> = indice MVP par match (points + 1,5 × passes + victoires + ½ × impact − fautes − 3 × techniques) : c'est le classement de référence, réservé aux joueurs présents au moins un dimanche sur deux (les autres sont grisés, ≈). <b>Min</b> = minutes sur le terrain, comptées sur les matchs où le cinq de départ ou les remplacements sont saisis. <b>Champ.</b> = championnat : 2 points par victoire, 1 par défaite, au prorata du temps passé sur le terrain dans chaque match. Prés. = séances jouées, MJ = matchs joués, Pts/M = points par match, PD = passes décisives, ≈ = moins de ${minG} matchs (hors récompenses), MJ* = des matchs sans cinq de départ ni remplacements saisis, où toute l'équipe est comptée, F = fautes, T = techniques, AS = antisportives. <b>Impact</b> = ce que l'équipe fait en plus (ou en moins) par match quand le joueur est sur le terrain, en points ; compté seulement sur les matchs où le joueur a eu du temps sur le terrain <i>et</i> sur le banc (≈ = moins de 3 matchs ; – = jamais remplacé, pas de mesure possible).</p></details><div class="tbl"><table><thead><tr><th>Joueur</th>${cols.map(([k,l])=>`<th class="${S.sort.k===k?'sorted':''}" data-sort="${k}">${l}${S.sort.k===k?(S.sort.d>0?' ↑':' ↓'):''}</th>`).join('')}</tr></thead><tbody>${sorted.map((r,i)=>`<tr data-act="player-detail" data-id="${r.id}" style="cursor:pointer;${S.sort.k==='idx'&&!elig(r)?'opacity:.55':''}"><td class="name"><span class="rank">${S.sort.k==='idx'&&!elig(r)?'–':i+1}</span>${esc(pname(r.id))}${!elig(r)?' <span class="muted small" title="hors classement : moins de '+minG+' matchs'+(minPres?' ou moins de '+minPres+' dimanches':'')+'">≈</span>':''}</td>${cols.map(([k])=>`<td class="num">${disp(r,k)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
   <div class="row" style="margin-top:10px"><button class="btn sm navy" data-act="share-stats">📣 Image du classement à partager</button>${S.downloads?`<button class="btn sm ghost" data-act="export-csv">Exporter en CSV</button>`:''}</div><div id="statsImg" style="margin-top:10px"></div></div>`;
   const segs=[['rank','Classement'],['top','Podium & badges'],['teams','Équipes'],['nba','NBA']].filter(([k])=>R[k]);
   const cur=R[S.statsSeg]?S.statsSeg:'rank';
@@ -1506,7 +1510,7 @@ document.addEventListener('click',async ev=>{
   } }catch(err){ console.error(err); toast('Action impossible : '+(err&&err.message||err)); render(); }
 });
 window.addEventListener('error',e=>{ console.error(e.error||e.message); }); window.addEventListener('unhandledrejection',e=>{ console.error(e.reason); toast('Une action a échoué : '+((e.reason&&e.reason.message)||'erreur')); });
-window.__hs={S,duoStats,monthAwards,matchState,addEvent,mergePlayers,savePlayer,nextSession,cashState,hoursUsed,sundays,saveCalendar,dayInfo,parsePasteList,matchPasteName,similarPlayers,curSession,liveMatch,elapsed,remaining,manageClock,render,startSession,aggregate,mvpScore,pname,sessionStats};
+window.__hs={S,duoStats,summaryText,summaryImage,monthAwards,matchState,addEvent,mergePlayers,savePlayer,nextSession,cashState,hoursUsed,sundays,saveCalendar,dayInfo,parsePasteList,matchPasteName,similarPlayers,curSession,liveMatch,elapsed,remaining,manageClock,render,startSession,aggregate,mvpScore,pname,sessionStats};
 boot();
 })();
 </script>
