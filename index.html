@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-11-08 19:19';</script>
+window.HS_VERSION = '2026-11-08 19:23';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -433,13 +433,13 @@ function perM(r,k){ return r.gp?(r[k]||0)/r.gp:0; }
 function fmt1(v){ return (Math.round(v*10)/10).toLocaleString('fr-FR'); }
 // Note sur 10, la même partout. 4 composantes, chacune ramenée au meilleur de la période (= 10) :
 // 35 % attaque (points + 1,5 × passes, par match) · 25 % poids dans son équipe (points produits = points + 1,5 × passes, rapportés aux points de l'équipe, séance par séance)
-// 15 % victoires (% de matchs gagnés) · 25 % régularité (dimanches présents) · − 0,5 par technique ou antisportive
+// 15 % victoires (% de matchs gagnés) · 25 % régularité (dimanches présents) · − 2 × (techniques + antisportives) / matchs joués
 // Sur une séance : totaux du jour (points, passes, victoires) ; sur un mois ou la saison : moyennes par match.
-const NOTE_W={att:0.35,team:0.25,win:0.15,reg:0.25,tech:0.5};
+const NOTE_W={att:0.35,team:0.25,win:0.15,reg:0.25,tech:2};
 function shareOf(r){ return r.nShare?r.shareSum/r.nShare:(r.tp?((r.pts||0)+1.5*(r.ast||0))/r.tp:0); }
 function noteParts(rows,nSess){ const ok=rows.filter(r=>r.gp>0); const day=nSess<=1; const att=r=>((r.pts||0)+1.5*(r.ast||0))/(day?1:r.gp), win=r=>(r.w||0)/(day?1:r.gp), reg=r=>nSess>1?Math.min(1,(r.sessions||1)/nSess):1;
   const mx=f=>Math.max(1e-9,...ok.map(f)); const mA=mx(att), mT=mx(shareOf), mW=mx(win); const out={};
-  ok.forEach(r=>{ const A=10*att(r)/mA, T=10*shareOf(r)/mT, Wn=10*win(r)/mW, R=10*reg(r); out[r.id]={A,T,W:Wn,R,note:Math.max(0,NOTE_W.att*A+NOTE_W.team*T+NOTE_W.win*Wn+NOTE_W.reg*R-NOTE_W.tech*((r.tech||0)+(r.uns||0)))}; }); return out; }
+  ok.forEach(r=>{ const A=10*att(r)/mA, T=10*shareOf(r)/mT, Wn=10*win(r)/mW, R=10*reg(r); out[r.id]={A,T,W:Wn,R,note:Math.max(0,NOTE_W.att*A+NOTE_W.team*T+NOTE_W.win*Wn+NOTE_W.reg*R-NOTE_W.tech*((r.tech||0)+(r.uns||0))/r.gp)}; }); return out; }
 function noteLabel(v){ return fmt1(v)+'/10'; }
 function notePick(rows,nSess,minGp){ const el=rows.filter(r=>r.gp>=minGp); if(!el.length) return null; const N=noteParts(el,nSess); return el.map(r=>({r,v:N[r.id].note,parts:N[r.id]})).sort((a,b)=>b.v-a.v||b.r.pts-a.r.pts)[0]; }
 function mvpPickPM(rows,minGp){ const n=Math.max(1,...rows.map(r=>r.sessions||1)); return notePick(rows,n,minGp); }
@@ -570,105 +570,12 @@ function monthCard(){ const list=monthAwards(); if(!list.length) return '';
   return `<div class="card" id="potmList"><h2>Joueurs du mois</h2><p class="muted small">Meilleure note du ladder sur le mois. Éligibilité : présent à 60 % des dimanches du mois et au moins 12 matchs (3 par dimanche si le mois en compte moins de 4). Désigné une fois le mois terminé.</p>${list.map(x=>`<div class="lead" ${x.win?`data-act="player-detail" data-id="${x.win.r.id}" style="cursor:pointer"`:''}><div class="ico">${x.done?(x.win?'🏅':'—'):'⏳'}</div><div><div class="who">${esc(x.lab.charAt(0).toUpperCase()+x.lab.slice(1))} · ${x.win?esc(pname(x.win.r.id)):(x.n<2?'pas d\'attribution (1 seul dimanche)':'personne d\'éligible')}${x.done?'':' <span class="muted small">(en cours)</span>'}</div><div class="what">${x.win?monthLine(x.win):''}${x.runner?' · dauphin '+esc(pname(x.runner.r.id)):''}</div><div class="what">${x.n} dimanche${x.n>1?'s':''} · ${x.eligible} éligible${x.eligible>1?'s':''}</div></div></div>`).join('')}</div>`; }
 function awardsCard(){ const a=seasonAwards(); if(!a.n) return ''; const b=seasonBounds(); const over=today()>=b.end;
   return `<div class="card"><h2>Awards de la saison <span class="muted" style="font-size:15px;font-family:var(--body);font-weight:500">${over?'finale':'classement provisoire · '+a.n+' dimanche'+(a.n>1?'s':'')}</span></h2><p class="muted small">Calculés automatiquement sur la saison ${esc(b.start.slice(0,4))}-${esc(b.end.slice(0,4))}. Les seuils (présence, matchs, lancers) s'appliquent dès maintenant : « — » = personne n'est encore éligible.</p><p style="margin:0 0 8px"><button class="btn sm navy" data-act="season-img">🖼️ Image du bilan de saison</button></p><div id="seasonImg"></div>${a.list.map(x=>`<div class="lead"><div class="ico">${x.icon}</div><div><div class="who">${esc(x.name)}${x.w?' · '+esc(pname(x.w.pid)):' · <span class="muted">—</span>'}</div><div class="what">${esc(x.desc)}${x.w?' · <b>'+esc(x.w.value)+'</b>':''}${x.w&&x.w.runner?' · 2e : '+esc(pname(x.w.runner.pid))+' ('+esc(x.w.runner.value)+')':''}</div></div></div>`).join('')}</div>`; }
-// ---------- clin d'œil NBA (références depuis 1995, modifiables) ----------
-const NBA = {
-  scoreShare: {label:"Part des points de son équipe", unit:"%", refs:[
-    {p:"Kobe Bryant",s:"2005-06",t:"Lakers",v:35.6,n:"35,4 pts par match",pos:"A"},
-    {p:"LeBron James",s:"2005-06",t:"Cavaliers",v:32.3,n:"31,4 pts par match à 21 ans",pos:"AI"},
-    {p:"Shaquille O'Neal",s:"1999-00",t:"Lakers",v:29.5,n:"29,7 pts, MVP et champion",pos:"P"},
-    {p:"Carmelo Anthony",s:"2012-13",t:"Knicks",v:28.7,n:"28,7 pts, meilleur marqueur de la ligue",pos:"AI"},
-    {p:"Joel Embiid",s:"2022-23",t:"76ers",v:28.7,n:"33,1 pts, MVP",pos:"P"},
-    {p:"Dirk Nowitzki",s:"2005-06",t:"Mavericks",v:26.9,n:"26,6 pts, finales NBA",pos:"AF"},
-    {p:"Paul George",s:"2018-19",t:"Thunder",v:24.5,n:"28 pts, 3e du vote MVP",pos:"AI"},
-    {p:"Nikola Jokić",s:"2024-25",t:"Nuggets",v:24.5,n:"29,6 pts et un triple-double de moyenne",pos:"P"},
-    {p:"Allen Iverson",s:"2005-06",t:"76ers",v:33.0,n:"33 pts par match, 1,83 m",pos:"M"},
-    {p:"James Harden",s:"2018-19",t:"Rockets",v:30.6,n:"36,1 pts par match",pos:"A"},
-    {p:"Michael Jordan",s:"1995-96",t:"Bulls",v:28.9,n:"30,4 pts, saison à 72 victoires",pos:"A"},
-    {p:"Luka Dončić",s:"2023-24",t:"Mavericks",v:28.8,n:"33,9 pts par match",pos:"M"},
-    {p:"un All-Star classique",s:"",t:"",v:24,n:"environ 27 pts dans une équipe à 112"},
-    {p:"un titulaire moyen",s:"",t:"",v:12,n:"13-14 pts par match"},
-    {p:"un remplaçant",s:"",t:"",v:6,n:"6-7 pts par match"}]},
-  astShare: {label:"Part des paniers de l'équipe qu'il a servis (matchs avec passes saisies)", unit:"%", refs:[
-    {p:"Russell Westbrook",s:"2016-17",t:"Thunder",v:57.3,n:"saison des 42 triple-doubles, record moderne",pos:"M"},
-    {p:"Chris Paul",s:"2008-09",t:"Hornets",v:54.5,n:"11 passes par match",pos:"M"},
-    {p:"Steve Nash",s:"2006-07",t:"Suns",v:52.5,n:"11,6 passes par match",pos:"M"},
-    {p:"James Harden",s:"2016-17",t:"Rockets",v:50.7,n:"meilleur passeur de la ligue, 11,2",pos:"A"},
-    {p:"Nikola Jokić",s:"2022-23",t:"Nuggets",v:48.0,n:"un pivot meilleur passeur que les meneurs",pos:"P"},
-    {p:"Draymond Green",s:"2016-17",t:"Warriors",v:34.0,n:"7 passes par match pour un ailier fort",pos:"AF"},
-    {p:"Scottie Pippen",s:"1991-92",t:"Bulls",v:30.0,n:"7 passes, le couteau suisse de Jordan",pos:"AI"},
-    {p:"Domantas Sabonis",s:"2022-23",t:"Kings",v:22.0,n:"7,3 passes, un pivot qui fait jouer",pos:"P"},
-    {p:"LeBron James",s:"2019-20",t:"Lakers",v:42.0,n:"meilleur passeur de la ligue à 35 ans",pos:"AI"},
-    {p:"un meneur titulaire",s:"",t:"",v:25,n:"5-6 passes par match"},
-    {p:"un ailier moyen",s:"",t:"",v:10,n:"2 passes par match"}]},
-  threeShare: {label:"Part de ses points venus de derrière la ligne", unit:"%", refs:[
-    {p:"Kyle Korver",s:"2014-15",t:"Hawks",v:72,n:"49,2 % à 3 pts, un record d'adresse",pos:"A"},
-    {p:"Brook Lopez",s:"2018-19",t:"Bucks",v:70,n:"un pivot qui tire 6 fois à 3 pts par match",pos:"P"},
-    {p:"Stephen Curry",s:"2015-16",t:"Warriors",v:50.8,n:"402 paniers à 3 pts, MVP à l'unanimité",pos:"M"},
-    {p:"Reggie Miller",s:"1996-97",t:"Pacers",v:45,n:"le tireur de la décennie 90",pos:"A"},
-    {p:"Damian Lillard",s:"2022-23",t:"Blazers",v:38,n:"32,2 pts par match",pos:"M"},
-    {p:"Karl-Anthony Towns",s:"2021-22",t:"Timberwolves",v:32,n:"vainqueur du concours à 3 pts, un pivot",pos:"P"},
-    {p:"Kevin Durant",s:"2013-14",t:"Thunder",v:18,n:"MVP, scoreur complet",pos:"AF"},
-    {p:"Dirk Nowitzki",s:"2010-11",t:"Mavericks",v:19,n:"champion, le tir à une jambe",pos:"AF"},
-    {p:"Shaquille O'Neal",s:"carrière",t:"",v:0.01,n:"1 panier à 3 pts réussi en 19 saisons (1996)",pos:"P"}]},
-  ftPct: {label:"Réussite aux lancers francs", unit:"%", refs:[
-    {p:"José Calderón",s:"2008-09",t:"Raptors",v:98.1,n:"151 sur 154, record NBA"},
-    {p:"Stephen Curry",s:"carrière",t:"",v:91,n:"le meilleur de l'histoire sur la durée",pos:"M"},
-    {p:"Dirk Nowitzki",s:"carrière",t:"",v:87.9,n:"un ailier fort adroit comme un meneur",pos:"AF"},
-    {p:"Michael Jordan",s:"carrière",t:"",v:83.5,n:"les lancers francs les yeux fermés (1997)",pos:"A"},
-    {p:"Kawhi Leonard",s:"carrière",t:"",v:86,n:"la main de Kawhi",pos:"AI"},
-    {p:"Steve Nash",s:"carrière",t:"",v:90.4,n:"50-40-90 quatre fois"},
-    {p:"un bon joueur NBA",s:"",t:"",v:78,n:"moyenne de la ligue"},
-    {p:"Shaquille O'Neal",s:"carrière",t:"",v:52.7,n:"le « Hack-a-Shaq » a été inventé pour lui",pos:"P"},
-    {p:"Ben Wallace",s:"carrière",t:"",v:41.4,n:"4 fois défenseur de l'année, 41 % aux lancers",pos:"P"},
-    {p:"DeAndre Jordan",s:"2014-15",t:"Clippers",v:39.7,n:"fautes volontaires à chaque fin de match",pos:"P"},
-    {p:"Andre Drummond",s:"2015-16",t:"Pistons",v:35.5,n:"record du plus mauvais pourcentage (min. 100 tentés)",pos:"P"}]},
-  winPct: {label:"Pourcentage de victoires (avec son équipe)", unit:"%", refs:[
-    {p:"Golden State Warriors",s:"2015-16",t:"",v:89.0,n:"73 victoires, 9 défaites, record NBA"},
-    {p:"Chicago Bulls",s:"1995-96",t:"",v:87.8,n:"72-10, Jordan, Pippen, Rodman"},
-    {p:"San Antonio Spurs",s:"2015-16",t:"",v:81.7,n:"67-15 et pourtant pas champions"},
-    {p:"une équipe de playoffs",s:"",t:"",v:60,n:"environ 49 victoires sur 82"},
-    {p:"une équipe moyenne",s:"",t:"",v:50,n:"41-41"},
-    {p:"Detroit Pistons",s:"2023-24",t:"",v:17.1,n:"14-68, 28 défaites de suite"},
-    {p:"Philadelphia 76ers",s:"2015-16",t:"",v:12.2,n:"10-72, « Trust the Process »"},
-    {p:"Charlotte Bobcats",s:"2011-12",t:"",v:10.6,n:"7-59, la pire saison de l'histoire"}]},
-  techPerGame: {label:"Fautes techniques par match NBA (9 de vos matchs ≈ 1 match NBA)", unit:"", refs:[
-    {p:"Rasheed Wallace",s:"2000-01",t:"Blazers",v:0.51,n:"41 techniques en 80 matchs, record absolu"},
-    {p:"DeMarcus Cousins",s:"2015-16",t:"Kings",v:0.26,n:"17 techniques, meilleur « scoreur » de la ligue à ce jeu"},
-    {p:"Dwight Howard",s:"2010-11",t:"Magic",v:0.23,n:"18 techniques, suspendu deux fois"},
-    {p:"Draymond Green",s:"2015-16",t:"Warriors",v:0.17,n:"14 techniques, saison à 73 victoires"},
-    {p:"un joueur NBA ordinaire",s:"",t:"",v:0.02,n:"1 ou 2 techniques par saison"},
-    {p:"Tim Duncan",s:"carrière",t:"",v:0.003,n:"à peine une poignée en 19 saisons"}]},
-};
-const NBA_FACTS = {
-  streak:{p:"A.C. Green",v:1192,n:"1 192 matchs consécutifs sans en manquer un, de 1986 à 2001"},
-  unbeaten:{p:"Golden State Warriors 2015-16",v:24,n:"24 victoires d'affilée pour ouvrir la saison"},
-  kobe:{p:"Kobe Bryant",v:66,n:"81 points sur les 122 des Lakers le 22 janvier 2006, soit 66 % des points"},
-};
 // ratios d'un joueur sur un ensemble de séances
 function playerContext(sessions,pid){ const c={pts:0,teamPts:0,teamFG:0,ast:0,fg3:0,ftm:0,fta:0,w:0,gp:0,tech:0,uns:0};
   for(const s of sessions){ for(const m of s.matches){ if(m.status!=='done') continue; const side=['home','away'].find(k=>m.roster&&m.roster[k]&&m.roster[k].includes(pid)); let team=side?m[side]:null; if(!team){ team=[m.home,m.away].find(t=>s.teams[t]&&s.teams[t].players.includes(pid)); } if(!team) continue;
       const st=matchState(m,s); const me=st.pl[pid]||{}; c.gp++; if(m.winner===team)c.w++; c.pts+=me.pts||0; const astRec=m.events.some(e=>e.type==='ast'); if(astRec){ c.astG=(c.astG||0)+1; c.ast+=me.ast||0; } c.fg3+=me.fg3||0; c.ftm+=me.ftm||0; c.fta+=me.fta||0; c.tech+=me.tech||0; c.uns+=me.uns||0; c.teamPts+=st.score[team]||0;
       const roster=(m.roster&&m.roster[team===m.home?'home':'away'])||s.teams[team].players; if(astRec) roster.forEach(x=>{ const r=st.pl[x]; if(r) c.teamFG+=(r.fg2||0)+(r.fg3||0); }); } }
   return c; }
-function nearestRef(metric,x,pos){ const all=NBA[metric].refs; const same=pos&&pos!=='poly'?all.filter(r=>r.pos===pos):[]; const R=same.length>=2?same.concat(all.filter(r=>!r.pos)):all; let best=null,bd=Infinity; R.forEach(r=>{ const d=Math.abs(r.v-x); if(d<bd){bd=d;best=r;} }); const top=R.reduce((a,r)=>r.v>a.v?r:a,R[0]); const low=R.reduce((a,r)=>r.v<a.v?r:a,R[0]); return {best,above:x>top.v,below:x<low.v,top,low}; }
-function fmtV(v,u){ return (Math.round(v*10)/10).toLocaleString('fr-FR')+(u?' '+u:''); }
-function nbaLine(metric,x,pos){ const {best,above,top,low,below}=nearestRef(metric,x,pos); const M=NBA[metric]; const ref=above?top:below?low:best; const art=/^(un|une) /i.test(ref.p); const rel=(above?'au-delà d':below?'en dessous d':'le niveau d')+(art?"'":'e ');
-  const samePos=pos&&ref.pos===pos; return {metric,label:M.label,x,text:`${M.label} : <b>${fmtV(x,M.unit)}</b> — ${rel}<b>${esc(ref.p)}</b>${samePos?' <span class="muted small">(même poste)</span>':''}${ref.s?' ('+esc(ref.s)+(ref.t?', '+esc(ref.t):'')+')':''} à ${fmtV(ref.v,M.unit)} · ${esc(ref.n)}`,
-    plain:`${M.label} : ${fmtV(x,M.unit)} — ${rel}${ref.p}${ref.s?' ('+ref.s+(ref.t?', '+ref.t:'')+')':''} à ${fmtV(ref.v,M.unit)}, ${ref.n}`}; }
-function nbaComparisons(sessions,pid,scope){ const c=playerContext(sessions,pid); const out=[]; if(!c.gp) return out; const minG=scope==='season'?12:3; const pos=(S.players[pid]||{}).pos||'';
-  if(c.gp>=(scope==='season'?minG:5)&&c.teamPts>=(scope==='season'?120:40)) out.push(nbaLine('scoreShare',100*c.pts/c.teamPts,pos));
-  if((c.astG||0)>=(scope==='season'?8:3)&&c.teamFG>=(scope==='season'?40:15)&&c.ast>0) out.push(nbaLine('astShare',100*c.ast/c.teamFG,pos));
-  if(c.pts>=15&&c.fg3>0) out.push(nbaLine('threeShare',100*3*c.fg3/c.pts,pos));
-  if(c.fta>=(scope==='season'?15:6)) out.push(nbaLine('ftPct',100*c.ftm/c.fta,pos));
-  if(c.gp>=(scope==='season'?20:6)) out.push(nbaLine('winPct',100*c.w/c.gp));
-  if(scope==='season'&&c.gp>=18) out.push(nbaLine('techPerGame',(c.tech+c.uns)/(c.gp/9)));
-  return out; }
-function nbaDayHighlights(sess){ const ss=sessionStats(sess); const ids=Object.keys(ss.pl); const picks=[]; const seen=new Set();
-  const cand=[]; ids.forEach(pid=>nbaComparisons([sess],pid,'day').forEach(l=>cand.push({pid,l})));
-  // prefer: highest scoreShare, highest astShare, extreme ftPct, then others
-  const order=['astShare','scoreShare','threeShare','ftPct','winPct'];
-  order.forEach(m=>{ const xs=cand.filter(x=>x.l.metric===m&&!seen.has(x.pid)); if(!xs.length) return; xs.sort((a,b)=>m==='ftPct'?Math.abs(b.l.x-75)-Math.abs(a.l.x-75):b.l.x-a.l.x); const x=xs[0]; picks.push(x); seen.add(x.pid); });
-  return picks.slice(0,3); }
 // ---------- summary ----------
 function renumberMatches(s){ const done=[...s.matches].sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)); done.forEach((m,i)=>{ m.n=i+1; }); }
 function matchTimeline(s){ const tn=t=>(s.teams[t]&&(s.teams[t].name||TNAMES[t]))||t; return [...s.matches].filter(m=>m.status==='done').sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)).map(m=>{ const st=matchState(m,s); const ev=m.events||[]; const start=ev.length?ev[0].t:m.createdAt; const end=m.endedAt||(ev.length?ev[ev.length-1].t:null); return {n:m.n,start,end,home:m.home,away:m.away,hn:tn(m.home),an:tn(m.away),hs:st.score[m.home],as:st.score[m.away],winner:m.winner,wn:tn(m.winner),nEv:ev.length,reason:m.endReason,thin:ev.length<12}; }); }
@@ -698,7 +605,6 @@ function summaryText(sess){
   if(tech+uns) L.push('⚠️ Fair-play : '+tech+' technique'+(tech>1?'s':'')+', '+uns+' antisportive'+(uns>1?'s':''));
   L.push('   (récompenses : au moins '+MIN_DAY+' matchs joués)');
   const bd=badgesForSession(sess); if(bd.length){ L.push(''); L.push('🏅 Badges du jour :'); bd.forEach(b=>L.push('   '+b.icon+' '+b.label+' : '+pname(b.pid)+' ('+b.detail+')')); }
-  // clin d'œil NBA retiré du résumé (resté dans l'onglet Stats → NBA)
   L.push('');
   L.push('Top 5 marqueurs (par match) :'); top.filter(r=>r.gp>=MIN_DAY).slice(0,5).forEach((r,i)=>L.push((i+1)+'. '+pname(r.id)+' — '+fmt1(perM(r,'pts'))+' pts/match ('+r.pts+' pts, '+r.gp+' M)'));
   { const tl=matchTimeline(sess); if(tl.length&&sess.format!=='cent'){ L.push(''); L.push('⏱ Les matchs du jour :'); tl.forEach(r=>L.push('   M'+r.n+' '+(r.start?fmtTime(r.start):'')+' · '+r.hn+' '+r.hs+'–'+r.as+' '+r.an)); } }
@@ -759,8 +665,6 @@ async function summaryImage(sess){
   const tl=sess.format!=='cent'?matchTimeline(sess):[]; if(tl.length){ label('Les matchs du jour',y); y+=28; const rowH=44; x.fillStyle=CARD; roundRect(x,60,y,W-120,tl.length*rowH+16,16); x.fill(); tl.forEach((r,i)=>{ const ry=y+8+i*rowH; if(i%2){ x.fillStyle='rgba(0,0,0,.03)'; x.fillRect(64,ry,W-128,rowH); } F(700,24,true); x.fillStyle=MUTED; x.fillText('M'+r.n,80,ry+30); F(500,22); x.fillStyle=MUTED; x.fillText(r.start?fmtTime(r.start):'',130,ry+30); const ch=tcol(sess.teams,r.home), ca=tcol(sess.teams,r.away); x.fillStyle=ch; x.beginPath(); x.arc(230,ry+22,8,0,7); x.fill(); F(700,26); x.fillStyle=r.winner===r.home?INK:MUTED; x.fillText(fit(r.hn,170),248,ry+31); F(800,30,true); x.fillStyle=INK; x.textAlign='center'; x.fillText(r.hs+' – '+r.as,540,ry+32); x.textAlign='left'; x.fillStyle=ca; x.beginPath(); x.arc(632,ry+22,8,0,7); x.fill(); F(700,26); x.fillStyle=r.winner===r.away?INK:MUTED; x.fillText(fit(r.an,170),650,ry+31); F(400,24); x.fillStyle=INK; x.textAlign='right'; x.fillText('🏆 '+fit(r.wn,120),W-80,ry+31); x.textAlign='left'; }); y+=tl.length*rowH+16+30; }
   // badges
   const bd=badgesForSession(sess); if(bd.length){ label('Badges du jour',y); y+=30; const by={}; bd.forEach(b=>(by[b.pid]=by[b.pid]||[]).push(b)); Object.entries(by).slice(0,6).forEach(([pid,l])=>{ F(700,28); x.fillStyle=INK; x.fillText(fit(pname(pid),340),60,y+30); F(400,30); x.fillText(l.map(b=>b.icon).join(' '),420,y+32); F(500,24); x.fillStyle=MUTED; x.fillText(fit(l.map(b=>b.label).join(' · '),W-60-520),520,y+30); y+=46; }); y+=20; }
-  // NBA wink (one line)
-  // clin d'œil NBA retiré de l'image
   // footer
   x.fillStyle=INK; x.fillRect(0,y,W,90); F(500,22); x.fillStyle='#fff'; x.fillText('Hoops Stats · stats complètes, ladder et badges dans l\'appli',60,y+38); F(700,24,true); x.fillStyle=OR; x.fillText('hoops-basket-asso.github.io/hba-hoops',60,y+70); y+=90;
   const c=document.createElement('canvas'); c.width=W; c.height=y; c.getContext('2d').drawImage(big,0,0); return c;
@@ -839,7 +743,7 @@ function vSettings(){ if(!S.unlocked) return bureauLocked(); const c=S.config; c
   <label class="small muted" style="display:block;margin-top:10px">Début de saison</label><input id="cfSeason" type="date" value="${esc(c.seasonStart||'')}" style="max-width:190px">
   <label class="small muted" style="display:block;margin-top:10px">Ligne « bureau » affichée à tous sur l'accueil</label><input id="cfBureau" value="${esc(c.bureau||'')}" placeholder="Bureau : Claude N. (président), Stéphane T. et Wilfried SN (vice-présidents)">
   <button class="btn primary" style="width:100%;margin-top:12px" data-act="config-save">Enregistrer</button></div>
-  <div class="card"><div class="row"><h2 class="grow">Postes des joueurs</h2><button class="btn sm ghost" data-act="pos-toggle">${S.posOpen?'Replier':'Ouvrir'}</button></div><p class="muted small">Facultatif. Sert aux clins d'œil NBA (comparaison au même poste), aux prix par famille et à la formation des équipes (lettre à côté du nom, répartition « Au hasard » équilibrée par poste). Un tap enregistre.</p>
+  <div class="card"><div class="row"><h2 class="grow">Postes des joueurs</h2><button class="btn sm ghost" data-act="pos-toggle">${S.posOpen?'Replier':'Ouvrir'}</button></div><p class="muted small">Facultatif. Sert aux prix par famille et à la formation des équipes (lettre à côté du nom, répartition « Au hasard » équilibrée par poste). Un tap enregistre.</p>
   ${S.posOpen?Object.values(S.players).filter(p=>p.active!==false).sort((a,b)=>a.name.localeCompare(b.name,'fr')).map(p=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line);gap:6px"><span class="small" style="min-width:92px;font-weight:700">${esc(pshort(p.id))}</span><div class="seg" style="flex:1">${POS.map(([k,l])=>`<button class="${p.pos===k?'on':''}" data-act="pos-set" data-id="${p.id}" data-pos="${k}" title="${l}">${k}</button>`).join('')}</div></div>`).join('')+`<p class="muted small" style="margin-top:8px">M meneur · A arrière · AI ailier · AF ailier fort · P pivot · poly polyvalent. Re-taper le poste sélectionné l'efface.</p>`:`<p class="small">${Object.values(S.players).filter(p=>p.active!==false&&p.pos).length} joueur(s) avec un poste sur ${Object.values(S.players).filter(p=>p.active!==false).length}.</p>`}</div>
   ${(()=>{ const nx=S.config.next||{}; return `<div class="card" id="nextCfg"><h2>Prochaine séance</h2><p class="muted small">Affichée à tous sur l'accueil. Sans date, l'appli propose le prochain dimanche (et lit « pas de séance » dans le calendrier de la trésorerie). Une date passée est oubliée automatiquement.</p>
   <div class="grid2"><div><label class="small muted">Date</label><input id="nxDate" type="date" value="${esc(nx.date||'')}"></div><div><label class="small muted">Horaire</label><input id="nxTime" value="${esc(nx.time||'11h – 13h')}"></div></div>
@@ -1107,7 +1011,7 @@ function vStats(){
   if(!sess.length) return h+`<div class="empty">${S.period==='session'&&ref&&ref.excluded?'Séance exclue des statistiques.':'Pas encore de séance comptabilisée.'}${!S.demo&&!allAny.length?'<br><button class="btn sm ghost" data-act="demo-on" style="margin-top:10px">Voir une démo</button>':''}</div>`;
   const ag=aggregate(sess); const rows=ag.pl;
   const totPts=rows.reduce((a,r)=>a+r.pts,0), tech=rows.reduce((a,r)=>a+r.tech,0), uns=rows.reduce((a,r)=>a+r.uns,0);
-  const R={rank:"",top:"",teams:"",nba:""};
+  const R={rank:"",top:"",teams:""};
   R.rank+=`<div class="tiles"><div class="tile acc"><div class="k">${sess.length===1?'Séance':'Séances'}</div><div class="v num" ${sess.length===1?'style="font-size:20px"':''}>${sess.length===1?esc(fmtShort(sess[0].date)):ag.sessions}</div><div class="s">${sess.length===1?(sess[0].status==='live'?'en cours':'stats du jour'):esc(fmtShort(sess[sess.length-1].date))+' → '+esc(fmtShort(sess[0].date))}</div></div>
   <div class="tile"><div class="k">Matchs</div><div class="v num">${ag.matches}</div><div class="s">${totPts} points marqués</div></div>
   <div class="tile"><div class="k">Joueurs</div><div class="v num">${rows.length}</div><div class="s">${Math.round(rows.reduce((a,r)=>a+r.gp,0)/Math.max(1,rows.length))} matchs / joueur</div></div>
@@ -1118,8 +1022,6 @@ function vStats(){
   if(S.period!=='session') R.top+=monthCard()+awardsCard()+duoCard(sess);
   { const bd=sess.flatMap(s=>badgesForSession(s)); if(bd.length){ const byP={}; bd.forEach(b=>(byP[b.pid]=byP[b.pid]||[]).push(b)); const top=Object.entries(byP).sort((a,b)=>b[1].length-a[1].length).slice(0,12);
     R.top+=`<div class="card"><h2>Badges <span class="muted" style="font-size:15px;font-family:var(--body);font-weight:500">${sess.length===1?'du jour':'sur la période'}</span></h2>${top.map(([pid,l])=>`<div class="lead" data-act="player-detail" data-id="${pid}" style="cursor:pointer"><div><div class="who">${esc(pname(pid))}</div><div class="what" style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px">${badgeChips(l)}</div></div><div class="big num">${l.length}</div></div>`).join('')}</div>`; } }
-  { const nb=sess.length===1?nbaDayHighlights(sess[0]).map(x=>({pid:x.pid,l:x.l})):(()=>{ const out=[]; const seen=new Set(); const cand=[]; rows.forEach(r=>nbaComparisons(sess,r.id,'season').forEach(l=>cand.push({pid:r.id,l}))); ['scoreShare','astShare','winPct','ftPct','threeShare','techPerGame'].forEach(m=>{ const xs=cand.filter(x=>x.l.metric===m&&!seen.has(x.pid)).sort((a,b)=>b.l.x-a.l.x); if(xs.length){ out.push(xs[0]); seen.add(xs[0].pid); } }); return out.slice(0,4); })();
-    if(nb.length) R.nba+=`<div class="card"><h2>Clin d'œil NBA <span class="muted" style="font-size:15px;font-family:var(--body);font-weight:500">${sess.length===1?'du jour':'sur la période'}</span></h2><p class="muted small">Vos ratios comparés à des saisons NBA depuis 1995. 9 de vos matchs ≈ 1 match NBA en points.</p>${nb.map(x=>`<div class="lead" data-act="player-detail" data-id="${x.pid}" style="cursor:pointer"><div class="ico">🏀</div><div><div class="who">${esc(pname(x.pid))}</div><div class="what">${x.l.text}</div></div></div>`).join('')}</div>`; }
   if(sess.length===1){ const ss=sessionStats(sess[0]); R.teams+=teamTable(sess[0],ss); R.top+=leadersCard(ss,'de la séance'); if(sess[0].format!=='cent') R.teams+=timelineCard(sess[0]); R.teams+=matchJournal(sess[0]); }
   else R.top+=leadersCard({pl:Object.fromEntries(rows.map(r=>[r.id,r]))},'sur la période');
   const allCols=[['idx','Note'],['pts','Pts'],['min','Min'],['champ','Champ.'],['sessions','Prés.'],['gp','MJ'],['w','V'],['wp','% V'],['ppm','Pts/M'],['fg3','3 pts'],['ast','PD'],['ftp','LF %'],['imp','Impact'],['pm','+/-'],['pf','F'],['tech','T'],['uns','AS']]; const cols=S.fullCols?allCols:allCols.filter(c=>['idx','pts','min','gp','ast','wp'].concat(S.period==='session'?[]:['champ']).includes(c[0])); const nS=sess.length; const minPres=S.period==='session'?0:Math.ceil(nS/2); const elig=r=>(r.sessions||1)>=minPres&&r.gp>=minG; const minG=S.period==='session'?MIN_DAY:seasonMin(rows);
@@ -1127,9 +1029,9 @@ function vStats(){
   const val=(r,k)=>({idx:noteOf(r)??-99,min:r.min||0,champ:r.chp||0,wp:pct(r.w,r.gp),ppm:r.gp?Math.round(10*r.pts/r.gp)/10:0,ftp:r.fta?pct(r.ftm,r.fta):-1,imp:impPerMatch(r)??-99})[k]??r[k];
   const disp=(r,k)=>({idx:noteOf(r)==null?'–':`<b>${fmt1(noteOf(r))}</b>${S.fullCols?`<div class="muted" style="font-size:10px;white-space:nowrap">A ${Math.round(NOTES[r.id].A)} · É ${Math.round(NOTES[r.id].T)} · V ${Math.round(NOTES[r.id].W)}${S.period==='session'?'':' · R '+Math.round(NOTES[r.id].R)}</div>`:''}`,min:r.min?Math.round(r.min/60000):'–',champ:'<b>'+fmt1(r.chp||0)+'</b>',wp:pct(r.w,r.gp)+' %',ppm:(r.gp?Math.round(10*r.pts/r.gp)/10:0).toLocaleString('fr-FR'),ftp:r.fta?pct(r.ftm,r.fta)+' % <span class="muted small">('+r.ftm+'/'+r.fta+')</span>':'–',pm:(r.pm>0?'+':'')+r.pm,imp:impLabel(r),gp:r.gpApprox?r.gp+'<span class="muted small" title="'+r.gpApprox+' match(s) sans remplacements saisis : toute l\'équipe comptée">*</span>':r.gp})[k]??r[k];
   const sorted=[...rows].sort((a,b)=>(S.sort.k==='idx'?(elig(b)-elig(a)):0)||(val(a,S.sort.k)-val(b,S.sort.k))*S.sort.d|| b.pts-a.pts);
-  R.rank+=`<div class="card"><div class="row"><h2 class="grow">Classement des joueurs</h2><button class="btn sm ghost" data-act="cols-toggle">${S.fullCols?'Vue simple':'Toutes les colonnes'}</button></div><details class="legend"><summary class="muted small">Lire les colonnes · trier</summary><p class="muted small">Tapez un en-tête pour trier. <b>Note sur 10</b> = le classement de référence, réservé aux joueurs présents au moins un dimanche sur deux (les autres sont grisés, ≈). Quatre parts, chacune comparée au meilleur de la période : <b>A</b>ttaque 35 % (points + 1,5 × passes par match) · <b>É</b>quipe 25 % (ce qu'il produit, ses points + 1,5 × ses passes, rapporté aux points de son équipe, dimanche par dimanche) · <b>V</b>ictoires 15 % · <b>R</b>égularité 25 % (dimanches présents). − 0,5 par technique ou antisportive ; les fautes ordinaires ne comptent pas. <b>Min</b> = minutes sur le terrain, comptées sur les matchs où le cinq de départ ou les remplacements sont saisis. <b>Champ.</b> = championnat : 2 points par victoire, 1 par défaite, au prorata du temps passé sur le terrain dans chaque match. Prés. = séances jouées, MJ = matchs joués, Pts/M = points par match, PD = passes décisives, ≈ = moins de ${minG} matchs (hors récompenses), MJ* = des matchs sans cinq de départ ni remplacements saisis, où toute l'équipe est comptée, F = fautes, T = techniques, AS = antisportives. <b>Impact</b> = ce que l'équipe fait en plus (ou en moins) par match quand le joueur est sur le terrain, en points ; compté seulement sur les matchs où le joueur a eu du temps sur le terrain <i>et</i> sur le banc (≈ = moins de 3 matchs ; – = jamais remplacé, pas de mesure possible).</p></details><div class="tbl"><table><thead><tr><th>Joueur</th>${cols.map(([k,l])=>`<th class="${S.sort.k===k?'sorted':''}" data-sort="${k}">${l}${S.sort.k===k?(S.sort.d>0?' ↑':' ↓'):''}</th>`).join('')}</tr></thead><tbody>${sorted.map((r,i)=>`<tr data-act="player-detail" data-id="${r.id}" style="cursor:pointer;${S.sort.k==='idx'&&!elig(r)?'opacity:.55':''}"><td class="name"><span class="rank">${S.sort.k==='idx'&&!elig(r)?'–':i+1}</span>${esc(pname(r.id))}${!elig(r)?' <span class="muted small" title="hors classement : moins de '+minG+' matchs'+(minPres?' ou moins de '+minPres+' dimanches':'')+'">≈</span>':''}</td>${cols.map(([k])=>`<td class="num">${disp(r,k)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+  R.rank+=`<div class="card"><div class="row"><h2 class="grow">Classement des joueurs</h2><button class="btn sm ghost" data-act="cols-toggle">${S.fullCols?'Vue simple':'Toutes les colonnes'}</button></div><details class="legend"><summary class="muted small">Lire les colonnes · trier</summary><p class="muted small">Tapez un en-tête pour trier. <b>Note sur 10</b> = le classement de référence, réservé aux joueurs présents au moins un dimanche sur deux (les autres sont grisés, ≈). Quatre parts, chacune comparée au meilleur de la période : <b>A</b>ttaque 35 % (points + 1,5 × passes par match) · <b>É</b>quipe 25 % (ce qu'il produit, ses points + 1,5 × ses passes, rapporté aux points de son équipe, dimanche par dimanche) · <b>V</b>ictoires 15 % · <b>R</b>égularité 25 % (dimanches présents). Techniques et antisportives : − 2 × leur nombre / matchs joués (une technique en 20 matchs = − 0,1) ; les fautes ordinaires ne comptent pas. <b>Min</b> = minutes sur le terrain, comptées sur les matchs où le cinq de départ ou les remplacements sont saisis. <b>Champ.</b> = championnat : 2 points par victoire, 1 par défaite, au prorata du temps passé sur le terrain dans chaque match. Prés. = séances jouées, MJ = matchs joués, Pts/M = points par match, PD = passes décisives, ≈ = moins de ${minG} matchs (hors récompenses), MJ* = des matchs sans cinq de départ ni remplacements saisis, où toute l'équipe est comptée, F = fautes, T = techniques, AS = antisportives. <b>Impact</b> = ce que l'équipe fait en plus (ou en moins) par match quand le joueur est sur le terrain, en points ; compté seulement sur les matchs où le joueur a eu du temps sur le terrain <i>et</i> sur le banc (≈ = moins de 3 matchs ; – = jamais remplacé, pas de mesure possible).</p></details><div class="tbl"><table><thead><tr><th>Joueur</th>${cols.map(([k,l])=>`<th class="${S.sort.k===k?'sorted':''}" data-sort="${k}">${l}${S.sort.k===k?(S.sort.d>0?' ↑':' ↓'):''}</th>`).join('')}</tr></thead><tbody>${sorted.map((r,i)=>`<tr data-act="player-detail" data-id="${r.id}" style="cursor:pointer;${S.sort.k==='idx'&&!elig(r)?'opacity:.55':''}"><td class="name"><span class="rank">${S.sort.k==='idx'&&!elig(r)?'–':i+1}</span>${esc(pname(r.id))}${!elig(r)?' <span class="muted small" title="hors classement : moins de '+minG+' matchs'+(minPres?' ou moins de '+minPres+' dimanches':'')+'">≈</span>':''}</td>${cols.map(([k])=>`<td class="num">${disp(r,k)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
   <div class="row" style="margin-top:10px"><button class="btn sm navy" data-act="share-stats">📣 Image du classement à partager</button>${S.downloads?`<button class="btn sm ghost" data-act="export-csv">Exporter en CSV</button>`:''}</div><div id="statsImg" style="margin-top:10px"></div></div>`;
-  const segs=[['rank','Classement'],['top','Podium & badges'],['teams','Équipes'],['nba','NBA']].filter(([k])=>R[k]);
+  const segs=[['rank','Classement'],['top','Podium & badges'],['teams','Équipes']].filter(([k])=>R[k]);
   const cur=R[S.statsSeg]?S.statsSeg:'rank';
   h+=`<div class="seg sub">${segs.map(([k,l])=>`<button class="${cur===k?'on':''}" data-stats-seg="${k}">${l}</button>`).join('')}</div>`+R[cur];
   return h;
@@ -1345,7 +1247,7 @@ function renderSheet(){
     ${(sh.tab||'season')==='season'?`
     ${sq.susp?`<div class="alert">Suspendu jusqu'au ${esc(fmtShort(sq.susp.until))} (${esc(sq.susp.type)}, ${esc(fmtShort(sq.susp.date))})</div>`:''}${sq.fineDue.length?`<div class="alert">🍺 Amende non réglée (${sq.fineDue.map(x=>esc(fmtShort(x.date))).join(', ')}). Inscription bloquée tant qu'elle n'est pas réglée (carafe ou ${S.config.fineAmount||45} € au compte de l'association).</div>`:''}${sq.level?`<div class="alert ${sq.level===2?'':'warn'}">${esc(sq.msg)}</div>`:''}
     <div class="tiles" style="grid-template-columns:repeat(3,1fr)"><div class="tile"><div class="k">Présences</div><div class="v num">${att.length}</div><div class="s">${seasonAtt} cette saison</div></div><div class="tile"><div class="k">Points</div><div class="v num">${tot.pts}</div><div class="s">${tot.gp?Math.round(10*tot.pts/tot.gp)/10:0} / match</div></div><div class="tile"><div class="k">Victoires</div><div class="v num">${pct(tot.w,tot.gp)} %</div><div class="s">${tot.w} / ${tot.gp} matchs</div></div></div>
-    ${(()=>{ const b=seasonBounds(); const ss=Object.values(S.sessions).filter(s=>s.status!=='setup'&&!s.excluded&&s.date>=b.start&&s.date<b.end); const nb=nbaComparisons(ss,sh.pid,'season'); const ctx=playerContext(ss,sh.pid); if(!nb.length) return ctx.gp?`<p class="muted small">Clin d'œil NBA disponible à partir de 12 matchs dans la saison (${ctx.gp} joué${ctx.gp>1?'s':''}).</p>`:''; return `<h3 style="margin:8px 0 4px">Clin d'œil NBA <span class="muted" style="text-transform:none;letter-spacing:0">(saison, ${ctx.gp} matchs)</span></h3>${nb.map(l=>`<div class="small" style="padding:4px 0;border-bottom:1px solid var(--line)">${l.text}</div>`).join('')}${att.length?(()=>{ const last=att[0]; const d=nbaComparisons([last],sh.pid,'day'); return d.length?`<p class="muted small" style="margin-top:6px">Dernière séance (${esc(fmtShort(last.date))}) : ${d.slice(0,2).map(l=>l.plain).join(' · ')}</p>`:''; })():''}`; })()}
+
     ${(()=>{ const bl=badgesForPlayer(sh.pid); if(!bl.length) return ''; const cnt={}; bl.forEach(b=>cnt[b.key]=(cnt[b.key]||0)+1); return `<h3 style="margin:8px 0 4px">Badges <span class="muted" style="text-transform:none;letter-spacing:0">(${bl.length})</span></h3><div class="row" style="gap:6px">${Object.entries(cnt).map(([k,n])=>`<span class="pill">${BADGES[k][0]} ${BADGES[k][1]}${n>1?' ×'+n:''}</span>`).join('')}</div><p class="muted small" style="margin:4px 0 0">Dernier : ${esc(bl[bl.length-1].label)} le ${esc(fmtShort(bl[bl.length-1].date))} (${esc(bl[bl.length-1].detail)})</p>`; })()}
     ${perf.length>=2?`<h3 style="margin:8px 0 2px">Points par séance</h3>${sparkline([...perf].reverse().map(x=>x.r.pts))}<div class="row small muted" style="justify-content:space-between"><span>${esc(fmtShort(perf[perf.length-1].s.date))}</span><span>${esc(fmtShort(perf[0].s.date))}</span></div>`:''}
     `:''}
