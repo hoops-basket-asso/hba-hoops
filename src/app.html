@@ -1536,7 +1536,7 @@ document.addEventListener('click',async ev=>{
   } }catch(err){ console.error(err); toast('Action impossible : '+(err&&err.message||err)); render(); }
 });
 window.addEventListener('error',e=>{ console.error(e.error||e.message); }); window.addEventListener('unhandledrejection',e=>{ console.error(e.reason); toast('Une action a échoué : '+((e.reason&&e.reason.message)||'erreur')); });
-window.__hs={S,duoStats,summaryText,summaryImage,monthAwards,matchState,addEvent,mergePlayers,savePlayer,nextSession,cashState,hoursUsed,sundays,saveCalendar,dayInfo,parsePasteList,matchPasteName,similarPlayers,curSession,liveMatch,elapsed,remaining,manageClock,render,startSession,aggregate,mvpScore,pname,sessionStats};
+window.__hs={S,noteParts,shareOf,duoStats,summaryText,summaryImage,monthAwards,matchState,addEvent,mergePlayers,savePlayer,nextSession,cashState,hoursUsed,sundays,saveCalendar,dayInfo,parsePasteList,matchPasteName,similarPlayers,curSession,liveMatch,elapsed,remaining,manageClock,render,startSession,aggregate,mvpScore,pname,sessionStats};
 boot();
 })();
 </script>
