@@ -20,7 +20,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
   // mouvement : 1er virement Hoops
   await p.fill('#lgDate','2026-10-15'); await p.fill('#lgAmt','4500'); await p.fill('#lgLabel','1er virement Hoops Factory (60 %)'); await p.selectOption('#lgCat','pack_out'); await p.click('[data-act="ledger-add"]'); await p.waitForTimeout(400);
   const cs=await p.evaluate(()=>window.__hs.cashState()); console.log('caisse', cs);
-  E(Math.abs(cs.balance-(871.97+cs.cotEur+cs.partEur-4500))<0.01,'solde faux: '+cs.balance); E(cs.packDue===3000,'reste dû faux: '+cs.packDue); E(cs.packPaid===4500,'pack payé faux');
+  E(Math.abs(cs.balance-(871.97+cs.cotEur+cs.partEur-4500-cs.bank))<0.01,'solde faux: '+cs.balance); E(cs.packDue===3000,'reste dû faux: '+cs.packDue); E(cs.packPaid===4500,'pack payé faux');
   t=await txt(); E(/Reste à payer au Hoops/i.test(t)&&/3.000.€/.test(t),'reste dû non affiché');
   // persistance via fake db
   const saved=await p.evaluate(()=>{ const d=JSON.parse(localStorage.getItem('fakefs')); return d.treasury&&d.treasury.ledger; }); E(saved&&saved.items&&saved.items.length===1&&saved.opening&&saved.opening.amt===871.97,'ledger non persisté');
@@ -52,19 +52,22 @@ const { chromium } = require('playwright'); const fs=require('fs');
   E(seq.join(',')==='todo,held,extra,free,off,todo','cycle calendrier faux');
   await p.click('[data-tre-seg="over"]'); await p.waitForTimeout(300);
   // frais bancaires récurrents (Qonto 13,80 €/mois depuis le 1er octobre)
-  const before=await p.evaluate(()=>window.__hs.cashState().balance);
+  const def=await p.evaluate(()=>{ const cs=window.__hs.cashState(); return {bank:cs.bank,td:new Date().toISOString().slice(0,10)}; }); const nDef=['2026-10-01','2026-11-01','2026-12-01'].filter(d=>d<=def.td).length; E(Math.abs(def.bank-13.2*nDef)<0.01,'frais Qonto par défaut absents: '+def.bank);
+  const before=await p.evaluate(()=>window.__hs.cashState().balance+window.__hs.cashState().bank);
   await p.click('[data-act="fee-edit"]'); await p.waitForTimeout(300); await p.fill('#feeAmt','13,80'); await p.fill('#feeDay','1'); await p.fill('#feeFrom','2026-10-01'); await p.click('[data-act="fee-save"]'); await p.waitForTimeout(400);
   const fz=await p.evaluate(()=>{ const h=window.__hs; const cs=h.cashState(); return {bal:cs.balance,bank:cs.bank,td:new Date().toISOString().slice(0,10),saved:JSON.parse(localStorage.getItem('fakefs')).treasury.budget}; }); console.log('frais', fz.bank, fz.saved);
   const nPast=['2026-10-01','2026-11-01','2026-12-01','2027-01-01'].filter(d=>d<=fz.td).length;
   E(Math.abs(fz.bank-13.8*nPast)<0.01&&Math.abs(before-fz.bal-13.8*nPast)<0.01,'frais passés mal comptés: '+fz.bank);
   E(fz.saved&&fz.saved.fees&&fz.saved.fees[0].amt===13.8&&fz.saved.bbq===1500,'frais non persistés ou enveloppes écrasées');
-  t=await txt(); E(/frais bancaires à venir/.test(t)&&/Frais de compte Qonto/.test(t)&&/13,8 € le 1 du mois/.test(t),'frais non affichés');
+  t=await txt(); E(/frais bancaires à venir/.test(t)&&/Abonnement Qonto Basic/.test(t)&&/13,8 € le 1 du mois/.test(t),'frais non affichés');
   // ajouter un mouvement ne doit pas recopier les frais auto en base
   await p.fill('#lgDate','2026-10-20'); await p.fill('#lgAmt','20'); await p.fill('#lgLabel','Sifflets'); await p.selectOption('#lgCat','equip_out'); await p.click('[data-act="ledger-add"]'); await p.waitForTimeout(300);
   const st2=await p.evaluate(()=>JSON.parse(localStorage.getItem('fakefs')).treasury.ledger.items.filter(i=>i.auto).length); E(st2===0,'frais auto écrits dans le ledger');
   // enveloppes : la sauvegarde garde les frais
   await p.click('[data-act="budget-edit"]'); await p.waitForTimeout(300); await p.click('[data-act="budget-save"]'); await p.waitForTimeout(300);
   E(await p.evaluate(()=>(window.__hs.S.treasury.budget.fees||[]).length===1),'enveloppes ont effacé les frais');
+  // suppression explicite : plus aucun frais (pas de retour du défaut)
+  await p.click('[data-act="fee-edit"]'); await p.waitForTimeout(300); await p.click('[data-act="fee-del"]'); await p.waitForTimeout(300); E(await p.evaluate(()=>window.__hs.cashState().bank===0),'défaut revenu après suppression');
   await p.screenshot({path:'out/treso_over.png',fullPage:true});
   console.log('errors',errs); await b.close(); process.exit(errs.length?1:0);
 })().catch(e=>{ console.error(String(e).slice(0,600)); process.exit(1); });

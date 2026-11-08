@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-11-08 19:41';</script>
+window.HS_VERSION = '2026-11-08 19:45';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -1088,7 +1088,9 @@ function cotDue(p){ const pk=pack(); return p.newMember?pk.cotNew:pk.cotRenew; }
 function sundays(){ const pk=pack(); const out=[]; const d=new Date(pk.start+'T12:00:00'); d.setDate(d.getDate()+((7-d.getDay())%7)); for(let i=0;i<pk.weeks;i++){ out.push(isoLocal(d)); d.setDate(d.getDate()+7); } return out; }
 function dayInfo(date){ const cal=(S.treasury.calendar&&S.treasury.calendar.days)||{}; if(cal[date]) return cal[date]; const s=Object.values(S.sessions).find(x=>x.date===date&&(x.status==='closed'||x.status==='live')); if(s) return {h:2,auto:true}; return null; }
 function hoursUsed(){ const pk=pack(); let used=0,extra=0,held=0,offered=0,packDays=0; const days=[]; sundays().forEach(d=>{ const i=dayInfo(d); if(i&&i.h>0){ held++; const free=!!i.free||used>=pk.hours; if(free){ offered++; days.push({d,kind:'free',h:i.h}); } else { used+=i.h; packDays++; if(i.h>2) extra+=i.h-2; days.push({d,kind:'pack',h:i.h}); } } else days.push({d,kind:i&&i.h===0?'off':'todo'}); }); return {used,extra,held,offered,packDays,days}; }
-function recurringFees(){ return ((S.treasury.budget&&S.treasury.budget.fees)||[]).filter(f=>+f.amt>0&&f.from); }
+// Par défaut (tant que le bureau n'a rien saisi) : abonnement Qonto Basic, 11 € HT = 13,20 € TTC, prélevé le 1er du mois depuis octobre 2026
+const DEFAULT_FEES=[{label:'Abonnement Qonto Basic (11 € HT)',amt:13.2,day:1,from:'2026-10-01'}];
+function recurringFees(){ const b=S.treasury.budget||{}; return (Array.isArray(b.fees)?b.fees:DEFAULT_FEES).filter(f=>+f.amt>0&&f.from); }
 function feeItems(from,until){ const out=[]; recurringFees().forEach((f,k)=>{ const day=Math.min(28,Math.max(1,+f.day||1)); const d=new Date(f.from.slice(0,7)+'-01T12:00:00'); for(let i=0;i<60;i++){ const ds=isoLocal(d).slice(0,8)+String(day).padStart(2,'0'); if(ds>until) break; if(ds>=f.from&&ds>from&&(!f.to||ds<=f.to)) out.push({id:'fee-'+k+'-'+ds,date:ds,label:f.label||'Frais bancaires',cat:'bank_out',amt:+f.amt,auto:true}); d.setMonth(d.getMonth()+1); } }); return out; }
 function ledger(){ return [...((S.treasury.ledger&&S.treasury.ledger.items)||[]),...feeItems('',today())]; }
 const LCATS=[['pack_out','Paiement du pack (Hoops Factory)','out'],['equip_out','Matériel (chasubles, ballons, sifflets…)','out'],['bbq_out','BBQ · dépense','out'],['bbq_in','BBQ · participation des membres','in'],['other_in','Autre recette','in'],['bank_out','Frais bancaires (compte, carte)','out'],['other_out','Autre dépense (assurance…)','out']];
