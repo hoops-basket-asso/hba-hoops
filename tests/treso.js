@@ -50,6 +50,21 @@ const { chromium } = require('playwright'); const fs=require('fs');
   await p.click('[data-tre-seg="cal"]'); await p.waitForTimeout(300); const d0=sund[12]; const st=async()=>p.evaluate(d=>{ const i=window.__hs.dayInfo(d); return i?(i.h===0?'off':i.free?'free':i.h>2?'extra':'held'):'todo'; },d0);
   const seq=[await st()]; for(let i=0;i<5;i++){ await p.click(`[data-act="cal-cycle"][data-id="${d0}"]`).catch(()=>{}); await p.waitForTimeout(150); seq.push(await st()); } console.log('cycle', seq.join(' → '));
   E(seq.join(',')==='todo,held,extra,free,off,todo','cycle calendrier faux');
-  await p.click('[data-tre-seg="over"]'); await p.waitForTimeout(300); await p.screenshot({path:'out/treso_over.png',fullPage:true});
+  await p.click('[data-tre-seg="over"]'); await p.waitForTimeout(300);
+  // frais bancaires récurrents (Qonto 13,80 €/mois depuis le 1er octobre)
+  const before=await p.evaluate(()=>window.__hs.cashState().balance);
+  await p.click('[data-act="fee-edit"]'); await p.waitForTimeout(300); await p.fill('#feeAmt','13,80'); await p.fill('#feeDay','1'); await p.fill('#feeFrom','2026-10-01'); await p.click('[data-act="fee-save"]'); await p.waitForTimeout(400);
+  const fz=await p.evaluate(()=>{ const h=window.__hs; const cs=h.cashState(); return {bal:cs.balance,bank:cs.bank,td:new Date().toISOString().slice(0,10),saved:JSON.parse(localStorage.getItem('fakefs')).treasury.budget}; }); console.log('frais', fz.bank, fz.saved);
+  const nPast=['2026-10-01','2026-11-01','2026-12-01','2027-01-01'].filter(d=>d<=fz.td).length;
+  E(Math.abs(fz.bank-13.8*nPast)<0.01&&Math.abs(before-fz.bal-13.8*nPast)<0.01,'frais passés mal comptés: '+fz.bank);
+  E(fz.saved&&fz.saved.fees&&fz.saved.fees[0].amt===13.8&&fz.saved.bbq===1500,'frais non persistés ou enveloppes écrasées');
+  t=await txt(); E(/frais bancaires à venir/.test(t)&&/Frais de compte Qonto/.test(t)&&/13,8 € le 1 du mois/.test(t),'frais non affichés');
+  // ajouter un mouvement ne doit pas recopier les frais auto en base
+  await p.fill('#lgDate','2026-10-20'); await p.fill('#lgAmt','20'); await p.fill('#lgLabel','Sifflets'); await p.selectOption('#lgCat','equip_out'); await p.click('[data-act="ledger-add"]'); await p.waitForTimeout(300);
+  const st2=await p.evaluate(()=>JSON.parse(localStorage.getItem('fakefs')).treasury.ledger.items.filter(i=>i.auto).length); E(st2===0,'frais auto écrits dans le ledger');
+  // enveloppes : la sauvegarde garde les frais
+  await p.click('[data-act="budget-edit"]'); await p.waitForTimeout(300); await p.click('[data-act="budget-save"]'); await p.waitForTimeout(300);
+  E(await p.evaluate(()=>(window.__hs.S.treasury.budget.fees||[]).length===1),'enveloppes ont effacé les frais');
+  await p.screenshot({path:'out/treso_over.png',fullPage:true});
   console.log('errors',errs); await b.close(); process.exit(errs.length?1:0);
 })().catch(e=>{ console.error(String(e).slice(0,600)); process.exit(1); });
