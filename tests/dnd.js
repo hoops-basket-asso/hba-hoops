@@ -12,7 +12,7 @@ const { chromium } = require('playwright');
   await p.click('[data-act="save-prep"]'); await p.waitForTimeout(200);
   const prep=await p.evaluate(()=>Object.values(window.__hs.S.sessions).find(s=>s.status==='setup')); console.log('prep saved', !!prep, prep&&prep.present.length, prep&&prep.date);
   if(!prep) errs.push('prep not saved');
-  const bt=await p.textContent('#main'); if(!/Séance préparée/.test(bt)) errs.push('no prep card on home');
+  const bt=await p.textContent('#main'); if(!/Séance préparée|C'est aujourd'hui/.test(bt)) errs.push('no prep card on home');
   // treasury: declare + confirm
   await p.click('[data-go="bureau"]'); await p.waitForTimeout(100); await p.click('[data-bureau-seg="treasury"]').catch(()=>{}); await p.waitForTimeout(100); await p.click('[data-act="go-pay"]').catch(async()=>{ await p.click('[data-tre-seg="pay"]').catch(()=>{}); }); await p.waitForTimeout(150);
   const decl=await p.$$('[data-act="pay-declare"]'); console.log('declare buttons', decl.length); if(!decl.length) errs.push('no declare buttons'); else { await decl[0].click(); await p.waitForTimeout(100); const t=await p.textContent('#main'); if(!/déclaré/.test(t)) errs.push('declared status not shown'); const cf=await p.$('[data-act="pay-mark"]'); await cf.click(); await p.waitForTimeout(100); }

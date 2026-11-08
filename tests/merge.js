@@ -7,7 +7,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
   await ctx.route(/fonts\.googleapis|fonts\.gstatic/, r=>r.fulfill({contentType:'text/css',body:''}));
   const p=await ctx.newPage(); p.setDefaultTimeout(8000); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); p.on('dialog',d=>d.accept());
   await p.goto('http://127.0.0.1:8099/index.html'); await p.waitForTimeout(800);
-  await p.fill('#fbEmail','w.simbnag@gmail.com'); await p.fill('#fbPass','x'); await p.click('[data-act="fb-login"]'); await p.waitForTimeout(500);
+  await p.click('[data-act="show-login"]',{timeout:1500}).catch(()=>{}); await p.waitForTimeout(150); await p.fill('#fbEmail','w.simbnag@gmail.com'); await p.fill('#fbPass','x'); await p.click('[data-act="fb-login"]'); await p.waitForTimeout(500);
   await p.setInputFiles('#impFile',process.env.EXP||'tests/fixture-export.json'); await p.fill('#bureauEmails','w.simbnag@gmail.com'); await p.click('[data-act="fb-import"]'); await p.waitForTimeout(1500);
   const agg=()=>p.evaluate(()=>{ const ag=window.__hs.aggregate(Object.values(window.__hs.S.sessions).filter(s=>s.status==='closed'&&!s.excluded)); return Object.fromEntries(ag.pl.map(r=>[window.__hs.pname(r.id),{pts:r.pts,gp:r.gp,s:r.sessions}])); });
   const SRCID=await p.evaluate(()=>{ const ag=window.__hs.aggregate(Object.values(window.__hs.S.sessions).filter(s=>s.status==='closed'&&!s.excluded)); return ag.pl.sort((a,b)=>b.pts-a.pts)[0].id; }); const SRC=await p.evaluate(id=>window.__hs.pname(id),SRCID); const before=await agg(); console.log('before',SRC, before[SRC]);

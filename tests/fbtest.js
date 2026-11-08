@@ -11,7 +11,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
   await p.goto(URL); await p.waitForTimeout(800);
   const pill=await p.textContent('#modePill'); console.log('viewer pill',pill, 'login form', !!(await p.$('#fbEmail')), 'treasury tab', !!(await p.$('[data-go="treasury"]')));
   // bootstrap login
-  await p.fill('#fbEmail','w.simbnag@gmail.com'); await p.fill('#fbPass','x'); await p.click('[data-act="fb-login"]'); await p.waitForTimeout(500);
+  await p.click('[data-act="show-login"]',{timeout:1500}).catch(()=>{}); await p.waitForTimeout(150); await p.fill('#fbEmail','w.simbnag@gmail.com'); await p.fill('#fbPass','x'); await p.click('[data-act="fb-login"]'); await p.waitForTimeout(500);
   console.log('after login: import card', !!(await p.$('#impFile')), 'role', await p.evaluate(()=>FB.role));
   await p.setInputFiles('#impFile','tests/fixture-export.json'); await p.fill('#bureauEmails','w.simbnag@gmail.com\nclaude@example.com\nstephane@example.com');
   await p.click('[data-act="fb-import"]'); await p.waitForTimeout(1500);

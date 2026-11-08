@@ -7,7 +7,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
   await ctx.route(/fonts\.googleapis|fonts\.gstatic/, r=>r.fulfill({contentType:'text/css',body:''}));
   const p=await ctx.newPage(); p.setDefaultTimeout(8000); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); p.on('dialog',d=>d.accept());
   const URL='http://127.0.0.1:8099/index.html'; await p.goto(URL); await p.waitForTimeout(800);
-  await p.fill('#fbEmail','w.simbnag@gmail.com'); await p.fill('#fbPass','x'); await p.click('[data-act="fb-login"]'); await p.waitForTimeout(500);
+  await p.click('[data-act="show-login"]',{timeout:1500}).catch(()=>{}); await p.waitForTimeout(150); await p.fill('#fbEmail','w.simbnag@gmail.com'); await p.fill('#fbPass','x'); await p.click('[data-act="fb-login"]'); await p.waitForTimeout(500);
   await p.setInputFiles('#impFile','/home/claude/hba-hoops/tests/fixture-export.json'); await p.fill('#bureauEmails','w.simbnag@gmail.com'); await p.click('[data-act="fb-import"]'); await p.waitForTimeout(1500);
   // prepare next session (future date) and save the list
   await p.click('[data-go="home"]'); await p.click('[data-act="new-session"]'); await p.waitForTimeout(200);
@@ -20,7 +20,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
   const url=await p.evaluate(()=>window.__hs.S.sheet&&window.__hs.S.sheet.newUrl); console.log('url',url);
   const exp=await p.evaluate(()=>{ const d=JSON.parse(localStorage.getItem('fakefs')); const t=Object.values(d.scorerTokens||{})[0]; return t&&t.expires; }); console.log('expires',exp);
   const expMs=await p.evaluate(()=>{ const d=JSON.parse(localStorage.getItem('fakefs')); const t=Object.values(d.scorerTokens||{})[0]; const e=t.expires; return e&&(e.seconds?e.seconds*1000:(e.__ts||e._ms||e)); });
-  if(!(expMs>Date.now()+20*3600*1000)) errs.push('expiry not on session day: '+exp);
+  { const d=new Date(expMs); if(!(expMs>Date.now()&&d.getHours()===23&&d.getMinutes()===59)) errs.push('expiry not on session day 23:59: '+d.toString()); }
   await p.click('.sheet button[data-act="sheet-close"]'); await p.waitForTimeout(200); await p.click('[data-go="home"]'); await p.waitForTimeout(200); await p.click('[data-act="lock"]'); await p.waitForTimeout(300);
   // scorer opens before launch
   const p2=await ctx.newPage(); p2.setDefaultTimeout(8000); p2.on('pageerror',e=>errs.push('p2:'+e.message)); p2.on('dialog',d=>d.accept());
@@ -30,7 +30,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
   await p2.click('[data-act="setup-step"][data-id="2"]'); await p2.click('[data-act="auto-teams"]'); await p2.click('[data-act="setup-step"][data-id="3"]'); await p2.click('[data-act="start-session"]'); await p2.waitForTimeout(350); await p2.click('[data-act="five-ok"][data-run="1"]',{timeout:1500}).catch(()=>{}); await p2.waitForTimeout(100); await p2.waitForTimeout(500);
   const st=await p2.evaluate(()=>({view:window.__hs.S.view,status:window.__hs.curSession().status,sid:window.__hs.S.sid})); console.log('after launch by scorer',st); if(st.status!=='live'||st.sid!==prepId) errs.push('scorer launch failed');
   // scorer cancels the launch, redoes teams, relaunches
-  { const ub=await p2.$('[data-act="unlaunch"]'); if(!ub) errs.push('no unlaunch button'); else { await ub.click(); await p2.waitForTimeout(400); const st2=await p2.evaluate(()=>({status:window.__hs.curSession().status,teams:['A','B','C'].map(t=>window.__hs.curSession().teams[t].players.length)})); console.log('after unlaunch',st2); if(st2.status!=='setup'||st2.teams.some(n=>n)) errs.push('unlaunch failed');
+  { await p2.click('[data-act="live-more"]').catch(()=>{}); await p2.waitForTimeout(350); const ub=await p2.$('[data-act="unlaunch"]'); if(!ub) errs.push('no unlaunch button'); else { await ub.click(); await p2.waitForTimeout(400); const st2=await p2.evaluate(()=>({status:window.__hs.curSession().status,teams:['A','B','C'].map(t=>window.__hs.curSession().teams[t].players.length)})); console.log('after unlaunch',st2); if(st2.status!=='setup'||st2.teams.some(n=>n)) errs.push('unlaunch failed');
     await p2.click('[data-act="open-prep"]'); await p2.waitForTimeout(200); await p2.click('[data-act="setup-step"][data-id="2"]'); await p2.click('[data-act="auto-teams"]'); await p2.click('[data-act="setup-step"][data-id="3"]'); await p2.click('[data-act="start-session"]'); await p2.waitForTimeout(350); await p2.click('[data-act="five-ok"][data-run="1"]',{timeout:1500}).catch(()=>{}); await p2.waitForTimeout(100); await p2.waitForTimeout(500); console.log('relaunched', await p2.evaluate(()=>window.__hs.curSession().status)); } }
   await (await p2.$$('[data-q="pt2"]'))[0].click(); await p2.waitForTimeout(300); await p2.click('[data-act="ast-pick"][data-id=""]'); await p2.waitForTimeout(400);
   const saved=await p2.evaluate(()=>{ const d=JSON.parse(localStorage.getItem('fakefs')); const s=Object.values(d.sessions).find(x=>x.status==='live'); return {events:s.matches[0].events.length, token:s.scorerToken}; }); console.log('scorer write',saved); if(!saved.token) errs.push('no scorer token on write');
