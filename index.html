@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-11-12 11:40';</script>
+window.HS_VERSION = '2026-11-12 11:51';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -648,7 +648,7 @@ async function summaryImage(sess){
   if(clear){ const [t0,v0]=tRank[0]; const pl0=sess.teams[t0].players||[]; const cap0=sess.teams[t0].captain; const rowsN=Math.ceil(pl0.length/3); const hh=214+rowsN*38;
     const g=x.createLinearGradient(64,y,W-64,y+hh); g.addColorStop(0,'#F4833F'); g.addColorStop(1,'#B03C14'); rr(64,y,W-128,hh,34); x.fillStyle=g; x.fill();
     x.save(); rr(64,y,W-128,hh,34); x.clip(); x.fillStyle='rgba(255,255,255,.06)'; x.beginPath(); x.moveTo(W-520,y); x.lineTo(W-64,y); x.lineTo(W-64,y+hh); x.lineTo(W-300,y+hh); x.closePath(); x.fill(); x.restore();
-    F(700,22); x.fillStyle='rgba(255,255,255,.92)'; K.spaced('ÉQUIPE DU JOUR',104,y+62,3);
+    F(700,22); x.fillStyle='rgba(255,255,255,.92)'; F(400,26); x.fillStyle='#fff'; x.fillText('🏆',104,y+64); F(700,22); x.fillStyle='rgba(255,255,255,.92)'; K.spaced('ÉQUIPE DU JOUR',146,y+62,3);
     dot(t0,126,y+134,22); F(800,112,true); x.fillStyle='#fff'; x.fillText(fit(tn(t0),W-128-470),166,y+172);
     x.textAlign='right'; F(800,112,true); x.fillText(v0.w+' – '+v0.l,W-104,y+150); F(700,22); x.fillStyle='rgba(255,255,255,.9)'; x.fillText('VICTOIRES – DÉFAITES',W-108,y+190); x.textAlign='left';
     const cw=(W-128-80)/3; pl0.forEach((pid,k)=>{ const cx=104+(k%3)*cw, cy=y+238+Math.floor(k/3)*38; F(pid===cap0?700:500,25); x.fillStyle='#fff'; x.fillText(fit(pname(pid)+(pid===cap0?' (cap.)':''),cw-16),cx,cy); });
@@ -657,17 +657,17 @@ async function summaryImage(sess){
       F(700,26); x.fillStyle=C.TXT; x.fillText(fit(tn(t),bw-70),bx+58,y+51); F(800,56,true); x.fillStyle=i===0&&!sess.teamsApprox?C.OR2:C.TXT; x.fillText(v.w+' – '+v.l,bx+24,y+116); const cap=sess.teams[t]&&sess.teams[t].captain; if(cap){ F(500,18); x.fillStyle=C.MUT; x.fillText(fit('cap. '+pname(cap),bw-48),bx+24,y+140); } }); y+=bh+40; }
   // MVP du jour
   const LD=leaders(rows,'day'); const mv=LD.mvp; if(mv){ const r=mv.r; const mh=176; card(64,y,W-128,mh,26); x.save(); rr(64,y,W-128,mh,26); x.clip(); x.fillStyle=C.GOLD; x.fillRect(64,y,8,mh); x.restore();
-    F(700,20); x.fillStyle=C.GOLD; K.spaced('MVP DU JOUR',104,y+50,3);
+    F(400,24); x.fillStyle=C.TXT; x.fillText('👑',104,y+52); F(700,20); x.fillStyle=C.GOLD; K.spaced('MVP DU JOUR',144,y+50,3);
     F(800,76,true); x.fillStyle=C.TXT; x.fillText(fit(pname(r.id),W-128-330),100,y+122); const nk=nick(r.id); F(500,22); x.fillStyle=C.MUT;
     x.fillText(fit((nk?'« '+nk+' » · ':'')+r.pts+' pts · '+(r.ast||0)+' passe'+((r.ast||0)>1?'s':'')+' · '+r.w+' victoire'+(r.w>1?'s':'')+' en '+r.gp+' matchs',W-128-300),104,y+154);
     x.textAlign='right'; F(800,104,true); x.fillStyle=C.GOLD; x.fillText(fmtN(mv.v),W-100,y+112); F(700,18); x.fillStyle=C.MUT; x.fillText('NOTE SUR 10',W-104,y+146); x.textAlign='left'; y+=mh+46; }
   // les leaders du jour : un nom et un chiffre par catégorie
   K.section('LES LEADERS DU JOUR',y); y+=18; const top=(f,ok)=>rows.filter(ok).sort((a,b)=>f(b)-f(a)||b.pts-a.pts)[0]; const ft=LD.ft;
-  const T=[['POINTS',top(r=>r.pts,r=>r.pts>0),r=>r.pts],['PASSES',top(r=>r.ast||0,r=>r.ast>0),r=>r.ast],['PANIERS À 3 PTS',top(r=>r.fg3||0,r=>r.fg3>0),r=>r.fg3],ft?['LANCERS FRANCS',ft,r=>r.ftm+'/'+r.fta]:['POINTS PAR MATCH',top(r=>perM(r,'pts'),r=>r.gp>=MIN_DAY&&r.pts>0),r=>fmt1(perM(r,'pts'))]].filter(t=>t[1]);
-  const nT=Math.max(1,T.length), tw=(W-128-(nT-1)*14)/nT, th=178; T.forEach(([lab,r,fv],k)=>{ const X=64+k*(tw+14); card(X,y,tw,th,20);
-    rr(X+20,y+22,34,5,2.5); x.fillStyle=C.OR; x.fill(); F(700,16); x.fillStyle=C.MUT; K.spaced(lab,X+20,y+56,1.5);
+  const T=[['🔥','POINTS',top(r=>r.pts,r=>r.pts>0),r=>r.pts],['🎩','PASSES',top(r=>r.ast||0,r=>r.ast>0),r=>r.ast],['🎯','PANIERS À 3',top(r=>r.fg3||0,r=>r.fg3>0),r=>r.fg3],ft?['🆓','LANCERS FR.',ft,r=>r.ftm+'/'+r.fta]:['📈','PTS / MATCH',top(r=>perM(r,'pts'),r=>r.gp>=MIN_DAY&&r.pts>0),r=>fmt1(perM(r,'pts'))]].filter(t=>t[2]);
+  const nT=Math.max(1,T.length), tw=(W-128-(nT-1)*14)/nT, th=178; T.forEach(([ic,lab,r,fv],k)=>{ const X=64+k*(tw+14); card(X,y,tw,th,20);
+    F(400,26); x.fillStyle=C.TXT; x.fillText(ic,X+18,y+48); F(700,16); x.fillStyle=C.MUT; K.spaced(lab,X+58,y+44,1.5);
     F(800,70,true); x.fillStyle=C.TXT; x.fillText(String(fv(r)),X+20,y+122); F(700,23); x.fillStyle=C.OR2; x.fillText(fit(pname(r.id),tw-40),X+20,y+154); });
-  y+=th+18; { const tech=LD.tech, uns=LD.uns; const bad=tech+uns>0; const w=pill('FAIR-PLAY',64,y+30,bad?C.DN:C.UP,bad?'rgba(242,84,91,.14)':'rgba(46,212,122,.14)');
+  y+=th+18; { const tech=LD.tech, uns=LD.uns; const bad=tech+uns>0; const w=pill(bad?'⚠️ FAIR-PLAY':'🧼 FAIR-PLAY',64,y+30,bad?C.DN:C.UP,bad?'rgba(242,84,91,.14)':'rgba(46,212,122,.14)');
     F(600,22); x.fillStyle=C.TXT; x.fillText(bad?tech+' technique'+(tech>1?'s':'')+(uns?' · '+uns+' antisportive'+(uns>1?'s':''):''):'aucune technique, merci à tous',64+w+16,y+31); y+=76; }
   // résultats
   const tl=sess.format!=='cent'?matchTimeline(sess):[]; if(tl.length){ K.section('LES RÉSULTATS',y); y+=18; const cw2=(W-128-16)/2, rh=58;
@@ -677,8 +677,8 @@ async function summaryImage(sess){
     y+=Math.ceil(tl.length/2)*(rh+10)+36; }
   // badges
   const bd=badgesForSession(sess); if(bd.length){ K.section('LES BADGES DU JOUR',y); y+=18; const by={}; bd.forEach(b=>(by[b.pid]=by[b.pid]||[]).push(b)); const ent=Object.entries(by).slice(0,8); const cw3=(W-128-16)/2;
-    ent.forEach(([pid,l],i)=>{ const X=64+(i%2)*(cw3+16), Y=y+Math.floor(i/2)*58; card(X,Y,cw3,48,14); F(700,21); x.fillStyle=C.TXT; const nmw=Math.min(210,x.measureText(pname(pid)).width); x.fillText(fit(pname(pid),210),X+18,Y+32);
-      F(500,18); x.fillStyle=C.OR2; x.fillText(fit([...new Set(l.map(b=>b.label))].join(' · '),cw3-nmw-52),X+34+nmw,Y+32); });
+    ent.forEach(([pid,l],i)=>{ const X=64+(i%2)*(cw3+16), Y=y+Math.floor(i/2)*58; card(X,Y,cw3,48,14); const ics=[...new Set(l.map(b=>b.icon))].join(''); F(400,22); x.fillStyle=C.TXT; x.fillText(ics,X+14,Y+33); const iw=x.measureText(ics).width; F(700,21); const nmw=Math.min(200,x.measureText(pname(pid)).width); x.fillText(fit(pname(pid),200),X+26+iw,Y+32);
+      F(500,18); x.fillStyle=C.OR2; x.fillText(fit([...new Set(l.map(b=>b.label))].join(' · '),cw3-nmw-iw-60),X+42+iw+nmw,Y+32); });
     y+=Math.ceil(ent.length/2)*58+20; }
   const H=y+70; const out=document.createElement('canvas'); out.width=W; out.height=H; const o=out.getContext('2d'); o.drawImage(big,0,0); imgKit(o,W).footer(H,'Le classement complet et les stats de chacun : hoops-basket-asso.github.io/hba-hoops');
   return out;
@@ -731,7 +731,7 @@ async function ladderImage(){ await (document.fonts&&document.fonts.ready||Promi
   // n° 1 : l'affiche
   const A=L.list[0]; let y=258; const hh=300; let g=x.createLinearGradient(64,y,W-64,y+hh); g.addColorStop(0,'#F4833F'); g.addColorStop(1,'#B03C14'); rr(64,y,W-128,hh,34); x.fillStyle=g; x.fill();
   x.save(); rr(64,y,W-128,hh,34); x.clip(); x.fillStyle='rgba(255,255,255,.06)'; x.beginPath(); x.moveTo(W-520,y); x.lineTo(W-64,y); x.lineTo(W-64,y+hh); x.lineTo(W-300,y+hh); x.closePath(); x.fill(); x.restore();
-  F(700,22); x.fillStyle='rgba(255,255,255,.92)'; const ex=K.spaced('N° 1 DU CLASSEMENT',104,y+62,3);
+  F(700,22); x.fillStyle='rgba(255,255,255,.92)'; F(400,26); x.fillStyle='#fff'; x.fillText('👑',104,y+64); F(700,22); x.fillStyle='rgba(255,255,255,.92)'; const ex=K.spaced('N° 1 DU CLASSEMENT',146,y+62,3);
   const mv0=move(A.r.id); if(mv0) pill(mv0.t,ex+16,y+61,'#fff','rgba(0,0,0,.24)');
   F(800,124,true); x.fillStyle='#fff'; x.fillText(fit(pname(A.r.id),W-128-360),98,y+178); const nk=nick(A.r.id);
   F(600,30); x.fillStyle='rgba(255,255,255,.9)'; if(nk) x.fillText(fit('« '+nk+' »',W-128-360),104,y+222);
@@ -750,13 +750,13 @@ async function ladderImage(){ await (document.fonts&&document.fonts.ready||Promi
   y+=Math.min(4,L.list.length-1)*(rh+10)+6;
   // une seule phrase d'actualité : la remontée de la semaine (sinon les entrées au classement)
   if(P){ const ups=L.list.map(e=>({e,m:move(e.r.id)})).filter(o=>o.m&&o.m.d>0).sort((a,b)=>b.m.d-a.m.d||rankOf(a.e.r.id)-rankOf(b.e.r.id)); const news=L.list.filter(e=>!prevRank[e.r.id]);
-    const tag=ups[0]?'REMONTÉE DE LA SEMAINE':news.length?(news.length===1?'ENTRE AU CLASSEMENT':'ENTRENT AU CLASSEMENT'):''; const t=ups[0]?`${pname(ups[0].e.r.id)}, +${ups[0].m.d} place${ups[0].m.d>1?'s':''}, désormais ${rankOf(ups[0].e.r.id)}e`:news.slice(0,3).map(e=>pname(e.r.id)).join(', ');
+    const tag=ups[0]?'📈 REMONTÉE DE LA SEMAINE':news.length?(news.length===1?'✨ ENTRE AU CLASSEMENT':'✨ ENTRENT AU CLASSEMENT'):''; const t=ups[0]?`${pname(ups[0].e.r.id)}, +${ups[0].m.d} place${ups[0].m.d>1?'s':''}, désormais ${rankOf(ups[0].e.r.id)}e`:news.slice(0,3).map(e=>pname(e.r.id)).join(', ');
     if(tag){ const w=pill(tag,64,y+36,C.UP===C.UP&&ups[0]?C.UP:C.OR2,tint(ups[0]?C.UP:C.OR2)); F(600,23); x.fillStyle=C.TXT; x.fillText(fit(t,W-128-w-16),64+w+16,y+37); y+=46; } }
   // les leaders : un nom et un chiffre par catégorie
   y+=36; K.section('LES LEADERS DE LA SAISON',y); y+=18; const R=L.rows; const top=(f,ok)=>R.filter(ok).sort((a,b)=>f(b)-f(a))[0];
-  const T=[['','POINTS',top(r=>r.pts,r=>r.pts>0),r=>r.pts],['','PASSES',top(r=>r.ast||0,r=>r.ast>0),r=>r.ast],['','PANIERS À 3 PTS',top(r=>r.fg3||0,r=>r.fg3>0),r=>r.fg3],['','MINUTES JOUÉES',top(r=>r.min||0,r=>r.min>0),r=>Math.round(r.min/60000)]];
+  const T=[['🔥','POINTS',top(r=>r.pts,r=>r.pts>0),r=>r.pts],['🎩','PASSES',top(r=>r.ast||0,r=>r.ast>0),r=>r.ast],['🎯','PANIERS À 3',top(r=>r.fg3||0,r=>r.fg3>0),r=>r.fg3],['🦾','MINUTES',top(r=>r.min||0,r=>r.min>0),r=>Math.round(r.min/60000)]];
   const tw=(W-128-3*14)/4, th=178; T.forEach(([ic,lab,r,fv],k)=>{ const X=64+k*(tw+14); card(X,y,tw,th,20); if(!r) return;
-    rr(X+20,y+22,34,5,2.5); x.fillStyle=C.OR; x.fill(); F(700,16); x.fillStyle=C.MUT; K.spaced(lab,X+20,y+56,1.5);
+    F(400,26); x.fillStyle=C.TXT; x.fillText(ic,X+18,y+48); F(700,16); x.fillStyle=C.MUT; K.spaced(lab,X+58,y+44,1.5);
     F(800,70,true); x.fillStyle=C.TXT; x.fillText(String(fv(r)),X+20,y+122); F(700,23); x.fillStyle=C.OR2; x.fillText(fit(pname(r.id),tw-40),X+20,y+154); });
   y+=th; const Hf=y+80; const out=document.createElement('canvas'); out.width=W; out.height=Hf; const o=out.getContext('2d'); o.drawImage(c,0,0);
   imgKit(o,W).footer(Hf,`Classement des joueurs présents au moins ${L.minPres} dimanche${L.minPres>1?'s':''} sur ${L.n} · détail dans l'appli`);
