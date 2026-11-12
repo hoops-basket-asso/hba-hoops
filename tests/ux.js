@@ -21,7 +21,7 @@ const { chromium } = require('playwright'); const fs=require('fs'); const D='out
   E(!!(await p.$('details.legend')) && !(await p.$('details.legend[open]')),'légende non repliée'); await shot('v3_stats');
   // vue joueur : mes stats en premier
   await p.evaluate(()=>{ const S=window.__hs.S; S.me=Object.keys(S.players)[2]; S.unlocked=false; }); await p.click('[data-go="home"]'); await p.waitForTimeout(300);
-  const cards=await p.evaluate(()=>[...document.querySelectorAll('#main .card h2')].map(h=>h.innerText).slice(0,4)); console.log('cartes joueur', cards); E(/votre saison/.test(cards.join('|'))&&cards.findIndex(c=>/votre saison/.test(c))<cards.findIndex(c=>/Dernière séance/.test(c)),'Mes stats pas en premier'); await shot('v4_home_viewer_me');
+  const cards=await p.evaluate(()=>[...document.querySelectorAll('#main .card h2')].map(h=>h.innerText).slice(0,6)); console.log('cartes joueur', cards); E(/votre saison/.test(cards.join('|'))&&cards.findIndex(c=>/votre saison/.test(c))<cards.findIndex(c=>/Dernière séance/.test(c)),'Mes stats pas en premier'); await shot('v4_home_viewer_me');
   await p.evaluate(()=>{ window.__hs.S.unlocked=true; window.__hs.S.me=null; });
   // live : hauteur avant le premier joueur
   await p.click('[data-go="home"]'); await p.waitForTimeout(200); await p.click('[data-act="open-prep"]'); await p.waitForTimeout(300); await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.waitForTimeout(200); await p.click('[data-act="start-session"]'); await p.waitForTimeout(400); await p.click('[data-act="five-ok"][data-run="1"]'); await p.waitForTimeout(300);

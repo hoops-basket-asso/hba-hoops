@@ -25,5 +25,9 @@ const SRC=process.argv[2]||'tests/fixture-export.json';
   E(imp.skip||(imp.ok&&(imp.reliable||/≈/.test(imp.label))),'impact mal calculé '+JSON.stringify(imp));
   await p.click('[data-period="session"]'); await p.waitForTimeout(300); await p.click('[data-stats-seg="top"]').catch(()=>{}); await p.waitForTimeout(300);
   E(!/Impact/.test(await p.evaluate(()=>document.querySelector('#main').innerText)),'impact affiché sur une seule séance');
+  // joueur du mois figé : un mois annoncé ne change plus, et les mois terminés sont figés à l'ouverture par le bureau
+  const mo=await p.evaluate(async()=>{ const h=window.__hs; const m=h.monthAwards().filter(x=>x.done&&x.win); if(!m.length) return {skip:true}; const k=m[0].k, other=m[0].runner?m[0].runner.r.id:null; await new Promise(r=>setTimeout(r,300)); const saved=(h.S.config.monthLocks||{})[k]||null; if(!other) return {saved,first:m[0].win.r.id,k,noRunner:true};
+    h.S.config={...h.S.config,monthLocks:{...(h.S.config.monthLocks||{}),[k]:other}}; const m2=h.monthAwards().find(x=>x.k===k); return {k,first:m[0].win.r.id,saved,other,after:m2.win.r.id,locked:m2.locked}; });
+  E(mo.skip||mo.noRunner||(mo.after===mo.other&&mo.locked),'verrou du joueur du mois non respecté '+JSON.stringify(mo)); E(mo.skip||mo.k==='2026-10'||mo.saved===mo.first,'mois terminé non figé automatiquement '+JSON.stringify(mo));
   console.log('ladder',lad,'résumé',sum,'impact',imp); console.log('errors',errs); await b.close(); process.exit(errs.length?1:0);
 })().catch(e=>{ console.error(String(e).slice(0,600)); process.exit(1); });

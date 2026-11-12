@@ -441,13 +441,21 @@ function seasonAwardsRaw(sess,n){ const b=seasonBounds();
   list.push({...AWARDS.find(a=>a.k==='champ'),w:pick(r=>r.gp>0,r=>r.chp||0,x=>`${fmt1(x.r.chp||0)} pts (${x.r.w} V – ${x.r.gp-x.r.w} D)`)});
   return {sess,rows,list,n}; }
 const MOIS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-function monthAwards(){ const b=seasonBounds(); const sess=Object.values(S.sessions).filter(x=>x.status==='closed'&&inStats(x)&&x.date>=b.start&&x.date<b.end); const sig=sess.map(sigOf).join(';'); if(S._cache.month&&S._cache.month.sig===sig) return S._cache.month.v;
+// Un joueur du mois déjà annoncé ne change plus, même si la formule de la note évolue ensuite.
+// Octobre 2026 a été annoncé (Gilles S.) avant le passage à la note par minute ; les mois suivants sont figés automatiquement à la première ouverture par le bureau.
+const MONTH_LOCK0={'2026-10':'p07'};
+function monthLocks(){ return {...MONTH_LOCK0,...(S.config.monthLocks||{})}; }
+function monthAwards(){ const b=seasonBounds(); const sess=Object.values(S.sessions).filter(x=>x.status==='closed'&&inStats(x)&&x.date>=b.start&&x.date<b.end); const locks=monthLocks(); const sig=sess.map(sigOf).join(';')+'|'+JSON.stringify(locks); if(S._cache.month&&S._cache.month.sig===sig) return S._cache.month.v;
   const by={}; sess.forEach(x=>{ (by[x.date.slice(0,7)]=by[x.date.slice(0,7)]||[]).push(x); }); const cur=today().slice(0,7);
   const v=Object.keys(by).sort().map(k=>{ const ss=by[k]; const n=ss.length; const done=k<cur; const minS=Math.ceil(n*0.6), minG=Math.min(12,3*n); const rows=aggregate(ss).pl.filter(r=>r.gp>0);
     const elr=rows.filter(r=>r.sessions>=minS&&r.gp>=minG); const N=noteParts(elr,n); const el=elr.map(r=>({r,v:N[r.id].note})).sort((a,c)=>c.v-a.v||c.r.w-a.r.w||c.r.pts/c.r.gp-a.r.pts/a.r.gp);
-    const lab=MOIS[+k.slice(5,7)-1]; return {k,lab,n,done,minS,minG,eligible:el.length,win:n>=2&&el[0]?el[0]:null,runner:n>=2&&el[1]?el[1]:null}; });
+    const lab=MOIS[+k.slice(5,7)-1]; let win=n>=2&&el[0]?el[0]:null, runner=n>=2&&el[1]?el[1]:null, locked=false;
+    const lk=done&&locks[k]; if(lk&&rows.some(r=>r.id===lk)){ locked=true; if(!win||win.r.id!==lk){ const mine=el.find(e=>e.r.id===lk)||(()=>{ const r=rows.find(r=>r.id===lk); return {r,v:noteParts(rows,n)[lk].note}; })(); runner=null; win={...mine,frozen:true}; } }
+    return {k,lab,n,done,minS,minG,eligible:el.length,win,runner,locked}; });
+  // fige les mois terminés (bureau connecté uniquement), une seule fois
+  if(S.unlocked&&S.canWrite!==false&&!S.demo){ const add={}; v.forEach(m=>{ if(m.done&&m.win&&!locks[m.k]) add[m.k]=m.win.r.id; }); if(Object.keys(add).length&&!S._lockSaving){ S._lockSaving=true; setTimeout(()=>{ const c={...S.config,monthLocks:{...(S.config.monthLocks||{}),...add}}; S.config=c; save('config','main',c); S._lockSaving=false; },0); } }
   S._cache.month={sig,v}; return v; }
-function monthLine(x){ const r=x.r; return `note ${noteLabel(x.v)} · ${r.pts} pts · ${r.ast||0} PD · ${r.w} V / ${r.gp} matchs`; }
+function monthLine(x){ const r=x.r; return `${x.frozen?'':'note '+noteLabel(x.v)+' · '}${r.pts} pts · ${r.ast||0} PD · ${r.w} V / ${r.gp} matchs`; }
 function monthHomeCard(){ const list=monthAwards(); const last=[...list].reverse().find(x=>x.done); if(!last||!last.win) return ''; const nxt=new Date(last.k+'-01T12:00:00'); nxt.setMonth(nxt.getMonth()+1); if(today().slice(0,7)!==isoLocal(nxt).slice(0,7)) return '';
   return `<div class="card" id="potmCard" style="border:2px solid var(--accent)"><div class="row"><h2 class="grow">🏅 Joueur du mois · ${esc(last.lab)}</h2></div><div class="lead" data-act="player-detail" data-id="${last.win.r.id}" style="cursor:pointer"><div class="ico">🏅</div><div><div class="who" style="font-size:20px">${esc(pname(last.win.r.id))}</div><div class="what">${monthLine(last.win)}</div></div></div>${last.runner?`<p class="muted small" style="margin:6px 0 0">Dauphin : ${esc(pname(last.runner.r.id))} (note ${noteLabel(last.runner.v)})</p>`:''}<p class="muted small" style="margin:4px 0 0">Éligibles : présents à ${last.minS} dimanches sur ${last.n} et ${last.minG} matchs minimum.</p></div>`; }
 function monthCard(){ const list=monthAwards(); if(!list.length) return '';
@@ -558,7 +566,7 @@ async function seasonImage(){ await (document.fonts&&document.fonts.ready||Promi
   if(!won.length){ x.fillStyle=MUTED; x.font='22px Arial'; x.fillText('Aucun trophée attribué pour l\'instant (seuils non atteints).',60,y+30); y+=60; }
   y+=40; const colW=(W-140)/2; const list=(title,rows,fmt,x0)=>{ x.fillStyle=OR; x.font='bold 24px Arial'; x.fillText(title,x0,y); rows.forEach((r,i)=>{ const yy=y+28+i*52; x.fillStyle=CARD; x.fillRect(x0,yy,colW,44); x.fillStyle=INK; x.font='bold 24px Arial'; x.fillText((i+1)+'. '+pname(r.id),x0+14,yy+30); x.textAlign='right'; x.fillStyle=MUTED; x.font='22px Arial'; x.fillText(fmt(r),x0+colW-14,yy+30); x.textAlign='left'; }); };
   list('TOP MARQUEURS',top,r=>r.pts+' pts',60); list('ASSIDUITÉ',ass,r=>r.sessions+' dim.',80+colW); y+=28+Math.max(top.length,ass.length)*52+40;
-  if(potm.length){ x.fillStyle=OR; x.font='bold 24px Arial'; x.fillText('JOUEURS DU MOIS',60,y); potm.forEach((m,i)=>{ const yy=y+20+i*52; x.fillStyle=i%2?CARD:'#EFEBE3'; x.fillRect(60,yy,W-120,44); x.fillStyle=INK; x.font='bold 24px Arial'; x.fillText('🏅 '+m.lab.charAt(0).toUpperCase()+m.lab.slice(1),78,yy+30); x.fillStyle=OR; x.textAlign='right'; x.fillText(pname(m.win.r.id),W-260,yy+30); x.fillStyle=MUTED; x.font='22px Arial'; x.fillText('note '+noteLabel(m.win.v),W-78,yy+30); x.textAlign='left'; }); y+=60+potm.length*52; }
+  if(potm.length){ x.fillStyle=OR; x.font='bold 24px Arial'; x.fillText('JOUEURS DU MOIS',60,y); potm.forEach((m,i)=>{ const yy=y+20+i*52; x.fillStyle=i%2?CARD:'#EFEBE3'; x.fillRect(60,yy,W-120,44); x.fillStyle=INK; x.font='bold 24px Arial'; x.fillText('🏅 '+m.lab.charAt(0).toUpperCase()+m.lab.slice(1),78,yy+30); x.fillStyle=OR; x.textAlign='right'; x.fillText(pname(m.win.r.id),W-260,yy+30); x.fillStyle=MUTED; x.font='22px Arial'; x.fillText(m.win.frozen?m.win.r.pts+' pts':'note '+noteLabel(m.win.v),W-78,yy+30); x.textAlign='left'; }); y+=60+potm.length*52; }
   x.fillStyle=INK; x.fillRect(0,H-80,W,80); x.fillStyle='#fff'; x.font='22px Arial'; x.fillText('Hoops Stats · bilan généré le '+fmtShort(today()),60,H-32); return c; }
 // ---------- image « Le Ladder » de la semaine (1080 × 1350, format portrait réseaux) ----------
 function ladderOf(sessions){ if(!sessions.length) return {list:[],rows:[],n:0,matches:0}; const ag=aggregate(sessions); const rows=ag.pl; const n=sessions.length; const minG=seasonMin(rows); const minPres=Math.ceil(n/2);
