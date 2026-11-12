@@ -597,14 +597,16 @@ async function ladderImage(){ await (document.fonts&&document.fonts.ready||Promi
   // pastille : initiales sur une couleur propre au joueur
   const PAL=['#3B82F6','#10B981','#A855F7','#EC4899','#14B8A6','#F59E0B','#6366F1','#EF4444']; const hue=id=>{ let h=0; for(const ch of String(id)) h=(h*31+ch.charCodeAt(0))>>>0; return PAL[h%PAL.length]; };
   const ini=id=>{ const w=pname(id).replace(/[().]/g,'').split(/\s+/).filter(Boolean); return ((w[0]||'?')[0]+(w.length>1?w[w.length-1][0]:'')).toUpperCase(); };
-  const avatar=(id,cx,cy,r,col)=>{ x.fillStyle=col||hue(id); x.beginPath(); x.arc(cx,cy,r,0,7); x.fill(); x.textAlign='center'; F(800,r*0.9,true); x.fillStyle='#fff'; x.fillText(ini(id),cx,cy+r*0.32); x.textAlign='left'; };
+  const avatar=(id,cx,cy,r,col)=>{ x.fillStyle='#232A36'; x.beginPath(); x.arc(cx,cy,r,0,7); x.fill(); x.strokeStyle=col; x.lineWidth=3; x.stroke(); x.textAlign='center'; F(800,r*0.86,true); x.fillStyle=C.TXT; x.fillText(ini(id),cx,cy+r*0.31); x.textAlign='left'; };
+  const pill=(t,X,Y,col,bgc)=>{ F(800,19,true); const w=x.measureText(t).width+22; rr(X,Y-22,w,30,15); x.fillStyle=bgc; x.fill(); x.fillStyle=col; x.fillText(t,X+11,Y); return w; }; const tint=col=>col===C.UP?'rgba(46,212,122,.14)':col===C.DN?'rgba(242,84,91,.14)':'rgba(255,138,76,.16)';
   const stat=r=>`${r.pts} pts · ${r.ast||0} passe${(r.ast||0)>1?'s':''} · ${pct(r.w,r.gp)} % de victoires`;
   K.bg(H,330); K.header('LE LADDER',`Saison ${seasonLabel()} · ${ses.length} dimanche${ses.length>1?'s':''} · ${L.matches} matchs`+(last?' · à jour du '+fmtShort(last.date).replace(/\.$/,''):''),'JOURNÉE',ses.length);
   if(!L.list.length){ F(600,34); x.fillStyle=C.TXT; x.fillText('Pas encore assez de matchs pour un classement.',64,400); return c; }
   // n° 1 : l'affiche
   const A=L.list[0]; let y=258; const hh=300; let g=x.createLinearGradient(64,y,W-64,y+hh); g.addColorStop(0,'#F4833F'); g.addColorStop(1,'#B03C14'); rr(64,y,W-128,hh,34); x.fillStyle=g; x.fill();
-  F(700,22); x.fillStyle='rgba(255,255,255,.9)'; const ex=K.spaced('👑  N° 1',104,y+62,3);
-  const mv0=move(A.r.id); if(mv0){ F(800,22,true); const tw=x.measureText(mv0.t).width+28; rr(ex+16,y+37,tw,36,18); x.fillStyle='rgba(0,0,0,.22)'; x.fill(); x.fillStyle='#fff'; x.fillText(mv0.t,ex+30,y+63); }
+  x.save(); rr(64,y,W-128,hh,34); x.clip(); x.fillStyle='rgba(255,255,255,.06)'; x.beginPath(); x.moveTo(W-520,y); x.lineTo(W-64,y); x.lineTo(W-64,y+hh); x.lineTo(W-300,y+hh); x.closePath(); x.fill(); x.restore();
+  F(700,22); x.fillStyle='rgba(255,255,255,.92)'; const ex=K.spaced('N° 1 DU CLASSEMENT',104,y+62,3);
+  const mv0=move(A.r.id); if(mv0) pill(mv0.t,ex+16,y+61,'#fff','rgba(0,0,0,.24)');
   F(800,124,true); x.fillStyle='#fff'; x.fillText(fit(pname(A.r.id),W-128-360),98,y+178); const nk=nick(A.r.id);
   F(600,30); x.fillStyle='rgba(255,255,255,.9)'; if(nk) x.fillText(fit('« '+nk+' »',W-128-360),104,y+222);
   F(600,25); x.fillStyle='#fff'; x.fillText(fit(stat(A.r),W-128-330),104,y+266);
@@ -613,23 +615,23 @@ async function ladderImage(){ await (document.fonts&&document.fonts.ready||Promi
   y+=hh+22; const rh=92, bx=650, bw=W-64-110-bx; const medal=[C.SILV,C.BRZ];
   L.list.slice(1,5).forEach((e,j)=>{ const yy=y+j*(rh+10); card(64,yy,W-128,rh,20); const col=medal[j]||C.MUT;
     F(800,54,true); x.fillStyle=col; x.textAlign='center'; x.fillText(String(j+2),112,yy+64); x.textAlign='left';
-    avatar(e.r.id,190,yy+rh/2,30);
+    avatar(e.r.id,190,yy+rh/2,30,col===C.MUT?'#3A4352':col);
     F(700,31); x.fillStyle=C.TXT; const nmW=Math.min(bx-250-110,x.measureText(pname(e.r.id)).width); x.fillText(fit(pname(e.r.id),bx-250-110),238,yy+42);
-    const m=move(e.r.id); if(m){ F(800,19,true); x.fillStyle=m.c; x.fillText(m.t,238+nmW+16,yy+40); }
+    const m=move(e.r.id); if(m) pill(m.t,238+nmW+16,yy+40,m.c,tint(m.c));
     F(500,20); x.fillStyle=C.MUT; x.fillText(fit(stat(e.r),bx-250),238,yy+72);
     rr(bx,yy+41,bw,10,5); x.fillStyle='rgba(255,255,255,.07)'; x.fill(); const gg=x.createLinearGradient(bx,0,bx+bw,0); gg.addColorStop(0,'#7A3A1A'); gg.addColorStop(1,C.OR2); rr(bx,yy+41,Math.max(10,bw*e.note/10),10,5); x.fillStyle=gg; x.fill();
     F(800,46,true); x.fillStyle=C.TXT; x.textAlign='right'; x.fillText(fmtN(e.note),W-90,yy+62); x.textAlign='left'; });
   y+=Math.min(4,L.list.length-1)*(rh+10)+6;
   // une seule phrase d'actualité : la remontée de la semaine (sinon les entrées au classement)
   if(P){ const ups=L.list.map(e=>({e,m:move(e.r.id)})).filter(o=>o.m&&o.m.d>0).sort((a,b)=>b.m.d-a.m.d||rankOf(a.e.r.id)-rankOf(b.e.r.id)); const news=L.list.filter(e=>!prevRank[e.r.id]);
-    const t=ups[0]?`📈  Remontée de la semaine : ${pname(ups[0].e.r.id)}, +${ups[0].m.d} place${ups[0].m.d>1?'s':''} (${rankOf(ups[0].e.r.id)}e)`:news.length?`✨  ${news.length===1?'Entre':'Entrent'} au classement : ${news.slice(0,3).map(e=>pname(e.r.id)).join(', ')}`:'';
-    if(t){ F(600,23); x.fillStyle=C.TXT; x.fillText(fit(t,W-128),64,y+34); y+=44; } }
+    const tag=ups[0]?'REMONTÉE DE LA SEMAINE':news.length?(news.length===1?'ENTRE AU CLASSEMENT':'ENTRENT AU CLASSEMENT'):''; const t=ups[0]?`${pname(ups[0].e.r.id)}, +${ups[0].m.d} place${ups[0].m.d>1?'s':''}, désormais ${rankOf(ups[0].e.r.id)}e`:news.slice(0,3).map(e=>pname(e.r.id)).join(', ');
+    if(tag){ const w=pill(tag,64,y+36,C.UP===C.UP&&ups[0]?C.UP:C.OR2,tint(ups[0]?C.UP:C.OR2)); F(600,23); x.fillStyle=C.TXT; x.fillText(fit(t,W-128-w-16),64+w+16,y+37); y+=46; } }
   // les leaders : un nom et un chiffre par catégorie
   y+=36; K.section('LES LEADERS DE LA SAISON',y); y+=18; const R=L.rows; const top=(f,ok)=>R.filter(ok).sort((a,b)=>f(b)-f(a))[0];
-  const T=[['🔥','POINTS',top(r=>r.pts,r=>r.pts>0),r=>r.pts],['🎩','PASSES',top(r=>r.ast||0,r=>r.ast>0),r=>r.ast],['🎯','PANIERS À 3',top(r=>r.fg3||0,r=>r.fg3>0),r=>r.fg3],['🦾','MINUTES',top(r=>r.min||0,r=>r.min>0),r=>Math.round(r.min/60000)]];
-  const tw=(W-128-3*14)/4, th=168; T.forEach(([ic,lab,r,fv],k)=>{ const X=64+k*(tw+14); card(X,y,tw,th,20); if(!r) return;
-    F(400,22); x.fillStyle=C.TXT; x.fillText(ic,X+18,y+40); F(700,16); x.fillStyle=C.MUT; K.spaced(lab,X+50,y+37,1.5);
-    F(800,68,true); x.fillStyle=C.OR2; x.fillText(String(fv(r)),X+18,y+108); F(700,23); x.fillStyle=C.TXT; x.fillText(fit(pname(r.id),tw-36),X+18,y+144); });
+  const T=[['','POINTS',top(r=>r.pts,r=>r.pts>0),r=>r.pts],['','PASSES',top(r=>r.ast||0,r=>r.ast>0),r=>r.ast],['','PANIERS À 3 PTS',top(r=>r.fg3||0,r=>r.fg3>0),r=>r.fg3],['','MINUTES JOUÉES',top(r=>r.min||0,r=>r.min>0),r=>Math.round(r.min/60000)]];
+  const tw=(W-128-3*14)/4, th=178; T.forEach(([ic,lab,r,fv],k)=>{ const X=64+k*(tw+14); card(X,y,tw,th,20); if(!r) return;
+    rr(X+20,y+22,34,5,2.5); x.fillStyle=C.OR; x.fill(); F(700,16); x.fillStyle=C.MUT; K.spaced(lab,X+20,y+56,1.5);
+    F(800,70,true); x.fillStyle=C.TXT; x.fillText(String(fv(r)),X+20,y+122); F(700,23); x.fillStyle=C.OR2; x.fillText(fit(pname(r.id),tw-40),X+20,y+154); });
   y+=th; const Hf=y+80; const out=document.createElement('canvas'); out.width=W; out.height=Hf; const o=out.getContext('2d'); o.drawImage(c,0,0);
   imgKit(o,W).footer(Hf,`Classement des joueurs présents au moins ${L.minPres} dimanche${L.minPres>1?'s':''} sur ${L.n} · détail dans l'appli`);
   return out; }
