@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-11-12 16:07';</script>
+window.HS_VERSION = '2026-11-13 00:14';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -43,7 +43,12 @@ window.HS_VERSION = '2026-11-12 16:07';</script>
   // --- rôle : bureau si connecté par email et présent dans config/bureau ---
   async function resolveRole(user){
     if(!user){ FB.role='viewer'; FB.email=null; return; }
-    if(user.isAnonymous){ FB.role = FB.scorerToken ? 'scorer' : 'viewer'; FB.email=null; return; }
+    if(user.isAnonymous){ FB.role = FB.scorerToken ? 'scorer' : 'viewer'; FB.email=null;
+      // Le marqueur dépose son code dans une fiche privée à son appareil (scorerClaims/{uid}) : la base vérifie le code là, plus dans la séance.
+      // Si les nouvelles règles ne sont pas encore publiées, le dépôt est refusé et on garde l'ancien fonctionnement (code joint à la séance).
+      // Sans réseau, on n'attend pas plus de 4 secondes : le marqueur démarre avec l'ancien fonctionnement, et bascule dès que le dépôt aboutit.
+      if(FB.scorerToken){ FB.claimOk = false; const w = fs.doc('scorerClaims/'+user.uid).set({ token: FB.scorerToken, at: Date.now() }).then(()=>{ FB.claimOk = true; }).catch(()=>{ FB.claimOk = false; }); await Promise.race([w, new Promise(r=>setTimeout(r,4000))]); }
+      return; }
     FB.email = user.email || null;
     try{
       const d = await fs.doc('config/bureau').get();
@@ -82,6 +87,8 @@ window.HS_VERSION = '2026-11-12 16:07';</script>
     return { token, url, expires:end };
   };
   FB.revokeScorerLink = (token)=>fs.doc('scorerTokens/'+token).delete();
+  // ménage : retire les anciens codes restés dans les séances closes (bureau uniquement)
+  FB.cleanScorerTokens = async (ids)=>{ if(FB.role!=='bureau') return 0; let n=0; for(const id of ids){ try{ await fs.doc('sessions/'+id).set({ scorerToken: firebase.firestore.FieldValue.delete() },{merge:true}); n++; }catch(e){} } return n; };
   FB.listScorerLinks = async (sid)=>{ const q=await fs.collection('scorerTokens').where('sid','==',sid).get(); return q.docs.map(d=>({token:d.id,...d.data()})); };
 
   // --- adaptateur "db" au format attendu par l'appli (doc/collection/onSnapshot/set/delete) ---
@@ -89,7 +96,7 @@ window.HS_VERSION = '2026-11-12 16:07';</script>
   FB.db = {
     doc:(path)=>({
       onSnapshot:(f,err)=>fs.doc(path).onSnapshot(sn=>f({exists:sn.exists,data:()=>sn.data()}), e=>{ if(err) err(e); }),
-      set:async(d,opt)=>{ const data=strip(d); if(path.startsWith('sessions/') && FB.role==='scorer' && FB.scorerToken) data.scorerToken=FB.scorerToken; if(opt&&opt.merge) await fs.doc(path).set(data,{merge:true}); else await fs.doc(path).set(data); },
+      set:async(d,opt)=>{ const data=strip(d); if(path.startsWith('sessions/')){ delete data.scorerToken; if(FB.role==='scorer' && FB.scorerToken && !FB.claimOk) data.scorerToken=FB.scorerToken; else if(opt&&opt.merge) data.scorerToken=firebase.firestore.FieldValue.delete(); } if(opt&&opt.merge) await fs.doc(path).set(data,{merge:true}); else await fs.doc(path).set(data); },
       delete:()=>fs.doc(path).delete()
     }),
     collection:(c)=>({
@@ -401,12 +408,13 @@ async function boot(){
   setTimeout(()=>{ if(!S.loaded){ S.loaded=true; renderSoft(); } },8000);
   db.collection('players').onSnapshot(sn=>{ if(sn.empty&&sn.metadata.fromCache&&Object.keys(S.players).length) return; const next={}; sn.docs.forEach(d=>{ const p=normPlayer(clone(d.data())); if(p) next[d.id]=p; }); Object.keys(S.players).forEach(id=>{ if(S.saving['players/'+id]||S.dirty['players/'+id]||S.failed['players/'+id]) next[id]=S.players[id]; }); S.players=next; renderSoft(); openPlayerLink(); }, e=>{ toast('Lecture des joueurs interrompue ('+(e&&e.code||'?')+'), rechargez la page'); });
   subscribePrivate();
-  db.collection('sessions').onSnapshot(sn=>{ if(sn.empty&&sn.metadata.fromCache&&Object.keys(S.sessions).length) return; const next={}; let changed=false; sn.docs.forEach(d=>{ const raw=d.data(); const cur=S.sessions[d.id]; if(cur&&raw&&!S._forceSync&&cur.updatedAt===raw.updatedAt&&!S.saving['sessions/'+d.id]&&!S.dirty['sessions/'+d.id]){ next[d.id]=cur; return; } changed=true; const s=normSession(clone(raw)); if(s){ s.id=s.id||d.id; next[d.id]=s; } }); if(Object.keys(next).length!==Object.keys(S.sessions).length) changed=true; const force=S._forceSync; Object.keys(S.sessions).forEach(id=>{ const loc=S.sessions[id], rem=next[id]; const pending=S.saving['sessions/'+id]||S.dirty['sessions/'+id]||S.failed['sessions/'+id];
+  db.collection('sessions').onSnapshot(sn=>{ if(sn.empty&&sn.metadata.fromCache&&Object.keys(S.sessions).length) return; const next={}; let changed=false; sn.docs.forEach(d=>{ const raw=d.data(); const cur=S.sessions[d.id]; if(cur&&raw&&!S._forceSync&&cur.updatedAt===raw.updatedAt&&!S.saving['sessions/'+d.id]&&!S.dirty['sessions/'+d.id]){ next[d.id]=cur; return; } changed=true; const s=normSession(clone(raw)); if(s){ s.id=s.id||d.id; if(s.scorerToken!==undefined){ if(s.status==='closed') (S._tokClean=S._tokClean||new Set()).add(d.id); delete s.scorerToken; s.matches.forEach(m=>{ m._j=matchSig(m); }); } next[d.id]=s; } }); if(Object.keys(next).length!==Object.keys(S.sessions).length) changed=true; const force=S._forceSync; Object.keys(S.sessions).forEach(id=>{ const loc=S.sessions[id], rem=next[id]; const pending=S.saving['sessions/'+id]||S.dirty['sessions/'+id]||S.failed['sessions/'+id];
       if(!rem||rem===loc||force||!canWriteSession(id)){ if(pending) next[id]=loc; return; }
       // un autre appareil a écrit : on fusionne match par match. Si on a des écritures en attente, on garde notre version enrichie ; sinon on prend la sienne, complétée de ce qu'elle aurait écrasé.
       try{ if(pending){ next[id]=loc; const r=mergeSession(loc,rem); if(r.changed){ changed=true; S._merges=(S._merges||0)+1; setTimeout(()=>{ saveSession(loc,['matches','corrections','delM']); toast('Saisie d\'un autre appareil intégrée'); },0); } }
         else { const r=mergeSession(rem,loc); if(r.changed){ S._merges=(S._merges||0)+1; setTimeout(()=>{ if(S.sessions[id]===rem){ saveSession(rem,['matches','corrections','delM']); toast('Saisie rétablie : un autre appareil l\'avait écrasée'); } },0); } } }
       catch(e){ if(pending) next[id]=loc; } });
+    if(S._tokClean&&S._tokClean.size&&S.unlocked&&window.FB&&FB.cleanScorerTokens&&!S._tokCleaning){ S._tokCleaning=true; const ids=[...S._tokClean]; S._tokClean=new Set(); FB.cleanScorerTokens(ids).finally(()=>{ S._tokCleaning=false; }); }
     S.sessions=next; S._forceSync=false; S._cache.badges={}; S._cache.season=null; S.loaded=true; if(!S._journalChecked){ S._journalChecked=true; try{ const j=JSON.parse(localStorage.getItem('hs-journal')||'null'); if(j&&j.status==='live'&&canScore()&&(!S.sessions[j.id]||S.sessions[j.id].status==='live')&&(!S.sessions[j.id]||(S.sessions[j.id].updatedAt||0)<j.updatedAt)){ const nj=normSession(j); if(nj){ S.sessions[j.id]=nj; saveSession(nj); toast('Actions hors ligne récupérées'); } } }catch(e){} } if(!S.sid){ const live=Object.values(S.sessions).find(x=>x.status==='live'); if(live) S.sid=live.id; } if(changed||!S._firstSessions){ S._firstSessions=true; renderSoft(); } openPlayerLink(); }, ()=>{ S.loaded=true; renderSoft(); });
 }
 
@@ -674,22 +682,17 @@ function summaryText(sess){
   L.push('');
   if(sess.format==='cent'){ const cum={}; sess.matches.filter(x=>x.status==='done').forEach(x=>{ const st=matchState(x,sess); cum[x.home]=(cum[x.home]||0)+st.score[x.home]; cum[x.away]=(cum[x.away]||0)+st.score[x.away]; }); L.push('🏆 Match à 100 points : '+tn('A')+' '+(cum.A||0)+' – '+(cum.B||0)+' '+tn('B')+' ('+sess.matches.filter(x=>x.status==='done').map(x=>{ const st=matchState(x,sess); return 'QT'+x.quarter+' '+st.score[x.home]+'-'+st.score[x.away]; }).join(', ')+')'); L.push(''); }
   else if(sess.teamsApprox){ L.push('⚠️ '+(sess.resultNote||'Résultats du jour non consignés match par match.')); L.push(''); }
-  else if(tRank.length){ const t0=tRank[0][0]; L.push('🏆 Équipe du jour : '+tn(t0)+' ('+tRank[0][1].w+' V – '+tRank[0][1].l+' D)'+(sess.teams[t0].players&&sess.teams[t0].players.length?' · '+sess.teams[t0].players.map(pid=>pname(pid)+(sess.teams[t0].captain===pid?' ©':'')).join(', '):'')); tRank.slice(1).forEach(([t,x])=>L.push('   '+tn(t)+' : '+x.w+' V – '+x.l+' D')); L.push(''); }
-  { const mv=LD.mvp; if(mv) L.push('👑 MVP : '+pname(mv.r.id)+' — '+mvpLabel(mv)); }
-  if(LD.scorer) L.push('🔥 Meilleur marqueur : '+pname(LD.scorer.id)+' — '+ptsLabel(LD.scorer));
-  if(sniper) L.push('🎯 Sniper : '+pname(sniper.id)+' — '+sniper.fg3+' panier'+(sniper.fg3>1?'s':'')+' à 3 pts');
-  if(ft) L.push('🆓 Lancers francs : '+pname(ft.id)+' — '+ft.ftm+'/'+ft.fta+' ('+pct(ft.ftm,ft.fta)+' %)');
-  
-  if(LD.passer) L.push('🎩 Passeur : '+pname(LD.passer.id)+' — '+fmt1(perM(LD.passer,'ast'))+' PD/match ('+LD.passer.ast+' au total)');
-  if(LD.clean) L.push('🧼 Le plus propre : '+pname(LD.clean.id)+' — '+fmt1(perM(LD.clean,'pf'))+' faute/match');
-  if(tech+uns) L.push('⚠️ Fair-play : '+tech+' technique'+(tech>1?'s':'')+', '+uns+' antisportive'+(uns>1?'s':''));
-  L.push('   (récompenses : au moins '+MIN_DAY+' matchs joués)');
-  const bd=badgesForSession(sess); if(bd.length){ L.push(''); L.push('🏅 Badges du jour :'); bd.forEach(b=>L.push('   '+b.icon+' '+b.label+' : '+pname(b.pid)+' ('+b.detail+')')); }
-  L.push('');
-  L.push('Top 5 marqueurs (par match) :'); top.filter(r=>r.gp>=MIN_DAY).slice(0,5).forEach((r,i)=>L.push((i+1)+'. '+pname(r.id)+' — '+fmt1(perM(r,'pts'))+' pts/match ('+r.pts+' pts, '+r.gp+' M)'));
-  { const tl=matchTimeline(sess); if(tl.length&&sess.format!=='cent'){ L.push(''); L.push('⏱ Les matchs du jour :'); tl.forEach(r=>L.push('   M'+r.n+' '+(r.start?fmtTime(r.start):'')+' · '+r.hn+' '+r.hs+'–'+r.as+' '+r.an)); } }
-  const season=aggregate(periodSessionsFor('season',sess)); const lead=[...season.pl].sort((a,b)=>b.pts-a.pts)[0];
-  if(lead&&season.sessions>1){ L.push(''); L.push('📈 Saison ('+season.sessions+' séances) : '+pname(lead.id)+' mène avec '+lead.pts+' pts'); }
+  else if(tRank.length){ const t0=teamOfDay(sess); tRank.forEach(([t,x])=>{ const isT=t===t0; L.push((isT?'🏆 Équipe du jour : ':'   ')+tn(t)+(isT?' (':' : ')+x.w+' V – '+x.l+' D'+(isT?')':'')+(isT&&sess.teams[t].players&&sess.teams[t].players.length?' · '+sess.teams[t].players.map(pid=>pname(pid)+(sess.teams[t].captain===pid?' ©':'')).join(', '):'')); }); L.push(''); }
+  { const mv=LD.mvp; if(mv) L.push('👑 MVP du jour : '+pname(mv.r.id)+' — '+mvpLabel(mv)); }
+  { const topBy=(f)=>[...rows].filter(r=>f(r)>0).sort((a,b)=>f(b)-f(a)||b.pts-a.pts)[0]; const sc=topBy(r=>r.pts), pa=topBy(r=>r.ast||0), s3=topBy(r=>r.fg3||0);
+    if(sc) L.push('🔥 Points : '+pname(sc.id)+' — '+sc.pts+' pts en '+sc.gp+' match'+(sc.gp>1?'s':''));
+    if(pa) L.push('🎩 Passes : '+pname(pa.id)+' — '+pa.ast+' passe'+(pa.ast>1?'s':'')+' décisive'+(pa.ast>1?'s':''));
+    if(s3) L.push('🎯 Paniers à 3 : '+pname(s3.id)+' — '+s3.fg3);
+    if(ft) L.push('🆓 Lancers francs : '+pname(ft.id)+' — '+ft.ftm+'/'+ft.fta); }
+  L.push(tech+uns?'⚠️ Fair-play : '+tech+' technique'+(tech>1?'s':'')+(uns?', '+uns+' antisportive'+(uns>1?'s':''):''):'🧼 Fair-play : aucune technique, merci à tous');
+  const bd=badgesForSession(sess); if(bd.length){ const by={}; bd.forEach(b=>(by[b.pid]=by[b.pid]||[]).push(b)); L.push(''); L.push('🏅 Badges du jour :'); Object.entries(by).forEach(([pid,l])=>L.push('   '+pname(pid)+' : '+[...new Set(l.map(b=>b.icon+' '+b.label))].join(', '))); }
+  { const tl=matchTimeline(sess); if(tl.length&&sess.format!=='cent'){ L.push(''); L.push('⏱ Les résultats :'); tl.forEach(r=>L.push('   M'+r.n+' · '+r.hn+' '+r.hs+'–'+r.as+' '+r.an)); } }
+  { const ses=seasonLadderSessions().filter(x=>x.date<=sess.date); const Ld=ladderOf(ses); if(ses.length>1&&Ld.list.length>=3){ L.push(''); L.push('📈 Ladder après '+ses.length+' dimanches : '+Ld.list.slice(0,3).map((e,k)=>(k+1)+'. '+pname(e.r.id)+' ('+fmtN(e.note)+')').join(' · ')); } }
   L.push(''); L.push('Stats complètes dans Hoops Stats.');
   return L.join('\n');
 }

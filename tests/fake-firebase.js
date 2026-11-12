@@ -13,7 +13,7 @@
   const revive=(o)=>{ if(o&&typeof o==='object'){ if('__ts' in o) return new Timestamp(o.__ts); for(const k in o) o[k]=revive(o[k]); } return o; };
   const docRef=(path)=>({
     get:async()=>{ const d=getDoc(path); return {exists:!!d,data:()=>d?revive(JSON.parse(JSON.stringify(d))):undefined,id:path.split('/')[1]}; },
-    set:async(d,opt)=>{ const cur=(opt&&opt.merge)?(getDoc(path)||{}):{}; const out={...cur}; for(const [k,v] of Object.entries(d)){ if(v&&v.__inc!=null) out[k]=(cur[k]||0)+v.__inc; else if(v&&v.__union) out[k]=[...new Set([...(cur[k]||[]),...v.__union])]; else out[k]=v; } setDoc(path,out); },
+    set:async(d,opt)=>{ const deny=localStorage.getItem('fakedeny'); if(deny&&path.startsWith(deny)){ const e=new Error('denied'); e.code='permission-denied'; throw e; } const cur=(opt&&opt.merge)?(getDoc(path)||{}):{}; const out={...cur}; for(const [k,v] of Object.entries(d)){ if(v&&v.__inc!=null) out[k]=(cur[k]||0)+v.__inc; else if(v&&v.__union) out[k]=[...new Set([...(cur[k]||[]),...v.__union])]; else if(v&&v.__del) delete out[k]; else out[k]=v; } setDoc(path,out); },
     delete:async()=>{ delDoc(path); },
     onSnapshot:(a,b,c)=>{ const cb=typeof a==='function'?a:b; const f=()=>{ const d=getDoc(path); cb({exists:!!d,data:()=>d?revive(JSON.parse(JSON.stringify(d))):undefined}); }; f(); subs.push(f); return ()=>{}; }
   });
@@ -32,5 +32,5 @@
     signOut:async()=>{ user=null; localStorage.removeItem('fakeauth'); authSubs.forEach(f=>f(null)); },
     sendPasswordResetEmail:async()=>{} };
   try{ const u=localStorage.getItem('fakeauth'); if(u) user=JSON.parse(u); }catch(e){}
-  window.firebase={ initializeApp:()=>{}, auth:()=>authObj, firestore:Object.assign(()=>fsObj,{Timestamp,FieldValue:{serverTimestamp:()=>({__ts:Date.now()}),increment:(n)=>({__inc:n}),arrayUnion:(...a)=>({__union:a})},FieldPath:{documentId:()=>'__id'}}) };
+  window.firebase={ initializeApp:()=>{}, auth:()=>authObj, firestore:Object.assign(()=>fsObj,{Timestamp,FieldValue:{serverTimestamp:()=>({__ts:Date.now()}),increment:(n)=>({__inc:n}),arrayUnion:(...a)=>({__union:a}),delete:()=>({__del:true})},FieldPath:{documentId:()=>'__id'}}) };
 })();

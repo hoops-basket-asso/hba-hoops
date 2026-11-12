@@ -10,13 +10,23 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/config/bureau)
         && bureauDoc().data.emails.hasAny([request.auth.token.email, request.auth.token.email.lower()]);
     }
-    function scorerOk(sid) {
-      let t = request.resource.data.scorerToken;
-      return signedIn()
-        && t is string
+    function tokenOk(t, sid) {
+      return t is string
         && exists(/databases/$(database)/documents/scorerTokens/$(t))
         && get(/databases/$(database)/documents/scorerTokens/$(t)).data.sid == sid
         && get(/databases/$(database)/documents/scorerTokens/$(t)).data.expires > request.time;
+    }
+    // Marqueur du jour : son code est déposé dans une fiche privée à son appareil (scorerClaims/{uid}).
+    function scorerOk(sid) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/scorerClaims/$(request.auth.uid))
+        && tokenOk(get(/databases/$(database)/documents/scorerClaims/$(request.auth.uid)).data.token, sid);
+    }
+    // Ancien fonctionnement (code joint à la séance), gardé le temps que tous les téléphones soient à jour. À retirer ensuite.
+    function scorerOkLegacy(sid) {
+      return signedIn()
+        && ('scorerToken' in request.resource.data)
+        && tokenOk(request.resource.data.scorerToken, sid);
     }
 
     // Réglages publics (minutes, cible, seuils des badges). Jamais de secret ici.
@@ -37,12 +47,20 @@ service cloud.firestore {
     }
     match /sessions/{id} {
       allow read: if true;
-      allow write: if isBureau() || scorerOk(id);
+      allow write: if isBureau() || scorerOk(id) || scorerOkLegacy(id);
     }
-    // Liens marqueur : créés par le bureau, lus par toute personne connectée (y compris anonyme).
+    // Liens marqueur : créés par le bureau. On peut vérifier un code qu'on connaît déjà, mais seul le bureau peut en voir la liste.
     match /scorerTokens/{token} {
-      allow read: if signedIn();
+      allow get: if signedIn();
+      allow list: if isBureau();
       allow write: if isBureau();
+    }
+    // Fiche privée du marqueur : chaque appareil n'écrit et ne lit que la sienne.
+    match /scorerClaims/{uid} {
+      allow read: if isBureau() || (signedIn() && request.auth.uid == uid);
+      allow write: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['token', 'at'])
+        && request.resource.data.token is string && request.resource.data.token.size() < 40;
     }
     // Fréquentation : chaque visiteur (connexion anonyme) incrémente le compteur du jour ; lecture bureau.
     match /visits/{day} {

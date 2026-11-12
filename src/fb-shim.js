@@ -23,7 +23,12 @@
   // --- rôle : bureau si connecté par email et présent dans config/bureau ---
   async function resolveRole(user){
     if(!user){ FB.role='viewer'; FB.email=null; return; }
-    if(user.isAnonymous){ FB.role = FB.scorerToken ? 'scorer' : 'viewer'; FB.email=null; return; }
+    if(user.isAnonymous){ FB.role = FB.scorerToken ? 'scorer' : 'viewer'; FB.email=null;
+      // Le marqueur dépose son code dans une fiche privée à son appareil (scorerClaims/{uid}) : la base vérifie le code là, plus dans la séance.
+      // Si les nouvelles règles ne sont pas encore publiées, le dépôt est refusé et on garde l'ancien fonctionnement (code joint à la séance).
+      // Sans réseau, on n'attend pas plus de 4 secondes : le marqueur démarre avec l'ancien fonctionnement, et bascule dès que le dépôt aboutit.
+      if(FB.scorerToken){ FB.claimOk = false; const w = fs.doc('scorerClaims/'+user.uid).set({ token: FB.scorerToken, at: Date.now() }).then(()=>{ FB.claimOk = true; }).catch(()=>{ FB.claimOk = false; }); await Promise.race([w, new Promise(r=>setTimeout(r,4000))]); }
+      return; }
     FB.email = user.email || null;
     try{
       const d = await fs.doc('config/bureau').get();
@@ -62,6 +67,8 @@
     return { token, url, expires:end };
   };
   FB.revokeScorerLink = (token)=>fs.doc('scorerTokens/'+token).delete();
+  // ménage : retire les anciens codes restés dans les séances closes (bureau uniquement)
+  FB.cleanScorerTokens = async (ids)=>{ if(FB.role!=='bureau') return 0; let n=0; for(const id of ids){ try{ await fs.doc('sessions/'+id).set({ scorerToken: firebase.firestore.FieldValue.delete() },{merge:true}); n++; }catch(e){} } return n; };
   FB.listScorerLinks = async (sid)=>{ const q=await fs.collection('scorerTokens').where('sid','==',sid).get(); return q.docs.map(d=>({token:d.id,...d.data()})); };
 
   // --- adaptateur "db" au format attendu par l'appli (doc/collection/onSnapshot/set/delete) ---
@@ -69,7 +76,7 @@
   FB.db = {
     doc:(path)=>({
       onSnapshot:(f,err)=>fs.doc(path).onSnapshot(sn=>f({exists:sn.exists,data:()=>sn.data()}), e=>{ if(err) err(e); }),
-      set:async(d,opt)=>{ const data=strip(d); if(path.startsWith('sessions/') && FB.role==='scorer' && FB.scorerToken) data.scorerToken=FB.scorerToken; if(opt&&opt.merge) await fs.doc(path).set(data,{merge:true}); else await fs.doc(path).set(data); },
+      set:async(d,opt)=>{ const data=strip(d); if(path.startsWith('sessions/')){ delete data.scorerToken; if(FB.role==='scorer' && FB.scorerToken && !FB.claimOk) data.scorerToken=FB.scorerToken; else if(opt&&opt.merge) data.scorerToken=firebase.firestore.FieldValue.delete(); } if(opt&&opt.merge) await fs.doc(path).set(data,{merge:true}); else await fs.doc(path).set(data); },
       delete:()=>fs.doc(path).delete()
     }),
     collection:(c)=>({
