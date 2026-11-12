@@ -552,6 +552,72 @@ async function seasonImage(){ await (document.fonts&&document.fonts.ready||Promi
   list('TOP MARQUEURS',top,r=>r.pts+' pts',60); list('ASSIDUITÉ',ass,r=>r.sessions+' dim.',80+colW); y+=28+Math.max(top.length,ass.length)*52+40;
   if(potm.length){ x.fillStyle=OR; x.font='bold 24px Arial'; x.fillText('JOUEURS DU MOIS',60,y); potm.forEach((m,i)=>{ const yy=y+20+i*52; x.fillStyle=i%2?CARD:'#EFEBE3'; x.fillRect(60,yy,W-120,44); x.fillStyle=INK; x.font='bold 24px Arial'; x.fillText('🏅 '+m.lab.charAt(0).toUpperCase()+m.lab.slice(1),78,yy+30); x.fillStyle=OR; x.textAlign='right'; x.fillText(pname(m.win.r.id),W-260,yy+30); x.fillStyle=MUTED; x.font='22px Arial'; x.fillText('note '+noteLabel(m.win.v),W-78,yy+30); x.textAlign='left'; }); y+=60+potm.length*52; }
   x.fillStyle=INK; x.fillRect(0,H-80,W,80); x.fillStyle='#fff'; x.font='22px Arial'; x.fillText('Hoops Stats · bilan généré le '+fmtShort(today()),60,H-32); return c; }
+// ---------- image « Le Ladder » de la semaine (1080 × 1350, format portrait réseaux) ----------
+function ladderOf(sessions){ if(!sessions.length) return {list:[],rows:[],n:0}; const ag=aggregate(sessions); const rows=ag.pl; const n=sessions.length; const minG=seasonMin(rows); const minPres=Math.ceil(n/2);
+  const el=rows.filter(r=>(r.sessions||1)>=minPres&&r.gp>=minG); const N=noteParts(el,n);
+  return {n,rows,minG,minPres,matches:ag.matches,list:el.map(r=>({r,note:N[r.id].note,parts:N[r.id]})).sort((a,b)=>b.note-a.note||b.r.pts-a.r.pts)}; }
+function seasonLadderSessions(){ const b=seasonBounds(); return Object.values(S.sessions).filter(s=>s.status==='closed'&&inStats(s)&&s.date>=b.start&&s.date<b.end).sort((a,b)=>a.date<b.date?-1:1); }
+async function ladderImage(){ await (document.fonts&&document.fonts.ready||Promise.resolve());
+  const ses=seasonLadderSessions(); const L=ladderOf(ses); const P=ses.length>1?ladderOf(ses.slice(0,-1)):null; const prevRank={}; if(P) P.list.forEach((x,i)=>prevRank[x.r.id]=i+1);
+  const last=ses[ses.length-1];
+  const W=1080,H=1350; const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
+  const BG='#0D1015',SURF='#161A21',SURF2='#1C212A',LINE='#272D38',TXT='#F4F1EA',MUT='#8B94A3',OR='#E4692B',OR2='#FF8A4C',UP='#2ED47A',DN='#F2545B',GOLD='#F4B740',SILV='#C9D0DA',BRZ='#D08A55';
+  const F=(w,px,cond)=>x.font=w+' '+px+'px '+(cond?'"Barlow Condensed", "Arial Narrow", Impact, sans-serif':'Barlow, system-ui, -apple-system, sans-serif');
+  const fit=(t,max)=>{ t=String(t); while(x.measureText(t).width>max&&t.length>3) t=t.slice(0,-2)+'…'; return t; };
+  const spaced=(t,X,Y,sp)=>{ for(const ch of t){ x.fillText(ch,X,Y); X+=x.measureText(ch).width+sp; } return X; };
+  const rr=(l,t,w,h,r)=>roundRect(x,l,t,w,h,r);
+  const move=id=>{ if(!P) return null; const was=prevRank[id], now=L.list.findIndex(y=>y.r.id===id)+1; if(!was) return {t:'NOUVEAU',c:OR2}; const d=was-now; return d>0?{t:'▲ '+d,c:UP}:d<0?{t:'▼ '+(-d),c:DN}:{t:'=',c:MUT}; };
+  const ring=(cx,cy,r,lw,v,col,track)=>{ x.lineCap='round'; x.lineWidth=lw; x.strokeStyle=track; x.beginPath(); x.arc(cx,cy,r,0,Math.PI*2); x.stroke(); x.strokeStyle=col; x.beginPath(); x.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.max(0.02,Math.min(1,v/10))); x.stroke(); x.lineCap='butt'; };
+  const nm=id=>pname(id); const nick=id=>{ const p=S.players[id]; return p&&p.nick?p.nick:''; };
+  // fond : noir profond, halo orange, ligne à 3 points en filigrane
+  x.fillStyle=BG; x.fillRect(0,0,W,H);
+  let g=x.createRadialGradient(W*0.82,300,20,W*0.82,300,620); g.addColorStop(0,'rgba(228,105,43,.30)'); g.addColorStop(1,'rgba(228,105,43,0)'); x.fillStyle=g; x.fillRect(0,0,W,H);
+  x.strokeStyle='rgba(255,255,255,.045)'; x.lineWidth=6; x.beginPath(); x.arc(W+40,-60,560,Math.PI*0.5,Math.PI*1.02); x.stroke(); x.beginPath(); x.arc(W+40,-60,250,Math.PI*0.5,Math.PI*1.05); x.stroke();
+  
+  // en-tête
+  F(700,24); x.fillStyle=OR; spaced('HOOPS BASKET ASSOCIATION',64,78,3);
+  F(800,124,true); x.fillStyle=TXT; x.fillText('LE LADDER',58,188);
+  const jw=210; rr(W-64-jw,58,jw,136,22); x.fillStyle=SURF; x.fill(); x.strokeStyle=LINE; x.lineWidth=2; x.stroke();
+  x.textAlign='center'; F(700,20); x.fillStyle=MUT; x.fillText('JOURNÉE',W-64-jw/2,96); F(800,76,true); x.fillStyle=OR2; x.fillText(String(ses.length),W-64-jw/2,166); x.textAlign='left';
+  F(500,27); x.fillStyle=MUT; x.fillText(`Saison ${seasonLabel()} · ${ses.length} dimanche${ses.length>1?'s':''} · ${L.matches} matchs`+(last?' · à jour du '+fmtShort(last.date).replace(/\.$/,''):''),64,238);
+  if(!L.list.length){ F(600,34); x.fillStyle=TXT; x.fillText('Pas encore assez de matchs pour un classement.',64,400); return c; }
+  // n°1
+  const A=L.list[0]; let y=272; const hh=236; g=x.createLinearGradient(64,y,W-64,y+hh); g.addColorStop(0,'#F07A3A'); g.addColorStop(1,'#B9441A'); rr(64,y,W-128,hh,30); x.fillStyle=g; x.fill();
+  x.save(); rr(64,y,W-128,hh,30); x.clip(); F(800,330,true); x.fillStyle='rgba(255,255,255,.10)'; x.fillText('1',90,y+hh+40); x.restore();
+  F(700,22); x.fillStyle='rgba(255,255,255,.85)'; spaced('N° 1 DU CLASSEMENT',104,y+56,2);
+  const mv0=move(A.r.id); if(mv0){ F(800,24,true); const tw=x.measureText(mv0.t).width+28; rr(104+300,y+30,tw,36,18); x.fillStyle='rgba(0,0,0,.25)'; x.fill(); x.fillStyle=mv0.c===MUT?'#fff':mv0.c===UP?'#C8FFE0':mv0.c===DN?'#FFD0D2':'#fff'; x.fillText(mv0.t,104+314,y+57); }
+  F(800,96,true); x.fillStyle='#fff'; x.fillText(fit(nm(A.r.id),W-128-330),100,y+148);
+  const nk=nick(A.r.id); F(600,28); x.fillStyle='rgba(255,255,255,.85)'; if(nk) x.fillText(fit('« '+nk+' »',W-128-330),104,y+186);
+  F(600,25); x.fillStyle='#fff'; x.fillText(`${fmt1(perM(A.r,'pts'))} pts/match  ·  ${A.r.ast||0} passes  ·  ${pct(A.r.w,A.r.gp)} % de victoires`,104,y+(nk?226:200));
+  const cx=W-64-140, cy=y+hh/2; ring(cx,cy,92,16,A.note,'#fff','rgba(255,255,255,.22)'); x.textAlign='center'; F(800,78,true); x.fillStyle='#fff'; x.fillText(fmt1(A.note),cx,cy+22); F(600,20); x.fillStyle='rgba(255,255,255,.85)'; x.fillText('/ 10',cx,cy+52); x.textAlign='left';
+  // n°2 et n°3
+  y+=hh+18; const cw=(W-128-20)/2, ch=150;
+  [[1,SILV],[2,BRZ]].forEach(([i,col],k)=>{ const e=L.list[i]; if(!e) return; const X=64+k*(cw+20); rr(X,y,cw,ch,24); x.fillStyle=SURF; x.fill(); x.strokeStyle=LINE; x.lineWidth=2; x.stroke();
+    x.save(); rr(X,y,cw,ch,24); x.clip(); x.fillStyle=col; x.fillRect(X,y,8,ch); x.restore();
+    F(800,64,true); x.fillStyle=col; x.fillText(String(i+1),X+30,y+70); const m=move(e.r.id); if(m){ F(800,18,true); x.fillStyle=m.c; x.fillText(m.t,X+30,y+100); }
+    F(800,44,true); x.fillStyle=TXT; x.fillText(fit(nm(e.r.id),cw-210),X+96,y+62); const k2=nick(e.r.id); F(500,21); x.fillStyle=MUT; if(k2) x.fillText(fit('« '+k2+' »',cw-210),X+98,y+92);
+    F(500,21); x.fillStyle=MUT; x.fillText(fit(`${fmt1(perM(e.r,'pts'))} pts/m · ${e.r.ast||0} PD · ${pct(e.r.w,e.r.gp)} % V`,cw-210),X+98,y+128);
+    const rx=X+cw-70, ry=y+ch/2; ring(rx,ry,46,9,e.note,col,'rgba(255,255,255,.08)'); x.textAlign='center'; F(800,36,true); x.fillStyle=TXT; x.fillText(fmt1(e.note),rx,ry+13); x.textAlign='left'; });
+  // 4 à 10
+  y+=ch+40; F(700,20); x.fillStyle=MUT; spaced('LA SUITE DU CLASSEMENT',64,y,2); x.textAlign='right'; x.fillText('NOTE / 10',W-64,y); x.textAlign='left'; y+=18;
+  const rest=L.list.slice(3,10); const rh=46, bx=600, bw=W-64-90-bx;
+  rest.forEach((e,j)=>{ const yy=y+j*rh; if(j%2===0){ rr(52,yy+2,W-104,rh-4,12); x.fillStyle='rgba(255,255,255,.03)'; x.fill(); }
+    F(800,32,true); x.fillStyle=MUT; x.textAlign='right'; x.fillText(String(j+4),104,yy+34); x.textAlign='left';
+    const m=move(e.r.id); if(m){ F(800,18,true); x.fillStyle=m.c; x.textAlign='center'; x.fillText(m.t==='NOUVEAU'?'NEW':m.t,148,yy+31); x.textAlign='left'; }
+    F(700,27); x.fillStyle=TXT; x.fillText(fit(pshort(e.r.id),bx-215),192,yy+33);
+    rr(bx,yy+18,bw,10,5); x.fillStyle='rgba(255,255,255,.07)'; x.fill(); const gg=x.createLinearGradient(bx,0,bx+bw,0); gg.addColorStop(0,'#7A3A1A'); gg.addColorStop(1,OR2); rr(bx,yy+18,Math.max(10,bw*e.note/10),10,5); x.fillStyle=gg; x.fill();
+    F(800,32,true); x.fillStyle=TXT; x.textAlign='right'; x.fillText(fmt1(e.note),W-64,yy+34); x.textAlign='left'; });
+  // leaders
+  y=H-232; F(700,20); x.fillStyle=MUT; spaced('LES LEADERS DE LA SAISON',64,y,2); y+=18;
+  const R=L.rows, mg=L.minG; const top2=(f,ok)=>R.filter(ok).sort((a,b)=>f(b)-f(a)).slice(0,2);
+  const tiles=[['🔥','POINTS / MATCH',top2(r=>perM(r,'pts'),r=>r.gp>=mg),r=>fmt1(perM(r,'pts'))],['🎩','PASSES DÉC.',top2(r=>r.ast||0,r=>r.ast>0),r=>String(r.ast)],['🎯','PANIERS À 3',top2(r=>r.fg3||0,r=>r.fg3>0),r=>String(r.fg3)],['🦾','MINUTES JOUÉES',top2(r=>r.min||0,r=>r.min>0),r=>String(Math.round(r.min/60000))]];
+  const tw=(W-128-3*16)/4, th=144; tiles.forEach(([ic,lab,t,fv],k)=>{ const X=64+k*(tw+16); rr(X,y,tw,th,20); x.fillStyle=SURF; x.fill(); x.strokeStyle=LINE; x.lineWidth=2; x.stroke(); if(!t[0]) return;
+    F(400,22); x.fillText(ic,X+16,y+36); F(700,16); x.fillStyle=MUT; x.fillText(lab,X+48,y+33);
+    F(800,52,true); x.fillStyle=OR2; x.fillText(fv(t[0]),X+16,y+88); F(700,22); x.fillStyle=TXT; x.fillText(fit(pname(t[0].id),tw-32),X+16,y+116);
+    if(t[1]){ F(500,17); x.fillStyle=MUT; x.fillText(fit('2e '+pname(t[1].id)+' · '+fv(t[1]),tw-32),X+16,y+139); } });
+  // pied
+  F(500,19); x.fillStyle=MUT; x.fillText(`Classés : ${L.minPres} dimanches sur ${L.n} et ${L.minG} matchs minimum · ▲▼ = places gagnées ou perdues cette semaine`,64,H-36);
+  return c; }
 async function statsImage(ag,sess){ await (document.fonts&&document.fonts.ready||Promise.resolve()); const rows=[...ag.pl].sort((a,b)=>b.pts-a.pts).slice(0,12); const c=document.createElement('canvas'); c.width=1080; c.height=260+rows.length*72+140; const x=c.getContext('2d');
   const INK='#151515',OR='#E4692B',CREAM='#F7F4EE'; x.fillStyle=CREAM; x.fillRect(0,0,c.width,c.height); x.fillStyle=INK; x.fillRect(0,0,1080,200);
   x.fillStyle=OR; x.font='700 26px "Barlow Condensed", Impact, sans-serif'; x.fillText('HOOPS BASKET ASSOCIATION',60,62);
@@ -1458,7 +1524,7 @@ document.addEventListener('click',async ev=>{
   } }catch(err){ console.error(err); toast('Action impossible : '+(err&&err.message||err)); render(); }
 });
 window.addEventListener('error',e=>{ console.error(e.error||e.message); }); window.addEventListener('unhandledrejection',e=>{ console.error(e.reason); toast('Une action a échoué : '+((e.reason&&e.reason.message)||'erreur')); });
-window.__hs={S,noteParts,shareOf,duoStats,summaryText,summaryImage,monthAwards,matchState,addEvent,mergePlayers,savePlayer,nextSession,cashState,hoursUsed,sundays,saveCalendar,dayInfo,parsePasteList,matchPasteName,similarPlayers,curSession,liveMatch,elapsed,remaining,manageClock,render,startSession,aggregate,mvpScore,pname,sessionStats};
+window.__hs={S,ladderImage,ladderOf,seasonLadderSessions,noteParts,shareOf,duoStats,summaryText,summaryImage,monthAwards,matchState,addEvent,mergePlayers,savePlayer,nextSession,cashState,hoursUsed,sundays,saveCalendar,dayInfo,parsePasteList,matchPasteName,similarPlayers,curSession,liveMatch,elapsed,remaining,manageClock,render,startSession,aggregate,mvpScore,pname,sessionStats};
 boot();
 })();
 </script>
