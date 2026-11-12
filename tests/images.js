@@ -25,6 +25,10 @@ const SRC=process.argv[2]||'tests/fixture-export.json';
   E(imp.skip||(imp.ok&&(imp.reliable||/≈/.test(imp.label))),'impact mal calculé '+JSON.stringify(imp));
   await p.click('[data-period="session"]'); await p.waitForTimeout(300); await p.click('[data-stats-seg="top"]').catch(()=>{}); await p.waitForTimeout(300);
   E(!/Impact/.test(await p.evaluate(()=>document.querySelector('#main').innerText)),'impact affiché sur une seule séance');
+  // défense : points encaissés par l'équipe pour 10 min sur le terrain ; cohérence avec les scores, et présence dans la note
+  const df=await p.evaluate(()=>{ const h=window.__hs; const ses=h.seasonLadderSessions(); let bad=[]; for(const s of ses) for(const m of s.matches){ if(m.status!=='done') continue; const st=h.matchState(m,s); for(const t of [m.home,m.away]){ const o=t===m.home?m.away:m.home; for(const [pid,x] of Object.entries(st.pl)){ if((x.onAg||0)>st.score[o]+st.score[t]||(x.onFor||0)<0) bad.push(pid); } const five=(m.lineup&&m.lineup[t])||[]; if(five.length&&!st.subsBy[t]) five.forEach(pid=>{ const x=st.pl[pid]; if(x&&x.onAg!==st.score[o]) bad.push('five '+pid); }); } }
+    const L=h.ladderOf(ses); const withD=L.list.every(e=>e.parts.D>0&&e.parts.D<=10.0001); const r=L.rows.find(x=>x.min>0); return {bad:bad.length,withD,rate:r?h.defRate(r):null,exp:r?r.onAg/(r.min/600000):null}; });
+  E(df.bad===0&&df.withD&&(df.rate==null||Math.abs(df.rate-df.exp)<1e-9),'défense incohérente '+JSON.stringify(df));
   // joueur du mois figé : un mois annoncé ne change plus, et les mois terminés sont figés à l'ouverture par le bureau
   const mo=await p.evaluate(async()=>{ const h=window.__hs; const m=h.monthAwards().filter(x=>x.done&&x.win); if(!m.length) return {skip:true}; const k=m[0].k, other=m[0].runner?m[0].runner.r.id:null; await new Promise(r=>setTimeout(r,300)); const saved=(h.S.config.monthLocks||{})[k]||null; if(!other) return {saved,first:m[0].win.r.id,k,noRunner:true};
     h.S.config={...h.S.config,monthLocks:{...(h.S.config.monthLocks||{}),[k]:other}}; const m2=h.monthAwards().find(x=>x.k===k); return {k,first:m[0].win.r.id,saved,other,after:m2.win.r.id,locked:m2.locked}; });
