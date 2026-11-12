@@ -258,12 +258,12 @@ function matchState(m, sess){
 function matchStateRaw(m, sess){
   const st={score:{},fouls:{},teamFouls:{},on:{},pm:{},pl:{},time:{},hasSubs:false,subsBy:{}};
   const since={}; for(const t of [m.home,m.away]){ st.score[t]=0; st.fouls[t]=0; st.teamFouls[t]=0; st.on[t]=[...(m.lineup[t]||[])]; st.on[t].forEach(x=>{ since[x]=0; }); }
-  const P = pid => st.pl[pid] || (st.pl[pid]={pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0});
+  const P = pid => st.pl[pid] || (st.pl[pid]={pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,onFor:0,onAg:0});
   const other = t => t===m.home? m.away : m.home;
   for(const e of m.events){
     if(st.bonusFt){ Object.keys(st.bonusFt).forEach(bt=>{ const b=st.bonusFt[bt]; if(e.type==='pt'&&e.team!==bt&&b.got===0&&b.need===2&&Math.abs((e.t||0)-b.at)<=6000) b.need=1; else if((e.type==='pt'&&!(b.got===0&&Math.abs((e.t||0)-b.at)<=6000))||e.type==='out'){ st.bonus[bt]=false; delete st.bonusFt[bt]; } }); }
-    if(e.type==='pt'){ st.score[e.team]+=e.v; const p=P(e.pid); p.pts+=e.v; if(e.v===3)p.fg3++; else p.fg2++; st.on[e.team].forEach(x=>P(x).pm+=e.v); st.on[other(e.team)].forEach(x=>P(x).pm-=e.v); }
-    else if(e.type==='ft'){ const p=P(e.pid); p.fta++; if(e.made){ p.ftm++; p.pts++; st.score[e.team]++; st.on[e.team].forEach(x=>P(x).pm+=1); st.on[other(e.team)].forEach(x=>P(x).pm-=1);} const ft=other(e.team); if(m.foulRule!=='continuous'&&st.bonus&&st.bonus[ft]&&st.bonusFt&&st.bonusFt[ft]){ const b=st.bonusFt[ft]; b.got++; if(b.got>=b.need){ st.bonus[ft]=false; delete st.bonusFt[ft]; } } }
+    if(e.type==='pt'){ st.score[e.team]+=e.v; const p=P(e.pid); p.pts+=e.v; if(e.v===3)p.fg3++; else p.fg2++; st.on[e.team].forEach(x=>{ const q=P(x); q.pm+=e.v; q.onFor+=e.v; }); st.on[other(e.team)].forEach(x=>{ const q=P(x); q.pm-=e.v; q.onAg+=e.v; }); }
+    else if(e.type==='ft'){ const p=P(e.pid); p.fta++; if(e.made){ p.ftm++; p.pts++; st.score[e.team]++; st.on[e.team].forEach(x=>{ const q=P(x); q.pm+=1; q.onFor+=1; }); st.on[other(e.team)].forEach(x=>{ const q=P(x); q.pm-=1; q.onAg+=1; });} const ft=other(e.team); if(m.foulRule!=='continuous'&&st.bonus&&st.bonus[ft]&&st.bonusFt&&st.bonusFt[ft]){ const b=st.bonusFt[ft]; b.got++; if(b.got>=b.need){ st.bonus[ft]=false; delete st.bonusFt[ft]; } } }
     else if(e.type==='foul'){ P(e.pid).pf++; st.fouls[e.team]++; st.teamFouls[e.team]++; st.bonus=st.bonus||{}; const lim=(S.config.teamFoulLimit||6); if(m.foulRule==='continuous'){ st.bonus[e.team]=st.teamFouls[e.team]>=lim; } else { st.bonus[e.team]=false; if(st.teamFouls[e.team]>=lim){ st.teamFouls[e.team]=0; st.bonus[e.team]=true; let pi=m.events.indexOf(e)-1; while(pi>=0&&m.events[pi].type==='ast') pi--; const prev=m.events[pi]; const and1=prev&&prev.type==='pt'&&prev.team!==e.team&&Math.abs((e.t||0)-(prev.t||0))<=6000; st.bonusFt=st.bonusFt||{}; st.bonusFt[e.team]={need:and1?1:2,got:0,at:e.t||0}; } } }
     else if(e.type==='ast'){ P(e.pid).ast++; }
     else if(e.type==='tech'){ P(e.pid).tech++; }
@@ -284,13 +284,13 @@ function sessionStats(sess){ const c=S._cache.stats[sess.id]; const sig=sigOf(se
 function sessionStatsRaw(sess){
   const teams={}; TEAMS.forEach(t=>{ if(sess.teams&&sess.teams[t]&&sess.teams[t].players.length) teams[t]={w:0,l:0,pf:0,pa:0}; });
   const pl={};
-  const P = id => pl[id] || (pl[id]={id,gp:0,gpApprox:0,w:0,pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,imp:0,nImp:0,min:0,chp:0,tp:0,onPm:0,onT:0,offPm:0,offT:0,tPts:0,tAst:0,tGp:0,gMin:0,wMin:0});
+  const P = id => pl[id] || (pl[id]={id,gp:0,gpApprox:0,w:0,pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,imp:0,nImp:0,min:0,chp:0,tp:0,onPm:0,onT:0,offPm:0,offT:0,tPts:0,tAst:0,tGp:0,gMin:0,wMin:0,onFor:0,onAg:0});
   let done=0;
   for(const m of sess.matches){
     if(m.status!=='done') continue; done++;
     const st=matchState(m,sess);
     for(const t of [m.home,m.away]){ const o=t===m.home?m.away:m.home; if(!teams[t]) continue; teams[t].pf+=st.score[t]; teams[t].pa+=st.score[o]; if(m.winner===t) teams[t].w++; else teams[t].l++;
-      const roster=(m.roster&&m.roster[t===m.home?'home':'away'])||sess.teams[t].players||[]; const tracked=!!st.subsBy[t]||!!m.fiveOk; for(const pid of roster){ if(tracked&&!(st.time[pid]>0)) continue; const p=P(pid); p.gp++; if(m.winner===t)p.w++; if(!tracked) p.gpApprox=(p.gpApprox||0)+1; const share=tracked&&st.dur?Math.min(1,(st.time[pid]||0)/st.dur):1; if(tracked){ p.min+=(st.time[pid]||0); const sp=st.pl[pid]||{}; p.tPts+=sp.pts||0; p.tAst+=sp.ast||0; p.tGp++; p.gMin+=share; if(m.winner===t) p.wMin+=share; } p.chp+=(m.winner===t?2:1)*share; p.tp+=st.score[t]; }
+      const roster=(m.roster&&m.roster[t===m.home?'home':'away'])||sess.teams[t].players||[]; const tracked=!!st.subsBy[t]||!!m.fiveOk; for(const pid of roster){ if(tracked&&!(st.time[pid]>0)) continue; const p=P(pid); p.gp++; if(m.winner===t)p.w++; if(!tracked) p.gpApprox=(p.gpApprox||0)+1; const share=tracked&&st.dur?Math.min(1,(st.time[pid]||0)/st.dur):1; if(tracked){ p.min+=(st.time[pid]||0); const sp=st.pl[pid]||{}; p.tPts+=sp.pts||0; p.tAst+=sp.ast||0; p.onFor+=sp.onFor||0; p.onAg+=sp.onAg||0; p.tGp++; p.gMin+=share; if(m.winner===t) p.wMin+=share; } p.chp+=(m.winner===t?2:1)*share; p.tp+=st.score[t]; }
       if(st.hasSubs&&sess.format!=='cent'){ const margin=st.score[t]-st.score[o]; for(const pid of roster){ const tm0=st.time[pid]||0; if(tm0>0&&st.dur>0){ const pm0=(st.pl[pid]||{}).pm||0; const p0=P(pid); p0.onPm+=pm0; p0.onT+=tm0; p0.offPm+=margin-pm0; p0.offT+=Math.max(0,st.dur-tm0); } }
         for(const pid of roster){ const tm=st.time[pid]||0; if(tm<15000||tm>st.dur-15000) continue; const x=st.pl[pid]||{pm:0}; const p=P(pid); p.imp=(p.imp||0)+((x.pm||0)-margin*tm/st.dur); p.nImp=(p.nImp||0)+1; } } }
     for(const [pid,x] of Object.entries(st.pl)){ const p=P(pid); for(const k of ['pts','fg2','fg3','fta','ftm','pf','tech','uns','pm','ast']) p[k]+=(x[k]||0); }
@@ -345,9 +345,9 @@ function ptsLabel(r){ return fmt1(perM(r,'pts'))+' pts/match · '+r.pts+' pts en
 function mvpPick(rows,minGp){ const mg=minGp!=null?minGp:Math.min(MIN_DAY,Math.max(1,...rows.map(r=>r.gp||0))); return notePick(rows,1,mg); }
 function mvpLabel(x){ return `note ${noteLabel(x.v)} · ${x.r.pts} pts, ${x.r.ast||0} PD, ${x.r.w} V en ${x.r.gp} matchs`; }
 function aggregate(sessions){
-  const pl={}; const P = id => pl[id] || (pl[id]={id,sessions:0,gp:0,gpApprox:0,w:0,pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,imp:0,nImp:0,min:0,chp:0,shareSum:0,nShare:0,onPm:0,onT:0,offPm:0,offT:0,tPts:0,tAst:0,tGp:0,gMin:0,wMin:0});
+  const pl={}; const P = id => pl[id] || (pl[id]={id,sessions:0,gp:0,gpApprox:0,w:0,pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,imp:0,nImp:0,min:0,chp:0,shareSum:0,nShare:0,onPm:0,onT:0,offPm:0,offT:0,tPts:0,tAst:0,tGp:0,gMin:0,wMin:0,onFor:0,onAg:0});
   let matches=0;
-  for(const s of sessions){ const ss=sessionStats(s); matches+=ss.done; for(const [pid,x] of Object.entries(ss.pl)){ const p=P(pid); p.sessions++; for(const k of ['gp','gpApprox','w','pts','fg2','fg3','fta','ftm','pf','tech','uns','pm','ast','imp','nImp','min','chp','onPm','onT','offPm','offT','tPts','tAst','tGp','gMin','wMin']) p[k]+=(x[k]||0); if(x.gp){ p.shareSum+=x.tp?((x.pts||0)+1.5*(x.ast||0))/x.tp:0; p.nShare++; } } }
+  for(const s of sessions){ const ss=sessionStats(s); matches+=ss.done; for(const [pid,x] of Object.entries(ss.pl)){ const p=P(pid); p.sessions++; for(const k of ['gp','gpApprox','w','pts','fg2','fg3','fta','ftm','pf','tech','uns','pm','ast','imp','nImp','min','chp','onPm','onT','offPm','offT','tPts','tAst','tGp','gMin','wMin','onFor','onAg']) p[k]+=(x[k]||0); if(x.gp){ p.shareSum+=x.tp?((x.pts||0)+1.5*(x.ast||0))/x.tp:0; p.nShare++; } } }
   return {pl:Object.values(pl),matches,sessions:sessions.length};
 }
 function inStats(s){ return !!s&&(s.status==='closed'||s.status==='live')&&!s.excluded; }
