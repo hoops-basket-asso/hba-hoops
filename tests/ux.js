@@ -18,7 +18,7 @@ const { chromium } = require('playwright'); const fs=require('fs'); const D='out
   const first=await p.evaluate(()=>document.querySelector('#main .card').innerText); E(/aujourd'hui/.test(first)&&/Former les équipes/.test(first),'carte du jour absente en tête: '+first.slice(0,60)); await shot('v2_home_bureau_today');
   // légende repliée
   await p.click('[data-go="stats"]'); await p.waitForTimeout(300); await p.click('[data-period="season"]').catch(()=>{}); await p.waitForTimeout(200);
-  E(!!(await p.$('details.legend')) && !(await p.$('details.legend[open]')),'légende non repliée'); await shot('v3_stats');
+  E(!!(await p.$('#ladList')),'classement en lignes absent'); await shot('v3_stats'); await p.click('[data-act="rank-view"]'); await p.waitForTimeout(200); E(!!(await p.$('details.legend')) && !(await p.$('details.legend[open]')),'légende non repliée'); await p.click('[data-act="rank-view"]'); await p.waitForTimeout(200);
   // vue joueur : mes stats en premier
   await p.evaluate(()=>{ const S=window.__hs.S; S.me=Object.keys(S.players)[2]; S.unlocked=false; }); await p.click('[data-go="home"]'); await p.waitForTimeout(300);
   const cards=await p.evaluate(()=>[...document.querySelectorAll('#main .card h2')].map(h=>h.innerText).slice(0,6)); console.log('cartes joueur', cards); { const i=k=>cards.findIndex(c=>k.test(c)); E(i(/Ma dernière séance/)>=0&&i(/Ma dernière séance/)<i(/votre saison/)&&i(/votre saison/)<i(/Le collectif/),'accueil joueur : ordre des cartes '+cards.join('|')); }

@@ -49,7 +49,7 @@ const { chromium } = require('playwright');
   await p.waitForTimeout(200);
   // stats share image
   await p.click('[data-go="stats"]'); await p.waitForTimeout(300); await p.screenshot({path:'f_stats.png'});
-  await p.click('[data-act="cols-toggle"]'); await p.waitForTimeout(100);
+  await p.click('[data-act="rank-view"]'); await p.waitForTimeout(100); await p.click('[data-act="cols-toggle"]'); await p.waitForTimeout(100);
   await p.click('[data-act="share-stats"]'); await p.waitForTimeout(1500); const img=await p.$('#statsImg img'); if(!img) errs.push('no stats image'); else { const src=await img.getAttribute('src'); console.log('stats img bytes', src.length); await p.screenshot({path:'f_share.png',fullPage:true}); const buf=Buffer.from(src.split(',')[1],'base64'); require('fs').writeFileSync('f_statsimg.png',buf); }
   console.log('shot clock stops outside live view', await p.evaluate(()=>window.__hs.S.shot===null&&!window.__hs.S.shotTimer));
   console.log('errors', errs);
