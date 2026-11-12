@@ -47,7 +47,17 @@ service cloud.firestore {
     // Fréquentation : chaque visiteur (connexion anonyme) incrémente le compteur du jour ; lecture bureau.
     match /visits/{day} {
       allow read: if isBureau();
-      allow create, update: if signedIn() && request.resource.data.keys().hasOnly(['count', 'devices']);
+      allow create, update: if signedIn() && request.resource.data.keys().hasOnly(['count', 'devices', 'named']);
+      allow delete: if isBureau();
+    }
+    // Votes de fin de saison : un bulletin par appareil (identifiant anonyme). Chacun écrit et relit le sien ; seul le bureau lit l'ensemble.
+    match /votes/{uid} {
+      allow read: if isBureau() || (signedIn() && request.auth.uid == uid);
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['voter', 'season', 'choices', 'at'])
+        && request.resource.data.voter is string && request.resource.data.voter.size() < 60
+        && request.resource.data.season is string && request.resource.data.season.size() < 20
+        && request.resource.data.choices is map && request.resource.data.choices.size() <= 6;
       allow delete: if isBureau();
     }
     // Données sensibles : bureau uniquement.
