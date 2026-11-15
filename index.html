@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-11-13 12:23';</script>
+window.HS_VERSION = '2026-11-15 13:37';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -1651,6 +1651,7 @@ async function exportCsv(){ const sess=periodSessions(); const ag=aggregate(sess
 
 document.addEventListener('input',ev=>{ const t=ev.target; if(t.id==='pq2'){ S.pq=t.value; const q=String(t.value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); let n=0; document.querySelectorAll('#plist [data-search]').forEach(el=>{ if(el.classList.contains('letter')){ el.hidden=!!q; return; } const ok=!q||el.dataset.search.includes(q); el.hidden=!ok; if(ok) n++; }); const e=$('#plistEmpty'); if(e) e.hidden=n>0; return; } if(t.id==='pq'&&S.setup){ S.setup.q=t.value; const q=String(t.value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); document.querySelectorAll('#pchips [data-search]').forEach(el=>{ el.hidden=!!q&&!el.dataset.search.includes(q); }); return; } if(t.id==='sdate'&&S.setup&&/^\d{4}-\d{2}-\d{2}$/.test(t.value)) S.setup.date=t.value; });
 document.addEventListener('change',ev=>{ const t=ev.target;
+  if(t.id==='meSel'){ if(t.value&&S.players[t.value]){ S.me=t.value; try{ localStorage.setItem('hs-me',t.value); }catch(e){} render(); window.scrollTo(0,0); } return; }
   if(t.id==='phFile'){ const f=t.files&&t.files[0]; const p=S.players[t.dataset.pid]; if(!f||!p) return; if(!confirm(p.name+' est d\'accord pour que sa photo apparaisse dans l\'appli et sur les images partagées ?')){ t.value=''; return; }
     shrinkPhoto(f).then(d=>{ savePlayer({...S.players[p.id],photo:d}); toast('Photo enregistrée ('+Math.round(d.length*0.75/1024)+' Ko)'); render(); }).catch(()=>toast('Photo illisible : essayez un autre format (JPEG ou PNG)')); return; } if(t.dataset.teamCap&&S.setup){ setCaptain(S.setup,t.dataset.teamCap,t.value); render(); return; } if(t.dataset.teamColor&&S.setup){ const k=t.dataset.teamColor; const tm=S.setup.teams[k]; const wasDefault=!tm.name||tm.name===TNAMES[k]||CHASUBLES.some(c=>c[1]===tm.name); const other=activeTeams(S.setup).find(o=>o!==k&&S.setup.teams[o].color===t.value); if(other){ const om=S.setup.teams[other]; const oDef=!om.name||om.name===TNAMES[other]||CHASUBLES.some(c=>c[1]===om.name); om.color=tm.color; if(oDef) om.name=CHAS[om.color][1]; toast('Chasubles échangées avec '+om.name); } tm.color=t.value; if(wasDefault) tm.name=CHAS[t.value][1]; render(); return; } if(t.id==='tpaySel'){ S.tpay=t.value; render(); return; } if(S.sheet&&S.sheet.type==='sanction'&&(t.id==='snPid'||t.id==='snType'||t.id==='snDate')){ const x=S.sheet.sid?S.sanctions[S.sheet.sid]:null; const draft={pid:$('#snPid').value,date:$('#snDate').value,type:$('#snType').value,sanction:'',until:$('#snUntil').value,note:$('#snNote').value,fine:$('#snFine').checked,finePaid:$('#snFinePaid').checked,fineMode:$('#snFineMode').value}; S.sheet.draft=x?{...draft,sanction:x.sanction}:draft; S.skipPreserve=['snSanction']; render(); return; } if(t.id==='refSess'){ S.sid=t.value; render(); } if(t.id==='m1home'&&S.setup) S.setup.home=t.value; if(t.id==='m1away'&&S.setup) S.setup.away=t.value; });
 document.addEventListener('click',async ev=>{
