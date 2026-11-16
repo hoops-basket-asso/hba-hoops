@@ -1,6 +1,6 @@
 # Hoops Stats — le mémo des règles
 
-*Hoops Basket Association · mis à jour le 12 novembre 2026*
+*Hoops Basket Association · mis à jour le 16 novembre 2026*
 
 Ce mémo dit comment les stats sont calculées, pourquoi on a fait ces choix, et ce qu'il faut savoir pour faire vivre l'appli. Il sert à deux choses : répondre aux questions des joueurs, et permettre à quelqu'un de reprendre le projet sans tout redécouvrir.
 
@@ -70,7 +70,25 @@ Il faut avoir été présent **au moins un dimanche sur deux** et avoir joué un
 
 ---
 
-## 3. Les autres chiffres
+## 3. Les deux formules du dimanche
+
+Le marqueur choisit la formule à l'étape « Équipes », avant de les former. L'appli conseille la bonne selon le nombre de présents.
+
+**Rotation à 3 équipes** (16 présents et plus)
+- Matchs à 12 points ou 9 minutes, le gagnant reste.
+- 2 lancers francs à la 6e faute d'équipe, puis le compteur repart à zéro.
+
+**Match à 100 points** (12 à 15 présents)
+- 2 équipes, 4 quart-temps. Un quart-temps s'arrête quand une équipe atteint le palier : 25, 50 (mi-temps), 75, puis 100 (fin du match). Le score s'additionne d'un quart-temps à l'autre.
+- Collective annoncée à la 5e faute d'équipe, puis 2 lancers francs à chaque faute à partir de la 6e, jusqu'à la fin du quart-temps. Les fautes d'équipe repartent à zéro à chaque quart-temps.
+- Pas de temps limite. Le chrono sert seulement à compter le temps de jeu de chacun : il part à la première action et se met en pause avec ⏸.
+- Le cinq de départ est demandé à chaque quart-temps.
+- Pour les stats, chaque quart-temps compte comme un match (victoire, minutes, impact).
+- Une séance lancée par erreur en rotation peut passer en match à 100 tant que seules deux équipes jouent : options « ⋯ » de la table de marque.
+
+---
+
+## 4. Les autres chiffres
 
 - **Déf.** : points encaissés par l'équipe en 10 minutes quand le joueur est sur le terrain. Plus c'est bas, mieux c'est. Marqué « ≈ » sous une heure de jeu chronométrée. Sur un seul dimanche, c'est surtout un chiffre d'équipe ; il devient personnel au fil de la saison, quand les équipes se mélangent.
 - **Impact** : écart de points de l'équipe par 10 minutes quand il joue, moins le même écart quand il est sur le banc. Fiable seulement avec au moins une heure sur le terrain et une heure sur le banc.
@@ -82,7 +100,7 @@ Il faut avoir été présent **au moins un dimanche sur deux** et avoir joué un
 
 ---
 
-## 4. Les distinctions
+## 5. Les distinctions
 
 ### Joueur du mois
 
@@ -127,7 +145,7 @@ Des paliers franchis dans un dimanche : gros match, série à 3 points, record p
 
 ---
 
-## 5. Les images à partager
+## 6. Les images à partager
 
 - **Le résumé de la séance** : équipe du jour, MVP, leaders du jour, résultats, badges.
 - **Le ladder** : n° 1, places 2 à 5, remontée de la semaine, un leader par catégorie.
@@ -136,7 +154,7 @@ Des paliers franchis dans un dimanche : gros match, série à 3 points, record p
 
 ---
 
-## 6. Ce qu'il faut faire pour que ça marche
+## 7. Ce qu'il faut faire pour que ça marche
 
 **Chaque dimanche**
 - Saisir le cinq de départ de chaque match.
@@ -160,19 +178,19 @@ Des paliers franchis dans un dimanche : gros match, série à 3 points, record p
 
 ---
 
-## 7. Pour celui ou celle qui reprendra le projet
+## 8. Pour celui ou celle qui reprendra le projet
 
 - **Une seule appli officielle** : l'appli web, installable sur Android et iPhone depuis le navigateur.
 - Code sur GitHub (`hoops-basket-asso/hba-hoops`). Tout est dans `src/app.html` ; `python3 build.py` produit `index.html`.
 - Base : Firebase (Firestore). Les règles de sécurité sont dans `firestore.rules` et se publient à la main dans la console.
-- Tests : dossier `tests/`, 27 scénarios automatiques (table de marque, stats, images, trésorerie, conflits entre appareils). **Tout changement du moteur doit passer la suite complète.**
+- Tests : dossier `tests/`, 28 scénarios automatiques (table de marque, stats, images, trésorerie, conflits entre appareils). **Tout changement du moteur doit passer la suite complète.**
 - L'architecture technique est décrite dans `ARCHITECTURE.md`.
 - Les poids de la note sont en tête du code (`NOTE_S` pour la saison, `NOTE_D` pour une séance). Les seuils des trophées sont dans `AWARDS` et `seasonAwardsRaw`.
 - Les données réelles ne sont jamais dans le dépôt : il est public.
 
 ---
 
-## 8. Ce qui reste fragile
+## 9. Ce qui reste fragile
 
 - **Peu de données.** Après 4 dimanches, la défense, l'impact et les duos sont encore incertains. Ils deviennent parlants vers la 10e journée.
 - **Un quart des matchs n'a pas de minutes saisies.** Les stats à la minute ne portent que sur les autres.

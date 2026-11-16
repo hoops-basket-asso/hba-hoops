@@ -15,6 +15,7 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   let acts=0, quarters=0, t0=Date.now();
   while(acts<600){
     const over=await p.evaluate(()=>!!document.querySelector('[data-act="start-match-cent"]')||/Match terminé/.test(document.body.innerText)); if(over) break;
+    { const f=await p.$('[data-act="five-ok"][data-run="1"]'); if(f){ await f.click(); await p.waitForTimeout(150); continue; } }
     const btns=await p.$$('.prow:not(.bench) .pbtn'); if(!btns.length) break; await btns[Math.floor(Math.random()*btns.length)].click(); await p.waitForTimeout(320); acts++;
     if(!(await p.$('.sheet'))) continue;
     const evs=['pt2','pt2','pt3','ft1','foul','foul','tech','subout']; const ev=evs[Math.floor(Math.random()*evs.length)];
