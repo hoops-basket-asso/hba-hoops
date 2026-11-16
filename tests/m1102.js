@@ -38,7 +38,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
   // ---- 2. lancement : cinq de départ, chrono arrêté ----
   await p.click('[data-act="new-session"]'); await p.waitForTimeout(300);
   for(let i=0;i<15;i++){ await (await p.$$('[data-act="toggle-present"]'))[i].click(); }
-  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.waitForTimeout(200); await p.click('[data-act="start-session"]'); await p.waitForTimeout(500);
+  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="fmt"][data-id="rotation"]').catch(()=>{}); await p.click('[data-act="auto-teams"]'); await p.click('[data-act="setup-step"][data-id="3"]'); await p.waitForTimeout(200); await p.click('[data-act="start-session"]'); await p.waitForTimeout(500);
   E(!!(await p.$('[data-act="five-ok"][data-run="1"]')),'feuille cinq de départ non ouverte au lancement');
   let run=await p.evaluate(()=>{ const s=window.__hs.curSession(); return window.__hs.liveMatch(s).running; }); E(run===false,'chrono lancé avant validation');
   await p.waitForTimeout(350); await p.click('[data-act="five-ok"]:not([data-run])'); await p.waitForTimeout(300);

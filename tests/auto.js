@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
   await p.evaluate((POS)=>{ const ps=Object.values(window.__hs.S.players).sort((a,b)=>+a.name.slice(1)-+b.name.slice(1)); ps.forEach((pl,i)=>{ if(POS[i]) pl.pos=POS[i]; }); },POS);
   await p.click('[data-go="home"]'); await p.click('[data-act="new-session"]'); await p.waitForTimeout(100);
   const n=15; for(let i=0;i<n;i++){ await (await p.$$('[data-act="toggle-present"]'))[i].click(); }
-  await p.click('[data-act="setup-step"][data-id="2"]'); await p.waitForTimeout(100);
+  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="fmt"][data-id="rotation"]').catch(()=>{}); await p.waitForTimeout(100);
   const ids=await p.$$eval('select[data-team-cap] option',o=>o.map(x=>x.value).filter(Boolean));
   await p.evaluate(([v])=>{ const e=document.querySelector('select[data-team-cap="A"]'); e.value=v; e.dispatchEvent(new Event('change',{bubbles:true})); },[ids[0]]); await p.waitForTimeout(80);
   const capA=ids[0];

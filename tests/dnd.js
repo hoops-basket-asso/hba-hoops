@@ -21,7 +21,7 @@ const { chromium } = require('playwright');
   // reopen prep, go to teams
   await p.click('[data-go="home"]'); await p.waitForTimeout(100); await p.click('[data-act="open-prep"]'); await p.waitForTimeout(100);
   const n1=await p.$$eval('[data-act="toggle-present"].on',e=>e.length); console.log('present restored', n1); if(n1!==9) errs.push('present not restored');
-  await p.click('[data-act="setup-step"][data-id="2"]'); await p.waitForTimeout(100);
+  await p.click('[data-act="setup-step"][data-id="2"]'); await p.click('[data-act="fmt"][data-id="rotation"]').catch(()=>{}); await p.waitForTimeout(100);
   await p.screenshot({path:'out/dnd_board.png'});
   const teams=async()=>p.evaluate(()=>{ const st=window.__hs.S.setup; return ['A','B','C'].map(t=>st.teams[t].players.length); });
   const drag=async(fromSel,toSel)=>{ const f=await p.$(fromSel); const t=await p.$(toSel); await t.scrollIntoViewIfNeeded(); await f.scrollIntoViewIfNeeded(); await p.waitForTimeout(50); const fb=await f.boundingBox(); const tb=await t.boundingBox(); await p.mouse.move(fb.x+fb.width/2,fb.y+fb.height/2); await p.mouse.down(); await p.mouse.move(fb.x+20,fb.y+20,{steps:3}); await p.mouse.move(tb.x+tb.width/2,tb.y+Math.min(tb.height-12,40),{steps:6}); await p.waitForTimeout(50); await p.mouse.up(); await p.waitForTimeout(120); };
