@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-11-17 13:27';</script>
+window.HS_VERSION = '2026-11-17 13:46';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -1032,7 +1032,7 @@ function vHome(){
   const oi=openIncidents(); const toVerify=Object.values(S.payments).reduce((a,pd)=>a+Object.values(pd.paid||{}).filter(x=>x.status==='declared').length,0);
   const lb=S.config.lastBackupAt||''; const backupLate=fbMode()&&S.unlocked&&!S.scorer&&past.length&&(!lb||lb<past[0].date);
   if((alerts.length||oi.length||toVerify||backupLate)&&S.unlocked) h+=`<div class="card"><h2>À traiter <span class="muted" style="font-size:15px;font-weight:600">par le bureau</span></h2>${backupLate?`<div class="alert warn">💾 Sauvegarde JSON en retard : ${lb?'dernière le '+esc(fmtShort(lb)):'jamais faite'}, la séance du ${esc(fmtShort(past[0].date))} n'est pas sauvegardée. <button class="btn sm ghost" data-act="fb-export">Sauvegarder</button></div>`:''}${toVerify?`<div class="alert warn">💶 ${toVerify} participation${toVerify>1?'s':''} déclarée${toVerify>1?'s':''} à confirmer sur le compte. <button class="btn sm ghost" data-act="go-pay">Tréso</button></div>`:''}${oi.length?`<div class="alert warn">🚩 ${oi.length} incident${oi.length>1?'s':''} à traiter par le bureau. <button class="btn sm ghost" data-go="discipline">Voir</button></div>`:''}${alertLines(alerts)}</div>`;
-  if(S.loaded&&!S.demo&&S.unlocked) h+=monthHomeCard();
+  if(S.loaded&&!S.demo&&S.unlocked&&!S.scorer){ const pz=past.filter(x=>!x.excluded); const b=seasonBounds(); const sz=pz.filter(x=>x.date>=b.start&&x.date<b.end); h+=collectifCard(pz,sz,sz.length?aggregate(sz).pl:[]); }
   if(S.loaded&&!S.unlocked&&!S.scorer) h+=homeDigest(past.filter(x=>!x.excluded));
   const tmInNext=!live&&S.loaded&&!S.demo&&S.unlocked&&!S.scorer; const loginFoot=!S.unlocked&&fbMode()&&!S.showLogin&&S.canWrite!==false; if(!tmInNext&&!loginFoot){ h+=`<div class="card"><h2>Table de marque</h2>`;
   if(S.canWrite===false&&!fbMode()) h+=`<p class="muted small">Ce lien vous donne accès en lecture. Seuls les marqueurs désignés peuvent saisir.</p>`;
@@ -1047,7 +1047,7 @@ function vHome(){
   if(past.length>3) h+=`<button class="btn sm ghost" style="width:100%;margin-top:8px" data-act="home-all">${S.homeAll?'Réduire ▲':'Voir les '+Math.min(30,past.length)+' séances ▼'}</button>`;
   h+=`</div>`;
   if(loginFoot) h+=`<p class="center" style="margin:4px 0 8px"><button class="btn sm ghost" data-act="show-login">🔒 Accès bureau</button></p>`;
-  if(!live&&S.loaded&&S.unlocked){ h+=`<p class="center" style="margin:4px 0 8px"><button class="btn sm ghost" data-act="home-more">${S.homeMore?'Masquer la vue joueur ▲':'Voir ce que voient les joueurs (dernière séance, ladder, mes stats) ▼'}</button></p>`; if(S.homeMore) h+=homeDigest(past.filter(x=>!x.excluded)); }
+  if(!live&&S.loaded&&S.unlocked){ h+=`<p class="center" style="margin:4px 0 8px"><button class="btn sm ghost" data-act="home-more">${S.homeMore?'Masquer ma vue joueur ▲':'Voir ma vue joueur (ma saison, mon objectif, mon dernier dimanche) ▼'}</button></p>`; if(S.homeMore) h+=homeDigest(past.filter(x=>!x.excluded),true); }
   h+=acctLine; const bureauTxt=(S.config.bureau||'').trim(); h+=`<p class="muted small center" style="margin:6px 0 10px;opacity:.75">${bureauTxt?esc(bureauTxt)+'<br>':''}<span style="opacity:.7">Hoops Stats · ${esc(window.HS_VERSION||'')}</span></p>`;
   return h;
 }
@@ -1100,11 +1100,11 @@ function collectifCard(past,season,rows){ if(!rows.length) return ''; const L=la
   ${L.list.length?`<div class="hpodium">${pod(L.list[1],1)}${pod(L.list[0],0)}${pod(L.list[2],2)}</div>`:'<p class="muted small">Le classement démarre dès les premiers dimanches.</p>'}
   ${potm?`<p class="small" style="margin:10px 0 0">🏅 Joueur du mois ${/^[aeo]/i.test(potm.lab)?"d'":'de '}${esc(potm.lab)} : <b data-act="player-detail" data-id="${potm.win.r.id}" style="cursor:pointer">${esc(pname(potm.win.r.id))}</b></p>`:''}
   ${lastTxt?`<p class="small muted" style="margin:6px 0 0">Dernier dimanche : ${lastTxt} <button class="btn sm ghost" data-act="stats-of" data-id="${last.id}">Détail</button></p>`:''}
-  <div class="row" style="margin-top:10px"><button class="btn ${S.me?'ghost':'primary'} grow" data-go="stats">Tout le classement et les stats</button><button class="btn ghost" data-act="rules" title="Comment c'est calculé">📖</button></div></div>`; }
-function homeDigest(past){ const b=seasonBounds(); const season=past.filter(s=>s.date>=b.start&&s.date<b.end); const rows=season.length?aggregate(season).pl:[]; const me=S.me&&S.players[S.me]?S.players[S.me]:null; let h='';
+  <div class="row" style="margin-top:10px"><button class="btn ${S.me||S.unlocked?'ghost':'primary'} grow" data-go="stats">Tout le classement et les stats</button><button class="btn ghost" data-act="rules" title="Comment c'est calculé">📖</button></div></div>`; }
+function homeDigest(past,noPodium){ const b=seasonBounds(); const season=past.filter(s=>s.date>=b.start&&s.date<b.end); const rows=season.length?aggregate(season).pl:[]; const me=S.me&&S.players[S.me]?S.players[S.me]:null; let h='';
   if(me) h+=mySeasonCard(me,season,rows)+myLastCard(me,past);
   else { const opts=Object.values(S.players).filter(p=>p.active!==false).sort((a,b)=>a.name.localeCompare(b.name,'fr')); if(opts.length) h+=`<div class="card" style="border:2px solid var(--accent)"><h2>Qui êtes-vous ?</h2><p class="muted small">Choisissez votre nom : l'accueil affichera votre classement, votre prochain objectif et votre dernier dimanche. C'est mémorisé sur cet appareil seulement.</p><div class="row"><select id="meSel" class="grow"><option value="">— je suis… —</option>${opts.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div></div>`; }
-  return h+collectifCard(past,season,rows); }
+  return h+(noPodium?'':collectifCard(past,season,rows)); }
 function vSetup(){
   const st=S.setup; if(!st) return vHome();
   const roster=Object.values(S.players).filter(p=>p.active!==false).sort((a,b)=>a.name.localeCompare(b.name,'fr'));
