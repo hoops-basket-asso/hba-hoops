@@ -1,6 +1,6 @@
 # Hoops Stats — le mémo des règles
 
-*Hoops Basket Association · mis à jour le 16 novembre 2026*
+*Hoops Basket Association · mis à jour le 17 novembre 2026*
 
 Ce mémo dit comment les stats sont calculées, pourquoi on a fait ces choix, et ce qu'il faut savoir pour faire vivre l'appli. Il sert à deux choses : répondre aux questions des joueurs, et permettre à quelqu'un de reprendre le projet sans tout redécouvrir.
 
@@ -92,6 +92,7 @@ Le marqueur choisit la formule à l'étape « Équipes », avant de les former. 
 
 - **Déf.** : points encaissés par l'équipe en 10 minutes quand le joueur est sur le terrain. Plus c'est bas, mieux c'est. Marqué « ≈ » sous une heure de jeu chronométrée. Sur un seul dimanche, c'est surtout un chiffre d'équipe ; il devient personnel au fil de la saison, quand les équipes se mélangent.
 - **Impact** : écart de points de l'équipe par 10 minutes quand il joue, moins le même écart quand il est sur le banc. Fiable seulement avec au moins une heure sur le terrain et une heure sur le banc.
+- **Lancers francs** : réussis sur tentés, et % de réussite. La carte « Lancers francs » classe par nombre de tentatives (qui va le plus sur la ligne) ; le plus adroit est désigné à partir de 10 tentés sur la saison. La fiche de chaque joueur montre d'où viennent ses points : paniers à 2, à 3, lancers.
 - **Championnat** : 2 points par victoire, 1 par défaite, au prorata des minutes jouées dans chaque match.
 - **Minutes** : comptées seulement sur les matchs où le cinq de départ ou les remplacements sont saisis. **Saisir le cinq de départ à chaque match est ce qui rend toutes ces stats justes.**
 - **Duos** : deux joueurs dans la même équipe sur le même match. La comparaison « ensemble / séparés » demande 15 matchs ensemble et 10 séparés.
