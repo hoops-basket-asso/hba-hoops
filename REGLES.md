@@ -184,7 +184,7 @@ Des paliers franchis dans un dimanche : gros match, série à 3 points, record p
 - **Une seule appli officielle** : l'appli web, installable sur Android et iPhone depuis le navigateur.
 - Code sur GitHub (`hoops-basket-asso/hba-hoops`). Tout est dans `src/app.html` ; `python3 build.py` produit `index.html`.
 - Base : Firebase (Firestore). Les règles de sécurité sont dans `firestore.rules` et se publient à la main dans la console.
-- Tests : dossier `tests/`, 28 scénarios automatiques (table de marque, stats, images, trésorerie, conflits entre appareils). **Tout changement du moteur doit passer la suite complète.**
+- Tests : dossier `tests/`, 29 scénarios automatiques (table de marque, stats, images, trésorerie, conflits entre appareils). **Tout changement du moteur doit passer la suite complète.**
 - L'architecture technique est décrite dans `ARCHITECTURE.md`.
 - Les poids de la note sont en tête du code (`NOTE_S` pour la saison, `NOTE_D` pour une séance). Les seuils des trophées sont dans `AWARDS` et `seasonAwardsRaw`.
 - Les données réelles ne sont jamais dans le dépôt : il est public.
