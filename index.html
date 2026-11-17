@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-11-17 13:21';</script>
+window.HS_VERSION = '2026-11-17 13:27';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -189,6 +189,11 @@ th,td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--line);white
 th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);cursor:pointer;user-select:none} th.sorted{color:var(--accent)}
 td.name{font-weight:600} tr.me td{background:color-mix(in srgb,var(--accent) 8%,var(--panel))}
 .rank{display:inline-block;width:22px;color:var(--muted);font-size:12px}
+.mecard{border:2px solid var(--accent)}.merk{text-align:center;line-height:1}.merk b{display:block;font-family:var(--display);font-size:30px;color:var(--accent)}.merk small{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.megoal{margin:10px 0 8px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--accent) 12%,var(--panel));font-size:14px;line-height:1.4}
+.hpodium{display:grid;grid-template-columns:1fr 1.12fr 1fr;gap:8px;align-items:end;margin-top:12px}.hpod{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;color:var(--fg);font:inherit;cursor:pointer;padding:0;min-width:0}
+.hpod .pn{font-weight:700;font-size:14px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hpod .pv{font-family:var(--display);font-size:22px;line-height:1}.hpod .step{width:100%;border-radius:10px 10px 0 0;background:var(--line);display:flex;align-items:flex-start;justify-content:center;padding-top:6px;font-size:20px;margin-top:4px}
+.hpod.hp1 .step{height:64px;background:linear-gradient(180deg,var(--accent),color-mix(in srgb,var(--accent) 55%,var(--panel)))}.hpod.hp2 .step{height:44px}.hpod.hp3 .step{height:30px}.hpod.hp1 .pv{color:var(--accent);font-size:26px}
 .fmtg{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:420px){.fmtg{grid-template-columns:1fr}}.fmtc{display:flex;flex-direction:column;gap:4px;text-align:left;padding:14px;border-radius:14px;border:2px solid var(--line);background:var(--panel);color:var(--fg);font:inherit;cursor:pointer}.fmtc.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--panel))}.fmtc .fmtt{font-weight:800;font-size:17px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}.fmtc .fmts{font-weight:700;font-size:13px;color:var(--accent)}.fmtc .fmtd{font-size:12.5px;color:var(--muted);line-height:1.35}
 .seg{display:flex;background:var(--line);border-radius:10px;padding:3px;gap:3px;overflow-x:auto} .seg button{flex:1;padding:8px 10px;border-radius:8px;font-weight:600;font-size:13px;white-space:nowrap;color:var(--muted)} .seg button.on{background:var(--panel);color:var(--fg);box-shadow:var(--shadow)}
 .chips{display:flex;flex-wrap:wrap;gap:8px} .chip{padding:10px 14px;border-radius:999px;border:2px solid var(--line);font-weight:600;min-height:44px;display:inline-flex;align-items:center;gap:6px}
@@ -1029,7 +1034,7 @@ function vHome(){
   if((alerts.length||oi.length||toVerify||backupLate)&&S.unlocked) h+=`<div class="card"><h2>À traiter <span class="muted" style="font-size:15px;font-weight:600">par le bureau</span></h2>${backupLate?`<div class="alert warn">💾 Sauvegarde JSON en retard : ${lb?'dernière le '+esc(fmtShort(lb)):'jamais faite'}, la séance du ${esc(fmtShort(past[0].date))} n'est pas sauvegardée. <button class="btn sm ghost" data-act="fb-export">Sauvegarder</button></div>`:''}${toVerify?`<div class="alert warn">💶 ${toVerify} participation${toVerify>1?'s':''} déclarée${toVerify>1?'s':''} à confirmer sur le compte. <button class="btn sm ghost" data-act="go-pay">Tréso</button></div>`:''}${oi.length?`<div class="alert warn">🚩 ${oi.length} incident${oi.length>1?'s':''} à traiter par le bureau. <button class="btn sm ghost" data-go="discipline">Voir</button></div>`:''}${alertLines(alerts)}</div>`;
   if(S.loaded&&!S.demo&&S.unlocked) h+=monthHomeCard();
   if(S.loaded&&!S.unlocked&&!S.scorer) h+=homeDigest(past.filter(x=>!x.excluded));
-  const tmInNext=!live&&S.loaded&&!S.demo&&S.unlocked&&!S.scorer; if(!tmInNext){ h+=`<div class="card"><h2>Table de marque</h2>`;
+  const tmInNext=!live&&S.loaded&&!S.demo&&S.unlocked&&!S.scorer; const loginFoot=!S.unlocked&&fbMode()&&!S.showLogin&&S.canWrite!==false; if(!tmInNext&&!loginFoot){ h+=`<div class="card"><h2>Table de marque</h2>`;
   if(S.canWrite===false&&!fbMode()) h+=`<p class="muted small">Ce lien vous donne accès en lecture. Seuls les marqueurs désignés peuvent saisir.</p>`;
   else if(!S.unlocked){ if(S.showLogin||!fbMode()) h+=lockForm(fbMode()?'Réservé au bureau. Connectez-vous pour préparer une séance et ouvrir la table de marque.':'Réservé au marqueur du jour. Entrez le code pour ouvrir la saisie.'); else h+=`<p class="muted small" style="margin:0">La saisie est réservée au bureau et aux marqueurs désignés. <button class="btn sm ghost" data-act="show-login">🔒 Accès bureau</button></p>`; }
   else if(S.demo) h+=`<p class="muted small">Quittez la démo pour saisir une vraie séance.</p>`;
@@ -1037,9 +1042,11 @@ function vHome(){
   h+=`</div>`; }
   h+=`<div class="card"><h2>Séances passées</h2>`;
   if(!past.length) h+=`<div class="empty">Aucune séance enregistrée. La première apparaîtra ici avec ses équipes, ses matchs et son MVP.${!S.demo?'<br><button class="btn sm ghost" data-act="demo-on" style="margin-top:10px">Voir une démo avec des données fictives</button>':''}</div>`;
-  else h+=past.slice(0,12).map(s=>{ const ss=sessionStats(s); const mvx=mvpPick(Object.values(ss.pl)); const top=mvx?{id:mvx.r.id,pts:mvx.r.pts}:null; const tw=teamRank(ss)[0];
+  else h+=past.slice(0,S.homeAll?30:3).map(s=>{ const ss=sessionStats(s); const mvx=mvpPick(Object.values(ss.pl)); const top=mvx?{id:mvx.r.id,pts:mvx.r.pts}:null; const tw=teamRank(ss)[0];
     return `<div class="lead" style="cursor:pointer" data-act="stats-of" data-id="${s.id}"><div class="dblk"><b>${+s.date.slice(8,10)}</b><span>${esc(new Date(s.date+'T12:00:00').toLocaleDateString('fr-FR',{month:'short'}).replace('.',''))}</span></div><div class="grow"><div class="who">${top&&!s.excluded?'👑 '+esc(pname(top.id)):s.excluded?'Hors stats':esc(fmtDate(s.date))}</div><div class="what">${s.format==='cent'?'Match à 100 · '+ss.done+' quart-temps':ss.done+' match'+(ss.done>1?'s':'')} · ${ss.players} joueurs${tw&&!s.teamsApprox?' · 🏆 '+esc(s.teams[tw[0]].name||TNAMES[tw[0]]):''}${s.teamsApprox&&!s.excluded?' · ⚠️ classement approx.':''}</div></div><div class="big muted">›</div></div>`; }).join('');
+  if(past.length>3) h+=`<button class="btn sm ghost" style="width:100%;margin-top:8px" data-act="home-all">${S.homeAll?'Réduire ▲':'Voir les '+Math.min(30,past.length)+' séances ▼'}</button>`;
   h+=`</div>`;
+  if(loginFoot) h+=`<p class="center" style="margin:4px 0 8px"><button class="btn sm ghost" data-act="show-login">🔒 Accès bureau</button></p>`;
   if(!live&&S.loaded&&S.unlocked){ h+=`<p class="center" style="margin:4px 0 8px"><button class="btn sm ghost" data-act="home-more">${S.homeMore?'Masquer la vue joueur ▲':'Voir ce que voient les joueurs (dernière séance, ladder, mes stats) ▼'}</button></p>`; if(S.homeMore) h+=homeDigest(past.filter(x=>!x.excluded)); }
   h+=acctLine; const bureauTxt=(S.config.bureau||'').trim(); h+=`<p class="muted small center" style="margin:6px 0 10px;opacity:.75">${bureauTxt?esc(bureauTxt)+'<br>':''}<span style="opacity:.7">Hoops Stats · ${esc(window.HS_VERSION||'')}</span></p>`;
   return h;
@@ -1054,45 +1061,49 @@ function myLastCard(me,past){ const s=past.find(x=>{ const r=sessionStats(x).pl[
   const el=Object.values(ss.pl).filter(x=>x.gp>=MIN_DAY); const N=noteParts(el,1); const mine=N[me.id]; const pos=mine?el.map(x=>N[x.id].note).filter(v=>v>mine.note).length+1:0;
   const missed=past[0]&&past[0].id!==s.id;
   const row=(id)=>{ const x=ss.pl[id]; const isMe=id===me.id; return `<tr data-act="player-detail" data-id="${id}" style="cursor:pointer${isMe?';font-weight:700':''}"><td class="name">${esc(pname(id))}${s.teams[t]&&s.teams[t].captain===id?' <span class="muted small">cap.</span>':''}</td><td class="num">${x.gp}</td><td class="num">${x.pts}</td><td class="num">${x.ast||0}</td><td class="num">${x.pf||0}${(x.tech||0)+(x.uns||0)?' <span title="technique ou antisportive">⚠️</span>':''}</td></tr>`; };
-  return `<div class="card" id="myLast" style="border:2px solid var(--accent)"><div class="row"><h2 class="grow">Ma dernière séance</h2><span class="muted small">${esc(fmtDate(s.date))}</span></div>
+  return `<div class="card" id="myLast"><div class="row"><h2 class="grow">Mon dernier dimanche</h2><span class="muted small">${esc(fmtDate(s.date))}</span></div>
   ${missed?`<p class="muted small" style="margin:2px 0 0">Vous n'avez pas joué le ${esc(fmtShort(past[0].date))} : voici votre dernière séance jouée.</p>`:''}
   ${t?`<p style="margin:8px 0 2px;font-size:17px">${dot(s.teams,t)} <b>${esc(tn(t))}</b> · ${tv.w} V – ${tv.l} D${!s.teamsApprox&&rk===1&&nT>1?' · 🏆 équipe du jour':''}</p>`:''}
   <div class="tiles" style="margin-top:8px;grid-template-columns:repeat(3,1fr)">
     <div class="tile acc"><div class="k">Note du jour</div><div class="v num">${mine?fmtN(mine.note):'–'}</div><div class="s">${mine?pos+(pos===1?'er':'e')+' sur '+el.length:'dès '+MIN_DAY+' matchs joués'}</div></div>
     <div class="tile"><div class="k">Points</div><div class="v num">${r.pts}</div><div class="s">${r.fg3?r.fg3+' panier'+(r.fg3>1?'s':'')+' à 3':fmt1(perM(r,'pts'))+' par match'}</div></div>
     <div class="tile"><div class="k">Passes</div><div class="v num">${r.ast||0}</div><div class="s">${r.pf||0} faute${(r.pf||0)>1?'s':''}${(r.tech||0)+(r.uns||0)?' · ⚠️ '+((r.tech||0)+(r.uns||0)):''}</div></div>
+  </div>
+  <details class="legend" style="margin-top:2px"><summary class="small" style="cursor:pointer;font-weight:600">Le détail : matchs, temps de jeu, mon équipe</summary><div class="tiles" style="margin-top:8px;grid-template-columns:repeat(3,1fr)">
     <div class="tile"><div class="k">Matchs joués</div><div class="v num">${r.gp}${teamM&&teamM!==r.gp?`<span class="muted" style="font-size:16px"> / ${teamM}</span>`:''}</div><div class="s">${teamM&&teamM!==r.gp?'sur ceux de l\'équipe':'tous ceux de l\'équipe'}</div></div>
     <div class="tile"><div class="k">Victoires</div><div class="v num">${r.w}</div><div class="s">${r.gp-r.w} défaite${r.gp-r.w>1?'s':''}</div></div>
     <div class="tile"><div class="k">Temps de jeu</div><div class="v num" style="${mins==null?'font-size:15px':''}">${mins==null?'non chronométré':(r.tGp<r.gp?'≈ ':'')+mins+'<span class="muted" style="font-size:15px"> min</span>'}</div><div class="s">${esc(minSub)}</div></div>
   </div>
-  ${mates.length>1?`<details class="legend" style="margin-top:4px"><summary class="small" style="cursor:pointer;font-weight:600">Mon équipe du jour (${mates.length} joueurs)</summary><div class="tbl" style="margin-top:6px"><table><thead><tr><th>Joueur</th><th>MJ</th><th>Pts</th><th>PD</th><th>F</th></tr></thead><tbody>${[...mates].sort((a,b)=>ss.pl[b].pts-ss.pl[a].pts).map(row).join('')}</tbody></table></div></details>`:''}
+  ${mates.length>1?`<p class="small" style="margin:6px 0 0;font-weight:600">Mon équipe du jour (${mates.length} joueurs)</p><div class="tbl" style="margin-top:6px"><table><thead><tr><th>Joueur</th><th>MJ</th><th>Pts</th><th>PD</th><th>F</th></tr></thead><tbody>${[...mates].sort((a,b)=>ss.pl[b].pts-ss.pl[a].pts).map(row).join('')}</tbody></table></div>`:''}</details>
   <div class="row" style="margin-top:10px"><button class="btn sm ghost" data-act="stats-of" data-id="${s.id}">Toute la séance</button></div></div>`; }
 function mySeasonCard(me,season,rows){ const r=rows.find(x=>x.id===me.id); const L=ladderOf([...season].sort((a,b)=>a.date<b.date?-1:1)); const pos=L.list.findIndex(e=>e.r.id===me.id)+1; const e=pos?L.list[pos-1]:null;
-  const bd=season.flatMap(sx=>badgesForSession(sx)).filter(x=>x.pid===me.id); const cb=comboStats(season); const out=cb.filter(c=>c.a===me.id).sort((a,b)=>b.n-a.n)[0], inn=cb.filter(c=>c.s===me.id).sort((a,b)=>b.n-a.n)[0];
-  const ptsRank=r?[...rows].sort((a,b)=>b.pts-a.pts).findIndex(x=>x.id===me.id)+1:0;
-  return `<div class="card" id="mySeason"><div class="row">${me.photo?pavatar(me.id,44):''}<h2 class="grow">${esc(pfirst(me.id))}, votre saison</h2><button class="btn sm ghost" data-act="me-clear" title="Changer de joueur">✎</button></div>
-  ${r?`<div class="tiles" style="margin-top:8px;grid-template-columns:repeat(2,1fr)">
-    <div class="tile acc"><div class="k">Ladder</div><div class="v num">${pos?pos+(pos===1?'er':'e'):'–'}</div><div class="s">${pos?'note '+noteLabel(e.note)+' · sur '+L.list.length+' classés':'classé dès '+L.minPres+' dimanche'+(L.minPres>1?'s':'')+' et '+L.minG+' matchs'}</div></div>
-    <div class="tile"><div class="k">Points</div><div class="v num">${r.pts}</div><div class="s">${ptsRank}${ptsRank===1?'er':'e'} marqueur · ${fmt1(perM(r,'pts'))} par match</div></div>
-    <div class="tile"><div class="k">Passes · paniers à 3</div><div class="v num">${r.ast||0} · ${r.fg3||0}</div><div class="s">${r.sessions} dimanche${r.sessions>1?'s':''} · ${r.gp} matchs</div></div>
+  const bd=season.flatMap(sx=>badgesForSession(sx)).filter(x=>x.pid===me.id); const ptsRank=r?[...rows].sort((a,b)=>b.pts-a.pts).findIndex(x=>x.id===me.id)+1:0; const ord=n=>n+(n===1?'er':'e');
+  let goal=''; if(r){ if(pos===1){ const n2=L.list[1]; goal=n2?`👑 Vous menez le ladder, avec <b>${fmtN(e.note-n2.note)}</b> d'avance sur ${esc(pfirst(n2.r.id))}.`:'👑 Vous menez le ladder.'; }
+    else if(pos>1){ const up=L.list[pos-2]; goal=`🎯 Prochain objectif : <b>${esc(pfirst(up.r.id))}</b>, ${ord(pos-1)}, est à <b>${fmtN(Math.max(0.1,up.note-e.note))}</b> de note devant vous.`; }
+    else { const ds=Math.max(0,(L.minPres||1)-r.sessions), dg=Math.max(0,(L.minG||0)-r.gp); goal=`🎯 Pour entrer au classement : ${ds?`encore <b>${ds} dimanche${ds>1?'s':''}</b>`:''}${ds&&dg?' et ':''}${dg?`<b>${dg} match${dg>1?'s':''}</b> de plus`:''}${!ds&&!dg?'vous y êtes presque, rendez-vous dimanche':''}.`; } }
+  return `<div class="card mecard" id="mySeason"><div class="row" style="gap:12px;align-items:center"><span data-act="player-detail" data-id="${me.id}" style="cursor:pointer;display:flex">${pavatar(me.id,60)}</span><div class="grow" style="min-width:0"><div class="muted small" style="letter-spacing:.08em;text-transform:uppercase;font-weight:700">Ma saison</div><h2 style="margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(pfirst(me.id))}</h2></div>
+    ${r?`<div class="merk"><b class="num">${pos?ord(pos):'–'}</b><small>${pos?'du ladder':'non classé'}</small></div>`:''}<button class="btn sm ghost" data-act="me-clear" title="Changer de joueur">✎</button></div>
+  ${r?`<div class="tiles" style="margin-top:10px;grid-template-columns:repeat(3,1fr)">
+    <div class="tile acc"><div class="k">Note</div><div class="v num">${pos?fmtN(e.note):'–'}</div><div class="s">${pos?'sur 10 · '+L.list.length+' classés':'dès le classement'}</div></div>
+    <div class="tile"><div class="k">Points</div><div class="v num">${r.pts}</div><div class="s">${ord(ptsRank)} marqueur</div></div>
     <div class="tile"><div class="k">Victoires</div><div class="v num">${pct(r.w,r.gp)} %</div><div class="s">${r.w} V – ${r.gp-r.w} D</div></div></div>
-  ${bd.length?`<p class="small" style="margin:0 0 4px"><b>${bd.length} badge${bd.length>1?'s':''}</b> ${badgeChips(bd.slice(-6))}</p>`:''}
-  ${out&&out.n>=2||inn&&inn.n>=2?`<p class="small muted" style="margin:4px 0 0">${out&&out.n>=2?`🎩 Vous servez surtout <b>${esc(pshort(out.s))}</b> (${out.n} passes)`:''}${out&&out.n>=2&&inn&&inn.n>=2?' · ':''}${inn&&inn.n>=2?`🎯 servi surtout par <b>${esc(pshort(inn.a))}</b> (${inn.n})`:''}</p>`:''}`
-  :`<p class="muted small">Pas encore de match cette saison. À dimanche !</p>`}
-  <div class="row" style="margin-top:10px"><button class="btn sm ghost" data-act="player-detail" data-id="${me.id}">Ma fiche complète</button></div></div>`; }
+  <p class="megoal">${goal}</p>
+  ${bd.length?`<p class="small" style="margin:0 0 4px"><b>${bd.length} badge${bd.length>1?'s':''}</b> ${badgeChips(bd.slice(-4))}</p>`:''}`
+  :`<p class="muted small" style="margin-top:8px">Pas encore de match cette saison. À dimanche !</p>`}
+  <div class="row" style="margin-top:10px"><button class="btn primary grow" data-act="player-detail" data-id="${me.id}">Ma fiche complète</button></div></div>`; }
 function collectifCard(past,season,rows){ if(!rows.length) return ''; const L=ladderOf([...season].sort((a,b)=>a.date<b.date?-1:1)); const medal=['🥇','🥈','🥉'];
   const ma=monthAwards(); const potm=[...ma].reverse().find(x=>x.done&&x.win); const top=(f)=>[...rows].filter(r=>f(r)>0).sort((a,b)=>f(b)-f(a))[0]; const sc=top(r=>r.pts), pa=top(r=>r.ast||0), sn=top(r=>r.fg3||0);
   const last=past[0]; let lastTxt=''; if(last){ const ss=sessionStats(last); const tw=teamRank(ss)[0]; const mv=mvpPick(Object.values(ss.pl)); lastTxt=`${esc(fmtShort(last.date))} · ${ss.done} ${last.format==='cent'?'quart-temps':'matchs'}${tw&&!last.teamsApprox?' · 🏆 '+esc(last.teams[tw[0]].name||TNAMES[tw[0]]):''}${mv?' · 👑 '+esc(pname(mv.r.id)):''}`; }
   const line=(ic,lab,pid,v)=>`<div class="lead" data-act="player-detail" data-id="${pid}" style="cursor:pointer"><div class="ico">${ic}</div><div><div class="who">${esc(pname(pid))}</div><div class="what">${lab}</div></div><div class="big num" style="font-size:18px">${v}</div></div>`;
-  return `<div class="card" id="collectif"><div class="row"><h2 class="grow">Le collectif</h2><span class="muted small">saison ${esc(seasonLabel())} · ${season.length} dimanche${season.length>1?'s':''}</span></div>
-  ${L.list.length?`<h3 style="margin:8px 0 2px">Le ladder</h3>${L.list.slice(0,3).map((e,i)=>line(medal[i],(i+1)+(i?'e':'er')+' du classement',e.r.id,fmtN(e.note))).join('')}`:''}
-  ${potm?`<h3 style="margin:12px 0 2px">Joueur du mois</h3>${line('🏅',esc(potm.lab.charAt(0).toUpperCase()+potm.lab.slice(1)),potm.win.r.id,'')}`:''}
-  <h3 style="margin:12px 0 2px">Les leaders</h3>${sc?line('🔥','Points',sc.id,sc.pts):''}${pa?line('🎩','Passes décisives',pa.id,pa.ast):''}${sn?line('🎯','Paniers à 3 points',sn.id,sn.fg3):''}${(()=>{ const ch=top(r=>r.chp||0); return ch?line('🏆','Championnat · 2 pts la victoire, 1 la défaite',ch.id,fmt1(ch.chp)):''; })()}
-  ${lastTxt?`<p class="small muted" style="margin:10px 0 0">Dernière séance : ${lastTxt} <button class="btn sm ghost" data-act="stats-of" data-id="${last.id}">Détail</button></p>`:''}
-  <div class="row" style="margin-top:10px"><button class="btn primary grow" data-go="stats">Tout le classement et les stats</button><button class="btn ghost" data-act="rules" title="Comment c'est calculé">📖</button></div></div>`; }
+  const pod=(e,i)=>e?`<button class="hpod hp${i+1}" data-act="player-detail" data-id="${e.r.id}">${pavatar(e.r.id,i===0?64:52)}<span class="pn">${esc(pfirst(e.r.id))}</span><span class="pv num">${fmtN(e.note)}</span><span class="step">${medal[i]}</span></button>`:'<span></span>';
+  return `<div class="card" id="collectif"><div class="row"><h2 class="grow">Le podium</h2><span class="muted small">${season.length} dimanche${season.length>1?'s':''} · note sur 10</span></div>
+  ${L.list.length?`<div class="hpodium">${pod(L.list[1],1)}${pod(L.list[0],0)}${pod(L.list[2],2)}</div>`:'<p class="muted small">Le classement démarre dès les premiers dimanches.</p>'}
+  ${potm?`<p class="small" style="margin:10px 0 0">🏅 Joueur du mois ${/^[aeo]/i.test(potm.lab)?"d'":'de '}${esc(potm.lab)} : <b data-act="player-detail" data-id="${potm.win.r.id}" style="cursor:pointer">${esc(pname(potm.win.r.id))}</b></p>`:''}
+  ${lastTxt?`<p class="small muted" style="margin:6px 0 0">Dernier dimanche : ${lastTxt} <button class="btn sm ghost" data-act="stats-of" data-id="${last.id}">Détail</button></p>`:''}
+  <div class="row" style="margin-top:10px"><button class="btn ${S.me?'ghost':'primary'} grow" data-go="stats">Tout le classement et les stats</button><button class="btn ghost" data-act="rules" title="Comment c'est calculé">📖</button></div></div>`; }
 function homeDigest(past){ const b=seasonBounds(); const season=past.filter(s=>s.date>=b.start&&s.date<b.end); const rows=season.length?aggregate(season).pl:[]; const me=S.me&&S.players[S.me]?S.players[S.me]:null; let h='';
-  if(me) h+=myLastCard(me,past)+mySeasonCard(me,season,rows);
-  else { const opts=Object.values(S.players).filter(p=>p.active!==false).sort((a,b)=>a.name.localeCompare(b.name,'fr')); if(opts.length) h+=`<div class="card" style="border:2px solid var(--accent)"><h2>Mes stats</h2><p class="muted small">Dites-nous qui vous êtes pour voir ici votre dernière séance et votre saison (mémorisé sur cet appareil seulement).</p><div class="row"><select id="meSel" class="grow"><option value="">— je suis… —</option>${opts.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div></div>`; }
+  if(me) h+=mySeasonCard(me,season,rows)+myLastCard(me,past);
+  else { const opts=Object.values(S.players).filter(p=>p.active!==false).sort((a,b)=>a.name.localeCompare(b.name,'fr')); if(opts.length) h+=`<div class="card" style="border:2px solid var(--accent)"><h2>Qui êtes-vous ?</h2><p class="muted small">Choisissez votre nom : l'accueil affichera votre classement, votre prochain objectif et votre dernier dimanche. C'est mémorisé sur cet appareil seulement.</p><div class="row"><select id="meSel" class="grow"><option value="">— je suis… —</option>${opts.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div></div>`; }
   return h+collectifCard(past,season,rows); }
 function vSetup(){
   const st=S.setup; if(!st) return vHome();
@@ -1736,6 +1747,7 @@ document.addEventListener('click',async ev=>{
     case 'pos-toggle': S.posOpen=!S.posOpen; render(); break;
     case 'pos-set': { const p=S.players[id]; if(!p) break; const k=el.dataset.pos; savePlayer({...p,pos:p.pos===k?'':k}); render(); break; }
     case 'home-more': S.homeMore=!S.homeMore; render(); break;
+    case 'home-all': S.homeAll=!S.homeAll; render(); break;
     case 'go-pay': S.treSeg='pay'; go('treasury'); break;
     case 'go-tre': S.treSeg=id; go('treasury'); break;
     case 'visits-load': { try{ S.visits=await FB.visitStats(14); }catch(e){ S.visits=[]; toast('Lecture impossible : '+(e&&e.code||'')); } render(); break; }
