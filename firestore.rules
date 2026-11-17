@@ -22,12 +22,6 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/scorerClaims/$(request.auth.uid))
         && tokenOk(get(/databases/$(database)/documents/scorerClaims/$(request.auth.uid)).data.token, sid);
     }
-    // Ancien fonctionnement (code joint à la séance), gardé le temps que tous les téléphones soient à jour. À retirer ensuite.
-    function scorerOkLegacy(sid) {
-      return signedIn()
-        && ('scorerToken' in request.resource.data)
-        && tokenOk(request.resource.data.scorerToken, sid);
-    }
 
     // Réglages publics (minutes, cible, seuils des badges). Jamais de secret ici.
     match /config/main {
@@ -47,7 +41,7 @@ service cloud.firestore {
     }
     match /sessions/{id} {
       allow read: if true;
-      allow write: if isBureau() || scorerOk(id) || scorerOkLegacy(id);
+      allow write: if isBureau() || scorerOk(id);
     }
     // Liens marqueur : créés par le bureau. On peut vérifier un code qu'on connaît déjà, mais seul le bureau peut en voir la liste.
     match /scorerTokens/{token} {
