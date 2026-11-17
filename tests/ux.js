@@ -39,5 +39,11 @@ const { chromium } = require('playwright'); const fs=require('fs'); const D='out
   { const r=await p.evaluate(()=>{ const h=window.__hs; const c=document.querySelector('#ftCard'); const fl=c&&c.querySelector('.fl'); const lead=document.querySelector('.hbar:not([style]) .fl'); const top=h.aggregate(h.statsSessions?h.statsSessions():Object.values(h.S.sessions).filter(x=>x.status==='closed'&&!x.excluded)).pl.filter(x=>x.fta>0).sort((a,b)=>b.fta-a.fta||b.ftm-a.ftm)[0]; return {card:!!c,txt:c?c.innerText:'',w:fl?fl.getBoundingClientRect().width:0,lw:lead?lead.getBoundingClientRect().width:-1,top:top&&{id:top.id,s:top.ftm+'/'+top.fta}}; });
     E(r.card&&r.top&&r.txt.includes(r.top.s+' · '),'carte lancers francs absente ou fausse : '+JSON.stringify(r.top)+' '+r.txt.slice(120,260)); E(r.w>5,'barre LF invisible'); E(r.lw!==0,'barres des leaders invisibles');
     if(r.top){ await p.evaluate(id=>{ const h=window.__hs; h.S.sheet={type:'detail',pid:id}; h.render(); },r.top.id); await p.waitForTimeout(200); const t=await p.textContent('.sheet'); E(/D'où viennent ses points/.test(t)&&t.includes(r.top.s),'décomposition des points absente de la fiche'); await p.evaluate(()=>{ window.__hs.S.sheet=null; window.__hs.render(); }); } }
+  // séance en cours : le joueur peut quand même s'identifier et voir ses stats passées
+  { const r=await p.evaluate(()=>{ const h=window.__hs; const S=h.S; const cl=Object.values(S.sessions).filter(x=>x.status==='closed'&&!x.excluded).sort((a,b)=>a.date<b.date?1:-1); const keep={u:S.unlocked,me:S.me,sc:S.scorer};
+      S.sessions.__lv={...cl[0],id:'__lv',status:'live',matches:[],date:'2099-01-01'}; S.unlocked=false; S.scorer=null; S.me=null; S.sheet=null; S.view='home'; h.render();
+      const a={live:/Séance en cours/.test(document.querySelector('#main').innerText),sel:!!document.querySelector('#meSel')}; S.me=Object.values(h.sessionStats(cl[0]).pl).find(x=>x.gp>0).id; h.render(); a.mine=!!document.querySelector('#mySeason');
+      delete S.sessions.__lv; S.unlocked=keep.u; S.me=keep.me; S.scorer=keep.sc; h.render(); return a; });
+    E(r.live&&r.sel&&r.mine,'pendant une séance en cours, pas de vue joueur : '+JSON.stringify(r)); }
   console.log('errors',errs); await b.close(); process.exit(errs.length?1:0);
 })().catch(e=>{ console.error(String(e).slice(0,500)); process.exit(1); });
