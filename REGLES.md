@@ -1,6 +1,6 @@
 # Hoops Stats — le mémo des règles
 
-*Hoops Basket Association · mis à jour le 17 novembre 2026*
+*Hoops Basket Association · mis à jour le 18 novembre 2026*
 
 Ce mémo dit comment les stats sont calculées, pourquoi on a fait ces choix, et ce qu'il faut savoir pour faire vivre l'appli. Il sert à deux choses : répondre aux questions des joueurs, et permettre à quelqu'un de reprendre le projet sans tout redécouvrir.
 
@@ -15,7 +15,7 @@ La version courte, pour les joueurs, est aussi dans l'appli : onglet Stats, bout
 - Conséquence : si on change une règle, tout l'historique se recalcule tout seul. Rien n'est à corriger à la main.
 - **Seules les décisions annoncées sont figées** dans la base : le joueur du mois, une fois proclamé, ne change plus.
 
-On ne compte que ce qui se constate à la table de marque. Pas de rebonds, de contres, d'interceptions ni de ballons perdus : ce serait trop de saisie pour le marqueur, et souvent discutable.
+On ne compte que ce qui se constate à la table de marque. Les tirs ratés, les rebonds et les interceptions ne sont saisis que les dimanches en « stats enrichies », à deux à la table (voir plus bas). Pas de contres ni de ballons perdus.
 
 ---
 
@@ -88,7 +88,30 @@ Le marqueur choisit la formule à l'étape « Équipes », avant de les former. 
 
 ---
 
-## 4. Les autres chiffres
+## 4. La table de marque sur PC et les stats enrichies
+
+**Sur un écran large** (PC, à partir de 1200 pixels de large), la table passe en trois colonnes : une équipe de chaque côté, le score, le chrono et le journal au centre. Chaque joueur a ses boutons en accès direct : panier à 2, à 3, lancer réussi, lancer raté, faute. Le téléphone garde l'écran habituel.
+
+Raccourcis clavier : **Espace** lance ou arrête le chrono, **Retour arrière** annule la dernière action.
+
+**Les stats enrichies** se cochent au lancement de la séance (ou dans le menu ⋯ pendant le match). Elles sont prévues pour deux personnes à la table : une qui regarde et annonce, une qui saisit.
+
+- **Tir raté** : un bouton « 2 » et un bouton « 3 » en pointillés à côté des paniers.
+- **Rebond** : après chaque tir raté ou lancer raté, l'appli demande « Qui prend le rebond ? » et montre les dix joueurs sur le terrain. Un clic suffit : l'appli sait toute seule s'il est offensif ou défensif, selon l'équipe du joueur. Si on enchaîne sur une autre action, la question disparaît et le rebond n'est pas compté.
+- **Interception** : dans la fiche du joueur (« ⋯ » ou clic sur son nom).
+
+Ce qu'on en tire : le pourcentage de réussite au tir (à partir de 5 tirs sur un dimanche, 20 sur la saison), les rebonds offensifs et défensifs, les interceptions.
+
+**Les garde-fous**
+- Ces chiffres ne portent que sur les dimanches où le mode était activé. Les paniers des autres dimanches n'entrent pas dans le pourcentage.
+- Ils n'entrent pas dans la note cette saison : le classement ne doit pas dépendre de la qualité de la saisie du jour.
+- Un tir raté oublié gonfle le pourcentage sans que le score le trahisse. À surveiller : sur un dimanche bien saisi, le groupe tourne en général entre 35 et 50 % de réussite.
+
+**Pour s'entraîner** : `https://hoops-basket-asso.github.io/hba-hoops/?mode=test&demo=table` ouvre une séance fictive en cours. Rien n'est envoyé à l'association.
+
+---
+
+## 5. Les autres chiffres
 
 - **Déf.** : points encaissés par l'équipe en 10 minutes quand le joueur est sur le terrain. Plus c'est bas, mieux c'est. Marqué « ≈ » sous une heure de jeu chronométrée. Sur un seul dimanche, c'est surtout un chiffre d'équipe ; il devient personnel au fil de la saison, quand les équipes se mélangent.
 - **Impact** : écart de points de l'équipe par 10 minutes quand il joue, moins le même écart quand il est sur le banc. Fiable seulement avec au moins une heure sur le terrain et une heure sur le banc.
@@ -101,7 +124,7 @@ Le marqueur choisit la formule à l'étape « Équipes », avant de les former. 
 
 ---
 
-## 5. Les distinctions
+## 6. Les distinctions
 
 ### Joueur du mois
 
@@ -146,7 +169,7 @@ Des paliers franchis dans un dimanche : gros match, série à 3 points, record p
 
 ---
 
-## 6. Les images à partager
+## 7. Les images à partager
 
 - **Le résumé de la séance** : équipe du jour, MVP, leaders du jour, résultats, badges.
 - **Le ladder** : n° 1, places 2 à 5, remontée de la semaine, un leader par catégorie.
@@ -155,7 +178,7 @@ Des paliers franchis dans un dimanche : gros match, série à 3 points, record p
 
 ---
 
-## 7. Ce qu'il faut faire pour que ça marche
+## 8. Ce qu'il faut faire pour que ça marche
 
 **Chaque dimanche**
 - Saisir le cinq de départ de chaque match.
@@ -179,19 +202,19 @@ Des paliers franchis dans un dimanche : gros match, série à 3 points, record p
 
 ---
 
-## 8. Pour celui ou celle qui reprendra le projet
+## 9. Pour celui ou celle qui reprendra le projet
 
 - **Une seule appli officielle** : l'appli web, installable sur Android et iPhone depuis le navigateur.
 - Code sur GitHub (`hoops-basket-asso/hba-hoops`). Tout est dans `src/app.html` ; `python3 build.py` produit `index.html`.
 - Base : Firebase (Firestore). Les règles de sécurité sont dans `firestore.rules` et se publient à la main dans la console.
-- Tests : dossier `tests/`, 29 scénarios automatiques (table de marque, stats, images, trésorerie, conflits entre appareils). **Tout changement du moteur doit passer la suite complète.**
+- Tests : dossier `tests/`, 30 scénarios automatiques (table de marque, stats, images, trésorerie, conflits entre appareils). **Tout changement du moteur doit passer la suite complète.**
 - L'architecture technique est décrite dans `ARCHITECTURE.md`.
 - Les poids de la note sont en tête du code (`NOTE_S` pour la saison, `NOTE_D` pour une séance). Les seuils des trophées sont dans `AWARDS` et `seasonAwardsRaw`.
 - Les données réelles ne sont jamais dans le dépôt : il est public.
 
 ---
 
-## 9. Ce qui reste fragile
+## 10. Ce qui reste fragile
 
 - **Peu de données.** Après 4 dimanches, la défense, l'impact et les duos sont encore incertains. Ils deviennent parlants vers la 10e journée.
 - **Un quart des matchs n'a pas de minutes saisies.** Les stats à la minute ne portent que sur les autres.
