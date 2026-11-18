@@ -97,7 +97,7 @@ Raccourcis clavier : **Espace** lance ou arrête le chrono, **Retour arrière** 
 **Les stats enrichies** se cochent au lancement de la séance (ou dans le menu ⋯ pendant le match). Elles sont prévues pour deux personnes à la table : une qui regarde et annonce, une qui saisit.
 
 - **Tir raté** : un bouton « 2 » et un bouton « 3 » en pointillés à côté des paniers.
-- **Rebond** : après chaque tir raté ou lancer raté, l'appli demande « Qui prend le rebond ? » et montre les dix joueurs sur le terrain. Un clic suffit : l'appli sait toute seule s'il est offensif ou défensif, selon l'équipe du joueur. Si on enchaîne sur une autre action, la question disparaît et le rebond n'est pas compté.
+- **Rebond** : après chaque tir raté, et après le second lancer franc raté d'une série de deux (jamais après une technique ou une antisportive, puisque le ballon est rendu), l'appli demande « Qui prend le rebond ? » et montre les dix joueurs sur le terrain. Un clic suffit : l'appli sait toute seule s'il est offensif ou défensif, selon l'équipe du joueur. Si on enchaîne sur une autre action, la question disparaît et le rebond n'est pas compté.
 - **Interception** : dans la fiche du joueur (« ⋯ » ou clic sur son nom).
 
 Ce qu'on en tire : le pourcentage de réussite au tir (à partir de 5 tirs sur un dimanche, 20 sur la saison), les rebonds offensifs et défensifs, les interceptions.
