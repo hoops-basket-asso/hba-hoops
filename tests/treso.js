@@ -69,5 +69,9 @@ const { chromium } = require('playwright'); const fs=require('fs');
   // suppression explicite : plus aucun frais (pas de retour du défaut)
   await p.click('[data-act="fee-edit"]'); await p.waitForTimeout(300); await p.click('[data-act="fee-del"]'); await p.waitForTimeout(300); E(await p.evaluate(()=>window.__hs.cashState().bank===0),'défaut revenu après suppression');
   await p.screenshot({path:'out/treso_over.png',fullPage:true});
+  // commentaire d'audit sur un règlement de participation
+  { const r=await p.evaluate(async()=>{ const h=window.__hs; const S=h.S; const s=Object.values(S.sessions).filter(x=>x.status==='closed').sort((a,b)=>a.date<b.date?1:-1)[0]; S.view='treasury'; S.treSeg='pay'; S.paySel=s.id; h.render(); const b=document.querySelector('[data-act="pay-note"]'); if(!b) return {none:true}; const pid=b.dataset.id, date=b.dataset.date; const was=(S.payments[date]&&S.payments[date].paid||{})[pid]; b.click(); await new Promise(r=>setTimeout(r,450));
+      const conf=document.querySelector('[data-act="pay-note-save"][data-mode="confirm"]'); document.querySelector('#payNoteTxt').value='Réglé par Claude N. pour son compte'; (conf||document.querySelector('[data-act="pay-note-save"]')).click(); await new Promise(r=>setTimeout(r,200)); const x=S.payments[date].paid[pid]; return {was:!!was,x,shown:/Réglé par Claude N\. pour son compte/.test(document.querySelector('#main').innerText)}; });
+    if(!r.none){ E(r.x&&r.x.note==='Réglé par Claude N. pour son compte'&&!!r.x.noteAt&&!!r.x.noteBy&&(r.x.status==='confirmed'||r.was),'commentaire de règlement non enregistré : '+JSON.stringify(r.x)); E(r.shown,'commentaire de règlement non affiché'); } else E(false,'bouton commentaire absent des participations'); }
   console.log('errors',errs); await b.close(); process.exit(errs.length?1:0);
 })().catch(e=>{ console.error(String(e).slice(0,600)); process.exit(1); });
