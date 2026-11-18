@@ -104,8 +104,9 @@ Ce qu'on en tire : le pourcentage de réussite au tir (à partir de 5 tirs sur u
 
 **Les garde-fous**
 - Ces chiffres ne portent que sur les dimanches où le mode était activé. Les paniers des autres dimanches n'entrent pas dans le pourcentage.
-- Table PC : bouton « INT » direct pour l'interception. Un rebond oublié se rattrape par la fiche du joueur (« REB ») : offensif ou défensif selon l'équipe du dernier tir raté.
-- Un compteur de saisie (paniers, ratés, rebonds, vols) s'affiche sous le score. Il alerte quand il y a moins de ratés que de paniers.
+- Trois niveaux de saisie, choisis au lancement et modifiables en séance : **Simple** (points, passes, fautes), **Tirs** (+ tirs ratés), **Complet** (+ rebonds et interceptions). Dans les données : `rich` absent, `rich` + `richReb:false`, `rich` + `richReb:true`.
+- Table PC : la ligne du joueur porte les paniers, les ratés, les lancers et la faute. Un clic sur le nom ouvre seulement le reste : technique, antisportive, remplacement, et au niveau Complet l'interception (« INT ») et le rebond oublié (« REB », offensif ou défensif selon l'équipe du dernier tir raté).
+- Un compteur de saisie (paniers, ratés ; rebonds et vols au niveau Complet) s'affiche sous le score. Il alerte quand il y a moins de ratés que de paniers.
 - Guidage des lancers (écran large) : une faute qui donne des lancers ouvre « qui tire ? », puis Réussi / Raté lancer par lancer. Un seul lancer si le panier a été marqué sur la faute. Un premier lancer saisi à la main fait proposer le second.
 - Un tir raté sur une faute ne se saisit pas : on saisit la faute, puis les lancers.
 - Ils n'entrent pas dans la note cette saison : le classement ne doit pas dépendre de la qualité de la saisie du jour.

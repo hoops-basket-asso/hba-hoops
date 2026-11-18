@@ -2,13 +2,13 @@
 const { chromium } = require('playwright'); const BASE=process.env.BASE||'http://127.0.0.1:8099/index.html';
 (async()=>{
   const b=await chromium.launch({...(process.env.CHROMIUM?{executablePath:process.env.CHROMIUM}:{})}); const errs=[], E=(c,m)=>{ if(!c) errs.push(m); };
-  const open=async(w,h)=>{ const ctx=await b.newContext({viewport:{width:w,height:h},serviceWorkers:'block'}); await ctx.route(/fonts\.googleapis|fonts\.gstatic|gstatic\.com\/firebasejs/, r=>r.abort()); const p=await ctx.newPage(); p.on('pageerror',e=>errs.push(e.message)); p.on('dialog',d=>d.accept()); await p.goto(BASE+'?mode=test&demo=table'); await p.waitForTimeout(1500); return p; };
+  const open=async(w,h,lvl)=>{ const ctx=await b.newContext({viewport:{width:w,height:h},serviceWorkers:'block'}); await ctx.route(/fonts\.googleapis|fonts\.gstatic|gstatic\.com\/firebasejs/, r=>r.abort()); const p=await ctx.newPage(); p.on('pageerror',e=>errs.push(e.message)); p.on('dialog',d=>d.accept()); await p.goto(BASE+'?mode=test&demo=table'+(lvl===1?'':'&niveau=complet')); await p.waitForTimeout(1500); return p; };
   const last=(p,n)=>p.evaluate(n=>{ const h=window.__hs; const m=h.liveMatch(h.curSession()); return m.events.slice(-n).map(e=>e.type+(e.type==='reb'?(e.off?':off':':def'):'')+(e.v?':'+e.v:'')+(e.type==='ft'?(e.made?':1':':0'):'')); },n);
   // --- PC
   let p=await open(1366,768);
   E(await p.evaluate(()=>window.__hs.S.view==='live'&&!!window.__hs.curSession().rich&&window.__hs.S.local===true),'le lien de démo n\'ouvre pas la table fictive');
   const geo=await p.evaluate(()=>{ const c=[...document.querySelectorAll('.lvw .court')].map(e=>e.getBoundingClientRect()); const bd=document.querySelector('.lvw .board').getBoundingClientRect(); const rows=[...document.querySelectorAll('.lvw .court .prow:not(.bench):not(.chd)')]; const r0=rows[0]; const nm=r0.querySelector('.nm'); return {cols:c.length===2&&c[0].right<=bd.left&&bd.right<=c[1].left,rows:rows.length,btns:[...r0.querySelectorAll('.qb')].map(x=>x.dataset.q||'more').join(','),visible:rows.every(r=>r.getBoundingClientRect().bottom<=window.innerHeight-70),clip:nm.scrollWidth>nm.clientWidth+1,name:nm.innerText,hscroll:document.documentElement.scrollWidth>window.innerWidth+2}; });
-  E(geo.cols,'les trois colonnes ne sont pas en place'); E(geo.rows===10&&geo.visible,'les 10 joueurs ne sont pas tous visibles sans défiler : '+JSON.stringify(geo)); E(geo.btns==='pt2,pt3,miss2,miss3,ft1,ft0,foul,stl,more','boutons du joueur : '+geo.btns); E(!geo.clip,'nom du joueur coupé : '+geo.name); E(!geo.hscroll,'défilement horizontal');
+  E(geo.cols,'les trois colonnes ne sont pas en place'); E(geo.rows===10&&geo.visible,'les 10 joueurs ne sont pas tous visibles sans défiler : '+JSON.stringify(geo)); E(geo.btns==='pt2,pt3,miss2,miss3,ft1,ft0,foul','boutons du joueur : '+geo.btns); E(!geo.clip,'nom du joueur coupé : '+geo.name); E(!geo.hscroll,'défilement horizontal');
   const row=(c,k)=>`.lvw .court:nth-child(${c}) .prow:not(.bench):not(.chd) .qb[data-q="${k}"]`;
   await p.click(row(1,'miss3')); await p.waitForTimeout(200); E(!!(await p.$('.rebbar')),'pas de question « rebond » après un tir raté');
   E(await p.evaluate(()=>{ const g=[...document.querySelectorAll('.rebbar .rebg')].map(x=>x.innerText); return /Offensif/i.test(g[0])&&/Défensif/i.test(g[1]); }),'rebond : chaque équipe doit être du côté de sa colonne');
@@ -26,7 +26,8 @@ const { chromium } = require('playwright'); const BASE=process.env.BASE||'http:/
   await p.click(row(1,'ft1')); await p.waitForTimeout(120); await p.click(row(1,'ft0')); await p.waitForTimeout(150); E((await last(p,2)).join()==='ft:1,ft:0'&&!!(await p.$('.rebbar')),'lancers directs : '+(await last(p,2)));
   await p.click('.rebbar [data-act="reb-pick"][data-id=""]'); await p.waitForTimeout(150); E((await last(p,1)).join()==='ft:0','« personne » ne doit rien ajouter');
   // interception par « ⋯ », clavier
-  await p.click(row(1,'stl')); await p.waitForTimeout(400); E((await last(p,1)).join()==='stl','interception directe non enregistrée');
+  E(await p.evaluate(()=>!document.querySelector('.lvw .qb.qo')&&!document.querySelector('.lvw .qb.qs')),'la ligne du joueur ne doit plus porter « ⋯ » ni « INT »');
+  await p.click('.lvw .court:nth-child(1) .prow:not(.bench):not(.chd) .pbtn'); await p.waitForTimeout(600); E((await p.evaluate(()=>[...document.querySelectorAll('.sheet [data-ev]')].map(x=>x.dataset.ev).join(',')))==='stl,reb,tech,uns,subout','fiche PC : seulement ce qui n\'est pas sur la ligne : '+(await p.evaluate(()=>[...document.querySelectorAll('.sheet [data-ev]')].map(x=>x.dataset.ev).join(',')))); await p.evaluate(()=>{ window.__hs.S.sheet=null; window.__hs.render(); }); await p.waitForTimeout(300);
   await p.click('.lvw .court:nth-child(1) .prow:not(.bench):not(.chd) .pbtn'); await p.waitForTimeout(600); await p.click('.sheet [data-ev="stl"]'); await p.waitForTimeout(300); E((await last(p,1)).join()==='stl','interception par la fiche non enregistrée');
   // rebond oublié : par la fiche du joueur, offensif ou défensif selon l'équipe du dernier tir raté
   await p.click(row(1,'miss2')); await p.waitForTimeout(400); await p.click(row(2,'foul')); await p.waitForTimeout(400);
@@ -42,8 +43,8 @@ const { chromium } = require('playwright'); const BASE=process.env.BASE||'http:/
   await p.evaluate(()=>{ const h=window.__hs; const s=h.curSession(); const m=h.liveMatch(s); h.endMatch(s,m,'A'); h.S.sheet=null; const ag=h.sessionStats(s); window.__agg=Object.values(ag.pl).reduce((a,r)=>a+(r.orb||0)+(r.drb||0)+(r.a2||0)+(r.a3||0),0); h.S.view='stats'; h.S.period='session'; h.S.statsSeg='top'; h.render(); }); await p.waitForTimeout(300); E(await p.evaluate(()=>window.__agg>0),'les stats enrichies ne remontent pas dans les stats de séance'); E(!!(await p.$('#richCard')),'carte « Rebonds et adresse » absente');
   await p.evaluate(()=>{ const h=window.__hs; const s=h.curSession(); h.startMatch(s,'A','B'); h.liveMatch(s).fiveOk=true; h.S.view='live'; h.S.sheet=null; h.render(); }); if(await p.$('[data-act="five-ok"][data-run="1"]')) await p.click('[data-act="five-ok"][data-run="1"]'); await p.waitForTimeout(200);
   // mode simple : plus de boutons « raté »
-  await p.evaluate(()=>{ const h=window.__hs; h.S.view='live'; h.S.sheet={type:'livemore'}; h.render(); }); await p.click('[data-act="rich-toggle"]'); await p.waitForTimeout(250);
-  E(await p.evaluate(()=>[...document.querySelector('.lvw .court .prow:not(.bench):not(.chd)').querySelectorAll('.qb')].map(x=>x.dataset.q||'more').join(','))==='pt2,pt3,ft1,ft0,foul,more','mode simple : boutons inattendus');
+  await p.evaluate(()=>{ const h=window.__hs; h.S.view='live'; h.S.sheet={type:'livemore'}; h.render(); }); await p.waitForTimeout(500); await p.click('[data-act="rich-lvl"][data-id="0"]'); await p.waitForTimeout(250);
+  E(await p.evaluate(()=>[...document.querySelector('.lvw .court .prow:not(.bench):not(.chd)').querySelectorAll('.qb')].map(x=>x.dataset.q||'more').join(','))==='pt2,pt3,ft1,ft0,foul','mode simple : boutons inattendus');
   await p.click(row(1,'ft0')); await p.waitForTimeout(150); E(!(await p.$('.rebbar')),'pas de question rebond en mode simple'); await p.context().close();
   for(const [w,h] of [[1920,1080],[1280,720],[1200,700]]){ p=await open(w,h); const g=await p.evaluate(()=>{ const rows=[...document.querySelectorAll('.lvw .court .prow:not(.bench):not(.chd)')]; return {n:rows.length,clip:rows.filter(r=>{ const nm=r.querySelector('.nm'); return nm.scrollWidth>nm.clientWidth+1; }).length,hs:document.documentElement.scrollWidth>window.innerWidth+2,over:rows.some(r=>r.scrollWidth>r.clientWidth+1)}; }); E(g.n===10&&!g.clip&&!g.hs&&!g.over,'écran '+w+' : '+JSON.stringify(g)); await p.context().close(); }
   // --- téléphone : écran habituel, ratés dans la fiche du joueur
@@ -66,5 +67,13 @@ const { chromium } = require('playwright'); const BASE=process.env.BASE||'http:/
   // lancers saisis par les boutons de la ligne : le 2e est proposé ; « pas de lancer » ferme
   await p.waitForTimeout(400); await p.click(row(2,'pt2')); await p.waitForTimeout(13000); await p.click(row(1,'ft1')); await p.waitForTimeout(450); E(/Lancer 2\/2/.test(await p.innerText('.ftbar').catch(()=>'')),'1er lancer direct : le 2e doit être proposé');
   await p.click('.ftbar [data-act="ft-none"]'); await p.waitForTimeout(300); E(!(await p.$('.ftbar')),'« pas de lancer » doit fermer le guidage'); await p.context().close();
+  // niveau « Tirs » (lien de démo par défaut) : tirs ratés sans question rebond, fiche sans INT ni REB ; passage à « Complet » par le menu
+  p=await open(1366,768,1);
+  E(await p.evaluate(()=>{ const s=window.__hs.curSession(); return s.rich===true&&s.richReb===false; }),'la démo doit s\'ouvrir au niveau Tirs');
+  await p.click(row(1,'miss2')); await p.waitForTimeout(400); E(!(await p.$('.rebbar'))&&(await last(p,1)).join()==='miss:2','niveau Tirs : tir raté sans question rebond');
+  E(!/rebonds/.test(await p.innerText('.richln')),'niveau Tirs : le compteur ne doit pas parler de rebonds');
+  await p.click('.lvw .court:nth-child(1) .prow:not(.bench):not(.chd) .pbtn'); await p.waitForTimeout(600); E((await p.evaluate(()=>[...document.querySelectorAll('.sheet [data-ev]')].map(x=>x.dataset.ev).join(',')))==='tech,uns,subout','niveau Tirs : fiche = technique, antisportive, remplacer');
+  await p.evaluate(()=>{ const h=window.__hs; h.S.sheet={type:'livemore'}; h.render(); }); await p.waitForTimeout(600); E(await p.evaluate(()=>document.querySelector('.lvb.on').dataset.id)==='1','le menu doit montrer le niveau en cours');
+  await p.click('[data-act="rich-lvl"][data-id="2"]'); await p.waitForTimeout(400); await p.click(row(1,'miss3')); await p.waitForTimeout(400); E(!!(await p.$('.rebbar')),'niveau Complet : la question rebond doit revenir'); await p.context().close();
   console.log('errors',errs); await b.close(); process.exit(errs.length?1:0);
 })().catch(e=>{console.error(e);process.exit(1);});

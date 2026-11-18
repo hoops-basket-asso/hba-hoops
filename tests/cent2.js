@@ -12,7 +12,11 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   E(await p.$eval('.fmtc.on',e=>e.dataset.id)==='cent','13 présents : match à 100 non choisi d\'office');
   E(/conseillé · 13 présents/.test(await p.$eval('.fmtc[data-id="cent"]',e=>e.innerText)),'pastille « conseillé » absente');
   await p.click('[data-act="auto-teams"]'); await p.waitForTimeout(100);
-  await p.click('[data-act="setup-step"][data-id="3"]'); await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
+  await p.click('[data-act="setup-step"][data-id="3"]'); await p.waitForTimeout(150);
+  E(await p.$eval('.lvpick .lvb.on',e=>e.dataset.id).catch(()=>'absent')==='0','niveau de saisie : « Simple » doit être choisi par défaut');
+  await p.click('.lvpick [data-act="rich-lvl"][data-id="1"]'); await p.waitForTimeout(450); E(await p.$eval('.lvpick .lvb.on',e=>e.dataset.id).catch(()=>'absent')==='1','niveau de saisie : le choix « Tirs » ne s\'affiche pas');
+  await p.click('[data-act="start-session"]'); await p.waitForTimeout(300);
+  E(await p.evaluate(()=>{ const s=window.__hs.curSession(); return s.rich===true&&s.richReb===false; }),'la séance lancée au niveau Tirs doit porter rich sans rebonds');
   E(!!(await p.$('[data-act="five-ok"][data-run="1"]')),'cinq de départ non proposé au lancement');
   await p.click('[data-act="five-ok"][data-run="1"]'); await p.waitForTimeout(1300);
   const c1=await p.$eval('#clock',e=>e.textContent); E(c1!=='00:00'&&/^\d\d:\d\d$/.test(c1),'chrono qui ne tourne pas : '+c1);
