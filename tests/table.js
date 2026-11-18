@@ -69,8 +69,8 @@ const { chromium } = require('playwright'); const BASE=process.env.BASE||'http:/
   E(/Lancer 1\/1/.test(await p.innerText('.ftbar').catch(()=>'')),'and-one : un seul lancer attendu : '+(await p.innerText('.ftbar').catch(()=>'rien')));
   await p.click('.ftbar [data-made="1"]'); await p.waitForTimeout(500); E(!(await p.$('.ftbar'))&&(await last(p,1)).join()==='ft:1','and-one : guidage fermé après le lancer');
   // lancers saisis par les boutons de la ligne : le 2e est proposé ; « pas de lancer » ferme
-  await p.waitForTimeout(400); await p.click(row(2,'pt2')); await p.waitForTimeout(13000); await p.click(row(1,'ft1')); await p.waitForTimeout(450); E(/Lancer 2\/2/.test(await p.innerText('.ftbar').catch(()=>'')),'1er lancer direct : le 2e doit être proposé');
-  await p.click('.ftbar [data-act="ft-none"]'); await p.waitForTimeout(300); E(!(await p.$('.ftbar')),'« pas de lancer » doit fermer le guidage'); await p.context().close();
+  await p.waitForTimeout(400); await p.click(row(2,'pt2')); await p.waitForTimeout(13000); await p.click(row(1,'ft1')); await p.waitForTimeout(450); E(!(await p.$('.ftbar'))&&(await last(p,1)).join()==='ft:1','lancer cliqué sur la ligne : aucune question ne doit s\'ouvrir');
+  await foulsTo(9); await p.click(row(2,'foul')); await p.waitForTimeout(450); await p.click('.ftbar [data-act="ft-none"]'); await p.waitForTimeout(300); E(!(await p.$('.ftbar')),'« pas de lancer » doit fermer le guidage'); await p.context().close();
   // niveau « Tirs » (lien de démo par défaut) : tirs ratés sans question rebond, fiche sans INT ni REB ; passage à « Complet » par le menu
   p=await open(1366,768,1);
   E(await p.evaluate(()=>{ const s=window.__hs.curSession(); return s.rich===true&&s.richReb===false; }),'la démo doit s\'ouvrir au niveau Tirs');
