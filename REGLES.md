@@ -104,6 +104,9 @@ Ce qu'on en tire : le pourcentage de réussite au tir (à partir de 5 tirs sur u
 
 **Les garde-fous**
 - Ces chiffres ne portent que sur les dimanches où le mode était activé. Les paniers des autres dimanches n'entrent pas dans le pourcentage.
+- Table PC : bouton « INT » direct pour l'interception. Un rebond oublié se rattrape par la fiche du joueur (« REB ») : offensif ou défensif selon l'équipe du dernier tir raté.
+- Un compteur de saisie (paniers, ratés, rebonds, vols) s'affiche sous le score. Il alerte quand il y a moins de ratés que de paniers.
+- Un tir raté sur une faute ne se saisit pas : on saisit la faute, puis les lancers.
 - Ils n'entrent pas dans la note cette saison : le classement ne doit pas dépendre de la qualité de la saisie du jour.
 - Un tir raté oublié gonfle le pourcentage sans que le score le trahisse. À surveiller : sur un dimanche bien saisi, le groupe tourne en général entre 35 et 50 % de réussite.
 

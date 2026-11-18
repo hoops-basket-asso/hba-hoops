@@ -52,7 +52,7 @@ const { chromium } = require('playwright'); const fs=require('fs'); const D='out
   { await p.evaluate(()=>{ const h=window.__hs; const S=h.S; const cl=Object.values(S.sessions).filter(x=>x.status==='closed')[0]; S.sessions.__t={...JSON.parse(JSON.stringify(cl)),id:'__t',date:'2099-02-01'}; S.unlocked=true; S.scorer=null; S.sheet=null; S.view='stats'; S.period='session'; S.statSession='__t'; S.sid='__t'; h.render(); });
     const pick=async()=>{ const b=await p.$('[data-act="session-delete"][data-id="__t"]'); if(b) return b; await p.evaluate(()=>{ const h=window.__hs; const sel=[...document.querySelectorAll('select')].find(s=>[...s.options].some(o=>o.value==='__t')); if(sel){ sel.value='__t'; sel.dispatchEvent(new Event('change',{bubbles:true})); } }); await p.waitForTimeout(200); return p.$('[data-act="session-delete"][data-id="__t"]'); };
     let b=await pick(); E(!!b,'bouton « supprimer la séance » absent pour le bureau');
-    if(b){ promptAns='non'; await b.click(); await p.waitForTimeout(300); E(await p.evaluate(()=>!!window.__hs.S.sessions.__t),'séance supprimée sans la confirmation tapée');
+    if(b){ promptAns='non'; await b.click(); await p.waitForTimeout(800); E(await p.evaluate(()=>!!window.__hs.S.sessions.__t),'séance supprimée sans la confirmation tapée');
       promptAns='supprimer'; b=await pick(); if(b){ await b.click(); await p.waitForTimeout(400); } E(await p.evaluate(()=>!window.__hs.S.sessions.__t),'séance non supprimée après confirmation'); promptAns=''; }
     await p.evaluate(()=>{ delete window.__hs.S.sessions.__t; }); }
   console.log('errors',errs); await b.close(); process.exit(errs.length?1:0);
