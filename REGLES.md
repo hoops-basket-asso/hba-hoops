@@ -106,6 +106,7 @@ Ce qu'on en tire : le pourcentage de réussite au tir (à partir de 5 tirs sur u
 - Ces chiffres ne portent que sur les dimanches où le mode était activé. Les paniers des autres dimanches n'entrent pas dans le pourcentage.
 - Trois niveaux de saisie, choisis au lancement et modifiables en séance : **Simple** (points, passes, fautes), **Tirs** (+ tirs ratés), **Complet** (+ rebonds et interceptions). Dans les données : `rich` absent, `rich` + `richReb:false`, `rich` + `richReb:true`.
 - Table PC : la ligne du joueur porte les paniers, les ratés, les lancers et la faute. Un clic sur le nom ouvre seulement le reste : technique, antisportive, remplacement, et au niveau Complet l'interception (« INT ») et le rebond oublié (« REB », offensif ou défensif selon l'équipe du dernier tir raté).
+- Balles perdues (niveau Complet) : après une interception, l'appli demande à qui le ballon a été pris. Pour un marcher ou une passe dehors, bouton « BP » dans la fiche du joueur. Elles sont comptées et affichées, sans entrer dans la note.
 - Un compteur de saisie (paniers, ratés ; rebonds et vols au niveau Complet) s'affiche sous le score. Il alerte quand il y a moins de ratés que de paniers.
 - Guidage des lancers (écran large) : une faute qui donne des lancers ouvre « qui tire ? », puis Réussi / Raté lancer par lancer. Un seul lancer si le panier a été marqué sur la faute. Un premier lancer saisi à la main fait proposer le second.
 - Un tir raté sur une faute ne se saisit pas : on saisit la faute, puis les lancers.
