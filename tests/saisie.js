@@ -25,5 +25,8 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   const gid=await boxes[0].getAttribute('data-ghost'); await boxes[0].uncheck(); await p.click('[data-act="ghost-save"]'); await p.waitForTimeout(200);
   const after=await p.evaluate(id=>{ const h=window.__hs; const s=h.curSession(); return {present:s.present.includes(id),team:['A','B','C','D'].some(t=>s.teams[t]&&s.teams[t].players.includes(id)),roster:s.matches.some(m=>m.roster&&(m.roster.home.includes(id)||m.roster.away.includes(id))),n:h.ghosts(s).length,sheet:h.S.sheet&&h.S.sheet.type,chg:(s.changes||[]).some(c=>c.pid===id)}; },gid);
   E(!after.present&&!after.team&&!after.roster,'joueur décoché encore présent : '+JSON.stringify(after)); E(after.n===g.n-1&&after.sheet==='close'&&after.chg,'suite du contrôle incorrecte '+JSON.stringify(after));
+  // suppression d'une séance d'essai lancée (bureau seulement)
+  { const r=await p.evaluate(async()=>{ const h=window.__hs; const s=h.curSession(); const id=s.id; h.S.sheet={type:'livemore'}; h.render(); const b=document.querySelector('[data-act="session-delete"]'); if(!b) return {btn:false}; b.click(); await new Promise(r=>setTimeout(r,400)); return {btn:true,gone:!h.S.sessions[id],view:h.S.view,live:Object.values(h.S.sessions).some(x=>x.status==='live')}; });
+    E(r.btn&&r.gone&&r.view==='home'&&!r.live,'suppression de la séance d\'essai : '+JSON.stringify(r)); }
   console.log('ghosts',g.n,'errors',errs); await b.close(); process.exit(errs.length?1:0);
 })().catch(e=>{console.error(e);process.exit(1);});

@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-11-18 15:48';</script>
+window.HS_VERSION = '2026-11-18 18:29';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -1568,6 +1568,7 @@ function renderSheet(){
     <button class="btn ghost" style="width:100%;margin-bottom:8px" data-act="edit-teams">✎ Modifier les équipes (retardataire, blessé)</button>
     ${s&&s.status==='live'?`<button class="btn ghost" style="width:100%;margin-bottom:8px" data-act="rich-toggle">📊 Stats enrichies (tirs ratés, rebonds) : <b>${s.rich?'activées':'désactivées'}</b></button>`:''}
     ${s&&s.status==='live'&&s.format!=='cent'&&canToCent(s)?`<button class="btn ghost" style="width:100%;margin-bottom:8px" data-act="to-cent">💯 Passer en match à 100 points (les matchs joués deviennent les quart-temps)</button>`:''}
+    ${s&&s.status==='live'&&S.unlocked&&!S.scorer&&!S.demo?`<button class="btn ghost" style="width:100%;margin-bottom:8px;color:var(--bad)" data-act="session-delete" data-id="${s.id}">🗑 Supprimer cette séance (essai, erreur de lancement)</button>`:''}
     ${canUn?`<button class="btn ghost" style="width:100%;margin-bottom:8px;color:var(--bad)" data-act="unlaunch">↩ Annuler le lancement : refaire les présents et les équipes</button>`:`<p class="muted small">Le lancement ne peut plus être annulé : des actions ont été saisies. Un match se corrige depuis son journal.</p>`}
     ${close}</div></div>`; }
   if(sh.type==='paste'){ const rows=sh.rows||[]; const act=Object.values(S.players).filter(p=>p.active!==false).sort((a,b)=>a.name.localeCompare(b.name,'fr')); const opts=sel=>`<option value="">— ignorer —</option><option value="__new" ${sel==='__new'?'selected':''}>+ Nouveau joueur (participant)</option>${act.map(p=>`<option value="${p.id}" ${sel===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}`;
@@ -1826,6 +1827,12 @@ document.addEventListener('click',async ev=>{
     case 'new-session': { const up=Object.values(S.sessions).filter(x=>x.status==='setup'&&x.date>=today()).sort((a,b)=>a.date<b.date?-1:1)[0]; startSetup(up||null); break; }
     case 'open-prep': startSetup(S.sessions[id]); break;
     case 'save-prep': { const st=S.setup; if(!st||!st.present.length) break; const d=$('#sdate'); if(d&&/^\d{4}-\d{2}-\d{2}$/.test(d.value)) st.date=d.value; const pid=st.id||uid(); const prev=S.sessions[pid]||{}; if(prev.status&&prev.status!=='setup'){ toast('Séance déjà lancée : la liste n\'est plus modifiable ici'); S.setup=null; go('home'); break; } const sx=normSession({...prev,id:pid,date:st.date,present:[...st.present],status:'setup',createdAt:prev.createdAt||Date.now()}); if(!sx){ toast('Date invalide'); break; } st.id=pid; saveSession(sx); S.setup=null; toast('Liste enregistrée · '+sx.present.length+' inscrit'+(sx.present.length>1?'s':'')); go('home'); break; }
+    case 'session-delete': { const sx=S.sessions[id]; if(!sx||sx.status!=='live'||!S.unlocked||S.scorer) break; const nEv=(sx.matches||[]).reduce((a,x)=>a+((x.events||[]).length),0);
+      if(!confirm('Supprimer définitivement la séance du '+fmtDate(sx.date)+' ?\n\n'+(nEv?nEv+' action'+(nEv>1?'s':'')+' saisie'+(nEv>1?'s seront perdues':' sera perdue')+'. ':'')+'À utiliser pour un essai ou une séance lancée par erreur, jamais pour un vrai dimanche.')) break;
+      if(nEv>=30&&!confirm('Cette séance contient '+nEv+' actions. Confirmez-vous la suppression ? Elle est irréversible.')) break;
+      stopShot(); clearInterval(S.clockTimer); delete S.sessions[id]; if(S.sid===id) S.sid=null; S.sheet=null; S.astStrip=null; S.rebStrip=null;
+      if(S.db&&!S.demo){ try{ await S.db.doc('sessions/'+id).delete(); toast('Séance supprimée'); }catch(e){ toast('Suppression impossible : vérifiez la connexion'); } }
+      go('home'); break; }
     case 'delete-prep': { const px=S.sessions[id]; if(px&&px.status==='setup'&&confirm('Supprimer la préparation du '+fmtDate(px.date)+' ? (aucun match n\'est concerné)')){ delete S.sessions[id]; if(S.sid===id) S.sid=null; if(S.db&&!S.demo){ try{ await S.db.doc('sessions/'+id).delete(); toast('Préparation supprimée'); }catch(e){ toast('Suppression impossible'); } } render(); } break; }
     case 'unlaunch': { if(!s||s.status!=='live') break; if(s.matches.some(x=>x.events&&x.events.length)){ toast('Des actions ont déjà été saisies : impossible'); break; } if(!confirm('Annuler le lancement ? La séance redevient une liste préparée : présents conservés, équipes à refaire.')) break; stopShot(); clearInterval(S.clockTimer); s.status='setup'; s.matches.forEach(mm=>{ (s.delM=s.delM||{})[matchId(mm)]=Date.now(); }); s.matches=[]; s.nextHome='A'; s.nextAway='B'; TEAMS.forEach(t=>{ if(s.teams[t]){ s.teams[t].players=[]; s.teams[t].captain=null; } }); (s.corrections=s.corrections||[]).push({t:Date.now(),by:S.scorer?'marqueur':'bureau',what:'Lancement annulé, retour à la liste préparée'}); S.sheet=null; saveSession(s); toast('Retour à la liste préparée'); if(!S.scorer) go('home'); else render(); break; }
     case 'cancel-setup': S.setup=null; go(S.scorer?'live':'home'); break;
