@@ -5,7 +5,7 @@ const { chromium } = require('playwright'); const fs=require('fs'); const D='out
   await ctx.route(/gstatic\.com\/firebasejs\//, r=>r.fulfill({contentType:'application/javascript',body:'/* noop */'}));
   await ctx.route(/gstatic\.com\/firebasejs\/.*firebase-app-compat/, r=>r.fulfill({contentType:'application/javascript',body:fake}));
   await ctx.route(/fonts\.googleapis|fonts\.gstatic/, r=>r.fulfill({contentType:'text/css',body:''}));
-  const p=await ctx.newPage(); p.on('dialog',d=>d.accept()); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); const E=(c,m)=>{ if(!c) errs.push(m); };
+  const p=await ctx.newPage(); let promptAns=''; p.on('dialog',d=>d.type()==='prompt'?d.accept(promptAns):d.accept()); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); const E=(c,m)=>{ if(!c) errs.push(m); };
   const shot=async n=>{ await p.waitForTimeout(250); await p.screenshot({path:D+n+'.png',fullPage:true}); };
   await p.goto('http://127.0.0.1:8099/index.html'); await p.waitForTimeout(800);
   // accueil joueur : formulaire replié
@@ -48,5 +48,12 @@ const { chromium } = require('playwright'); const fs=require('fs'); const D='out
       const a={live:/Séance en cours/.test(document.querySelector('#main').innerText),sel:!!document.querySelector('#meSel')}; S.me=Object.values(h.sessionStats(cl[0]).pl).find(x=>x.gp>0).id; h.render(); a.mine=!!document.querySelector('#mySeason');
       delete S.sessions.__lv; S.unlocked=keep.u; S.me=keep.me; S.scorer=keep.sc; h.render(); return a; });
     E(r.live&&r.sel&&r.mine,'pendant une séance en cours, pas de vue joueur : '+JSON.stringify(r)); }
+  // bureau : supprimer une séance clôturée (essai) exige de taper SUPPRIMER
+  { await p.evaluate(()=>{ const h=window.__hs; const S=h.S; const cl=Object.values(S.sessions).filter(x=>x.status==='closed')[0]; S.sessions.__t={...JSON.parse(JSON.stringify(cl)),id:'__t',date:'2099-02-01'}; S.unlocked=true; S.scorer=null; S.sheet=null; S.view='stats'; S.period='session'; S.statSession='__t'; S.sid='__t'; h.render(); });
+    const pick=async()=>{ const b=await p.$('[data-act="session-delete"][data-id="__t"]'); if(b) return b; await p.evaluate(()=>{ const h=window.__hs; const sel=[...document.querySelectorAll('select')].find(s=>[...s.options].some(o=>o.value==='__t')); if(sel){ sel.value='__t'; sel.dispatchEvent(new Event('change',{bubbles:true})); } }); await p.waitForTimeout(200); return p.$('[data-act="session-delete"][data-id="__t"]'); };
+    let b=await pick(); E(!!b,'bouton « supprimer la séance » absent pour le bureau');
+    if(b){ promptAns='non'; await b.click(); await p.waitForTimeout(300); E(await p.evaluate(()=>!!window.__hs.S.sessions.__t),'séance supprimée sans la confirmation tapée');
+      promptAns='supprimer'; b=await pick(); if(b){ await b.click(); await p.waitForTimeout(400); } E(await p.evaluate(()=>!window.__hs.S.sessions.__t),'séance non supprimée après confirmation'); promptAns=''; }
+    await p.evaluate(()=>{ delete window.__hs.S.sessions.__t; }); }
   console.log('errors',errs); await b.close(); process.exit(errs.length?1:0);
 })().catch(e=>{ console.error(String(e).slice(0,500)); process.exit(1); });
