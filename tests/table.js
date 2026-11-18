@@ -50,5 +50,21 @@ const { chromium } = require('playwright'); const BASE=process.env.BASE||'http:/
   p=await open(390,844); await p.evaluate(()=>{ const h=window.__hs; const s=h.curSession(); s.rich=true; h.render(); });
   E(await p.evaluate(()=>!document.querySelector('.lvw')&&[...document.querySelector('.court .prow:not(.bench)').querySelectorAll('.qb')].map(x=>x.dataset.q).join(',')==='pt2,pt3,foul'),'téléphone : la ligne du joueur doit rester +2 / +3 / F');
   await p.click('.court .prow:not(.bench) .pbtn'); await p.waitForTimeout(600); await p.click('.sheet [data-ev="miss2"]'); await p.waitForTimeout(300); E(!!(await p.$('.rebbar'))&&(await last(p,1)).join()==='miss:2','téléphone : tir raté par la fiche');
+  // guidage des lancers : faute en bonus -> « qui tire ? » -> lancer 1 -> lancer 2 -> rebond si le dernier est raté
+  p=await open(1366,768);
+  const foulsTo=(n)=>p.evaluate(n=>{ const h=window.__hs; const s=h.curSession(); const m=h.liveMatch(s); const pid=s.teams[m.away].players[0]; const st=h.matchState?0:0; let c=m.events.filter(e=>e.type==='foul'&&e.team===m.away).length; while(c<n){ h.addEvent(s,m,{type:'foul',team:m.away,pid}); c++; } h.render(); },n);
+  await foulsTo(5); E(!(await p.$('.ftbar')),'pas de guidage avant la faute qui donne des lancers');
+  await p.click(row(2,'foul')); await p.waitForTimeout(450); E(/2 lancers.*qui tire/i.test(await p.innerText('.ftbar').catch(()=>'')),'6e faute : la question « qui tire ? » doit s\'ouvrir');
+  await p.click('.ftbar [data-act="ft-who"]'); await p.waitForTimeout(450); E(/Lancer 1\/2/.test(await p.innerText('.ftbar').catch(()=>'')),'après le choix du tireur : lancer 1/2');
+  await p.click('.ftbar [data-made="1"]'); await p.waitForTimeout(500); E(/Lancer 2\/2/.test(await p.innerText('.ftbar').catch(()=>''))&&(await last(p,1)).join()==='ft:1','lancer 1 réussi puis lancer 2/2 : '+(await last(p,1)));
+  await p.click('.ftbar [data-made="0"]'); await p.waitForTimeout(500); E(!(await p.$('.ftbar'))&&!!(await p.$('.rebbar'))&&(await last(p,2)).join()==='ft:1,ft:0','2e lancer raté : rebond demandé, guidage fermé : '+(await last(p,2)));
+  await p.click('.rebbar [data-act="reb-pick"][data-id=""]'); await p.waitForTimeout(300);
+  // and-one en bonus : panier puis faute -> un seul lancer, pour le marqueur
+  await p.waitForTimeout(400); await p.click(row(1,'pt2')); await p.waitForTimeout(450); await p.click(row(2,'foul')); await p.waitForTimeout(450);
+  E(/Lancer 1\/1/.test(await p.innerText('.ftbar').catch(()=>'')),'and-one : un seul lancer attendu : '+(await p.innerText('.ftbar').catch(()=>'rien')));
+  await p.click('.ftbar [data-made="1"]'); await p.waitForTimeout(500); E(!(await p.$('.ftbar'))&&(await last(p,1)).join()==='ft:1','and-one : guidage fermé après le lancer');
+  // lancers saisis par les boutons de la ligne : le 2e est proposé ; « pas de lancer » ferme
+  await p.waitForTimeout(400); await p.click(row(2,'pt2')); await p.waitForTimeout(13000); await p.click(row(1,'ft1')); await p.waitForTimeout(450); E(/Lancer 2\/2/.test(await p.innerText('.ftbar').catch(()=>'')),'1er lancer direct : le 2e doit être proposé');
+  await p.click('.ftbar [data-act="ft-none"]'); await p.waitForTimeout(300); E(!(await p.$('.ftbar')),'« pas de lancer » doit fermer le guidage'); await p.context().close();
   console.log('errors',errs); await b.close(); process.exit(errs.length?1:0);
 })().catch(e=>{console.error(e);process.exit(1);});

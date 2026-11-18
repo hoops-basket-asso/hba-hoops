@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-11-18 20:18';</script>
+window.HS_VERSION = '2026-11-18 20:58';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -195,7 +195,7 @@ td.name{font-weight:600} tr.me td{background:color-mix(in srgb,var(--accent) 8%,
 .hpod .pn{font-weight:700;font-size:14px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hpod .pv{font-family:var(--display);font-size:22px;line-height:1}.hpod .step{width:100%;border-radius:10px 10px 0 0;background:var(--line);display:flex;align-items:flex-start;justify-content:center;padding-top:6px;font-size:20px;margin-top:4px}
 .hpod.hp1 .step{height:64px;background:linear-gradient(180deg,var(--accent),color-mix(in srgb,var(--accent) 55%,var(--panel)))}.hpod.hp2 .step{height:44px}.hpod.hp3 .step{height:30px}.hpod.hp1 .pv{color:var(--accent);font-size:26px}
 .qb.ql{background:#1E5A43;color:#fff;border-color:#1E5A43}.qb.qm{background:transparent;color:var(--fg);border:2px dashed var(--muted);position:relative}.qb.qm::after{content:'✘';position:absolute;right:4px;top:1px;font-size:10px;color:var(--bad)}.qb.qo{background:transparent;border:1px solid var(--line);color:var(--muted);width:38px}
-.richln{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.35}.richln.low{color:var(--warn)}.astbar.rebbar{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--panel))}.astbar.rebbar .chip.big{border-color:var(--accent)}.rebgs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.rebg .chips{display:flex;flex-wrap:wrap;gap:6px}
+.astbar.ftbar{border-color:#1E5A43}.astbar.ftbar .chip.big{border-color:#1E5A43}.astbar .chip.big.ftok{background:#1E5A43;color:#fff;font-weight:800}.astbar .chip.big.ftko{border:2px dashed var(--bad);font-weight:800}.richln{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.35}.richln.low{color:var(--warn)}.astbar.rebbar{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--panel))}.astbar.rebbar .chip.big{border-color:var(--accent)}.rebgs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.rebg .chips{display:flex;flex-wrap:wrap;gap:6px}
 @media (max-width:560px){.rebgs{grid-template-columns:1fr}}
 @media (min-width:1200px) and (max-width:1320px){.lvw .qb.qo,.lvw .prow.chd .ho{display:none!important}}
 @media (min-width:1200px) and (max-width:1499px){.lvw.rich .qb.qo,.lvw.rich .prow.chd .ho{display:none!important}.lvw.rich .pbtn{min-width:84px}}
@@ -958,6 +958,19 @@ function ftReb(m,pid){ const ev=m.events; let i=ev.length-1, c=0; while(i>=0&&ev
   if(a&&(a.type==='tech'||a.type==='uns')) return false;
   const and1=!!(a&&((a.type==='foul'&&b2&&b2.type==='pt'&&b2.pid===pid&&b2.team!==a.team&&near(a,b2))||(a.type==='pt'&&a.pid===pid&&b&&b.type==='foul'&&b.team!==a.team&&near(a,b))));
   const need=and1?1:2; return c>=need&&(c-need)%2===0; }
+// lancers restant à tirer dans la série en cours du joueur (0 si elle est finie, ou après une technique / antisportive)
+function ftLeft(m,pid){ const ev=m.events; let i=ev.length-1, c=0; while(i>=0&&ev[i].type==='ft'&&ev[i].pid===pid){ c++; i--; } if(!c) return 0; let k=i; while(k>=0&&ev[k].type==='ast') k--; const a=ev[k]; if(a&&(a.type==='tech'||a.type==='uns')) return 0;
+  if(ftReb(m,pid)) return 0; return 1; }
+// (écran large seulement : sur téléphone le bandeau cacherait les joueurs)
+// guidage des lancers : après une faute qui donne des lancers (« qui tire ? »), puis lancer par lancer
+function setFt(o){ S.ftStrip=o; clearTimeout(S.ftTimer); if(o) S.ftTimer=setTimeout(()=>{ S.ftStrip=null; render(); },40000); }
+function armFtFoul(s,m,team){ if(!wide()) return false; const st=matchState(m,s); if(!(st.bonus&&st.bonus[team])) return false; const o=team===m.home?m.away:m.home; const ev=m.events; let k=ev.length-2; while(k>=0&&ev[k].type==='ast') k--; const pv=ev[k], f=ev[ev.length-1];
+  const and1=!!(pv&&pv.type==='pt'&&pv.team===o&&Math.abs((f.t||0)-(pv.t||0))<=8000); setFt(and1?{mode:'shot',team:o,pid:pv.pid,k:1,of:1,n:ev.length}:{mode:'who',team:o,of:2,n:ev.length}); return true; }
+function afterFt(s,m,team,pid,made){ const left=wide()?ftLeft(m,pid):0; if(left>0){ let c=0; for(let i=m.events.length-1;i>=0&&m.events[i].type==='ft'&&m.events[i].pid===pid;i--) c++; setFt({mode:'shot',team,pid,k:c+1,of:c+left,n:m.events.length}); return; }
+  setFt(null); if(!made&&s.rich&&liveMatch(s)===m&&ftReb(m,pid)) armReb(m,team); else toastUndo('Lancer '+(made?'réussi':'raté')+' · '+pname(pid)); }
+function ftHtml(){ const a=S.ftStrip; if(!a) return ''; const s=curSession(); const m=s&&liveMatch(s); if(!m||a.n!==m.events.length||S.view!=='live'||!canScore()) return ''; const st=matchState(m,s); const tn=s.teams[a.team].name||TNAMES[a.team];
+  if(a.mode==='who') return `<div class="astbar ftbar"><div class="row" style="gap:8px"><b style="font-size:15px">🎯 ${a.of} lancers pour ${esc(tn)} · qui tire ?</b></div><div class="chips" style="margin-top:8px">${st.on[a.team].map(p=>`<button class="chip big" data-act="ft-who" data-id="${p}">${esc(pfirst(p))}</button>`).join('')}<button class="chip big none" data-act="ft-none">Pas de lancer</button></div></div>`;
+  return `<div class="astbar ftbar"><div class="row" style="gap:8px"><b style="font-size:15px">🎯 Lancer ${a.k}/${a.of} · ${esc(pfirst(a.pid))}</b><span class="small" style="margin-left:auto;opacity:.8">${a.of===1&&a.k===1?'panier accordé + 1 lancer':esc(tn)}</span></div><div class="chips" style="margin-top:8px"><button class="chip big ftok" data-act="ft-go" data-made="1">✔ Réussi</button><button class="chip big ftko" data-act="ft-go" data-made="0">✘ Raté</button><button class="chip big none" data-act="ft-none" style="flex:0 1 auto">Pas de lancer</button></div></div>`; }
 // compteur de la saisie enrichie : rappelle les tirs ratés quand ils manquent (en loisir on rate plus qu'on ne marque)
 function richLine(s){ if(!s||!s.rich) return ''; let pt=0,mi=0,rb=0,st=0; (s.matches||[]).forEach(x=>(x.events||[]).forEach(e=>{ if(e.type==='pt') pt++; else if(e.type==='miss') mi++; else if(e.type==='reb') rb++; else if(e.type==='stl') st++; }));
   const low=pt>=6&&mi<pt; return `<div class="richln ${low?'low':''}">Saisie du jour · <b>${pt}</b> paniers · <b>${mi}</b> ratés · <b>${rb}</b> rebonds · <b>${st}</b> vols${low?'<br><b>⚠ Peu de tirs ratés saisis.</b> Pensez aux boutons en pointillés.':''}</div>`; }
@@ -1019,7 +1032,7 @@ function renderInner(){
   const V={home:vHome,setup:vSetup,live:vLive,stats:vStats,players:vPlayers,share:vShare,treasury:vTreasury,discipline:vDiscipline,settings:vSettings}[S.view]||vHome;
   main.classList.toggle('enter',S._lastView!==S.view); S._lastView=S.view;
   main.innerHTML=(S.demo?`<div class="demo">Mode démo : données fictives, rien n'est enregistré. <button class="btn sm ghost" data-act="demo-off">Quitter la démo</button></div>`:'')+V();
-  { const ov=$('#overlay'); const sheetKey=S.sheet?JSON.stringify([S.sheet.type,S.sheet.pid,S.sheet.sid,S.sheet.i,S.sheet.kind]):''; if(sheetKey&&sheetKey!==S._lastSheetKey) S.sheetAt=Date.now(); S._lastSheetKey=sheetKey; const old=ov.querySelector('.sheet'); const st=old?old.scrollTop:0; ov.innerHTML=(S.sheet?renderSheet():'')+astHtml()+rebHtml()+toastHtml(); const nw=ov.querySelector('.sheet'); if(nw){ if(sheetKey===S._lastSheet){ nw.style.animation='none'; nw.scrollTop=st; } } S._lastSheet=sheetKey; }
+  { const ov=$('#overlay'); const sheetKey=S.sheet?JSON.stringify([S.sheet.type,S.sheet.pid,S.sheet.sid,S.sheet.i,S.sheet.kind]):''; if(sheetKey&&sheetKey!==S._lastSheetKey) S.sheetAt=Date.now(); S._lastSheetKey=sheetKey; const old=ov.querySelector('.sheet'); const st=old?old.scrollTop:0; ov.innerHTML=(S.sheet?renderSheet():'')+astHtml()+rebHtml()+ftHtml()+toastHtml(); const nw=ov.querySelector('.sheet'); if(nw){ if(sheetKey===S._lastSheet){ nw.style.animation='none'; nw.scrollTop=st; } } S._lastSheet=sheetKey; }
   restoreForms(forms);
   if(S.view==='players'&&S.pq){ const inp=$('#pq2'); if(inp){ inp.value=S.pq; inp.dispatchEvent(new Event('input',{bubbles:true})); } }
   manageClock();
@@ -1790,8 +1803,8 @@ document.addEventListener('click',async ev=>{
   if(el.dataset.sort){ const k=el.dataset.sort; S.sort = S.sort.k===k? {k,d:-S.sort.d} : {k,d:-1}; render(); return; }
   const s=curSession(); const m=liveMatch(s);
   if(el.dataset.ev&&m&&S.sheet&&S.sheet.type==='player'){ const {pid,team}=S.sheet; const e=el.dataset.ev; S.sheet=null;
-    if(e==='pt2'||e==='pt3'){ addEvent(s,m,{type:'pt',team,pid,v:e==='pt2'?2:3}); if(!S.sheet&&S.config.assists!==false){ const st=matchState(m,s); const mates=st.on[team].filter(x=>x!==pid); if(mates.length) S.sheet={type:'assist',team,scorer:pid,mates}; } } else if(e==='ft1') addEvent(s,m,{type:'ft',team,pid,made:true}); else if(e==='ft0'){ addEvent(s,m,{type:'ft',team,pid,made:false}); if(s.rich&&liveMatch(s)===m&&ftReb(m,pid)) armReb(m,team); } else if(e==='miss2'||e==='miss3'){ addEvent(s,m,{type:'miss',team,pid,v:e==='miss2'?2:3}); armReb(m,team); render(); return; } else if(e==='stl') addEvent(s,m,{type:'stl',team,pid}); else if(e==='reb'){ const lm=[...m.events].reverse().find(x=>x.type==='miss'||(x.type==='ft'&&!x.made)); const off=!!(lm&&lm.team===team); addEvent(s,m,{type:'reb',team,pid,off}); S.sheet=null; toastUndo('Rebond '+(off?'offensif':'défensif')+' · '+pname(pid)); render(); return; }
-    else if(e==='foul') addEvent(s,m,{type:'foul',team,pid}); else if(e==='tech'||e==='uns'){ S.sheet={type:'confirm',kind:e,pid,team}; render(); return; } else if(e==='subout'){ S.subOut=pid; S.subTeam=team; }
+    if(e==='pt2'||e==='pt3'){ addEvent(s,m,{type:'pt',team,pid,v:e==='pt2'?2:3}); if(!S.sheet&&S.config.assists!==false){ const st=matchState(m,s); const mates=st.on[team].filter(x=>x!==pid); if(mates.length) S.sheet={type:'assist',team,scorer:pid,mates}; } } else if(e==='ft1'||e==='ft0'){ addEvent(s,m,{type:'ft',team,pid,made:e==='ft1'}); afterFt(s,m,team,pid,e==='ft1'); render(); return; } else if(e==='miss2'||e==='miss3'){ addEvent(s,m,{type:'miss',team,pid,v:e==='miss2'?2:3}); armReb(m,team); render(); return; } else if(e==='stl') addEvent(s,m,{type:'stl',team,pid}); else if(e==='reb'){ const lm=[...m.events].reverse().find(x=>x.type==='miss'||(x.type==='ft'&&!x.made)); const off=!!(lm&&lm.team===team); addEvent(s,m,{type:'reb',team,pid,off}); S.sheet=null; toastUndo('Rebond '+(off?'offensif':'défensif')+' · '+pname(pid)); render(); return; }
+    else if(e==='foul'){ addEvent(s,m,{type:'foul',team,pid}); if(armFtFoul(s,m,team)){ render(); return; } } else if(e==='tech'||e==='uns'){ S.sheet={type:'confirm',kind:e,pid,team}; render(); return; } else if(e==='subout'){ S.subOut=pid; S.subTeam=team; }
     if(e!=='subout'){ const last=m.events[m.events.length-1]; if(last&&!S.sheet) toastUndo(evLabel(last,s).replace(/<[^>]+>/g,'')); }
     render(); return; }
   if(el.dataset.win&&m){ endMatch(s,m,el.dataset.win); go('live'); return; }
@@ -1880,13 +1893,15 @@ document.addEventListener('click',async ev=>{
     case 'undo': if(Date.now()-(S._undoAt||0)<700) break; S._undoAt=Date.now(); haptic([15,30,15,30,15]); S.astStrip=null; clearTimeout(S.astTimer); S.rebStrip=null; clearTimeout(S.rebTimer); if(m&&m.events.length){ const e=m.events.pop(); saveSession(s,['matches','nextHome','nextAway']); toast('Annulé : '+evLabel(e,s).replace(/<[^>]+>/g,'')); checkResume(s,m); render(); } break;
     case 'quick': { if(!canScore()||!m) break; const team=el.dataset.team, pid=id, e=el.dataset.q; if(S.astStrip&&S.astStrip.endAfter){ S.astStrip=null; clearTimeout(S.astTimer); S.sheet={type:'end'}; render(); break; } S.astStrip=null; clearTimeout(S.astTimer);
       S.rebStrip=null; clearTimeout(S.rebTimer);
-      if(e==='foul'){ addEvent(s,m,{type:'foul',team,pid}); toastUndo('Faute · '+pname(pid)); }
-      else if(e==='ft1'){ addEvent(s,m,{type:'ft',team,pid,made:true}); toastUndo('Lancer réussi · '+pname(pid)); }
-      else if(e==='ft0'){ addEvent(s,m,{type:'ft',team,pid,made:false}); if(s.rich&&liveMatch(s)===m&&ftReb(m,pid)) armReb(m,team); else toastUndo('Lancer raté · '+pname(pid)); }
+      if(e==='foul'){ addEvent(s,m,{type:'foul',team,pid}); if(!armFtFoul(s,m,team)) toastUndo('Faute · '+pname(pid)); }
+      else if(e==='ft1'||e==='ft0'){ addEvent(s,m,{type:'ft',team,pid,made:e==='ft1'}); afterFt(s,m,team,pid,e==='ft1'); }
       else if(e==='miss2'||e==='miss3'){ addEvent(s,m,{type:'miss',team,pid,v:e==='miss2'?2:3}); armReb(m,team); }
       else if(e==='stl'){ addEvent(s,m,{type:'stl',team,pid}); toastUndo('Interception · '+pname(pid)); }
       else { addEvent(s,m,{type:'pt',team,pid,v:e==='pt2'?2:3}); const st=matchState(m,s); const mates=st.on[team].filter(x=>x!==pid); if(S.config.assists!==false&&mates.length){ S.astStrip={team,scorer:pid,mates,v:e==='pt2'?2:3,n:m.events.length,until:Date.now()+12000,endAfter:!!S._endPending}; S._endPending=false; clearTimeout(S.astTimer); S.astTimer=setTimeout(()=>{ const a=S.astStrip; S.astStrip=null; if(a&&a.endAfter) S.sheet={type:'end'}; render(); },12000); } else toastUndo('+'+(e==='pt2'?2:3)+' · '+pname(pid)); }
       render(); break; }
+    case 'ft-who': { const a=S.ftStrip; if(a&&m&&a.n===m.events.length&&id) setFt({mode:'shot',team:a.team,pid:id,k:1,of:a.of,n:a.n}); render(); break; }
+    case 'ft-go': { const a=S.ftStrip; if(a&&m&&a.mode==='shot'&&a.n===m.events.length&&canScore()){ if(Date.now()-(S._ftAt||0)<400) break; S._ftAt=Date.now(); const made=el.dataset.made==='1'; addEvent(s,m,{type:'ft',team:a.team,pid:a.pid,made}); afterFt(s,m,a.team,a.pid,made); } render(); break; }
+    case 'ft-none': setFt(null); render(); break;
     case 'reb-pick': { if(S.rebStrip&&m){ S.rebStrip=null; clearTimeout(S.rebTimer); if(id){ addEvent(s,m,{type:'reb',team:el.dataset.team,pid:id,off:el.dataset.off==='1'}); toastUndo('Rebond '+(el.dataset.off==='1'?'offensif':'défensif')+' · '+pname(id)); } } render(); break; }
     case 'rich-toggle': { const s1=curSession(); if(s1&&canScore()){ s1.rich=!s1.rich; (s1.matches||[]).forEach(x=>delete x._memo); S._cache.stats={}; saveSession(s1,['rich']); toast(s1.rich?'Stats enrichies activées : tirs ratés, rebonds, interceptions':'Stats enrichies désactivées'); } S.sheet=null; render(); break; }
     case 'ast-pick': { if(S.astStrip&&m){ const {team,endAfter}=S.astStrip; S.astStrip=null; clearTimeout(S.astTimer); if(id) addEvent(s,m,{type:'ast',team,pid:id}); if(endAfter&&!S.sheet) S.sheet={type:'end'}; } render(); break; }
@@ -1987,7 +2002,7 @@ document.addEventListener('click',async ev=>{
   } }catch(err){ console.error(err); toast('Action impossible : '+(err&&err.message||err)); render(); }
 });
 window.addEventListener('error',e=>{ console.error(e.error||e.message); }); window.addEventListener('unhandledrejection',e=>{ console.error(e.reason); toast('Une action a échoué : '+((e.reason&&e.reason.message)||'erreur')); });
-window.__hs={S,mergeSession,matchId,saveSession,teamOfDay,todCounts,defRate,defOff,defLabel,comboStats,att10,winMin,impPerMatch,impLabel,impOk,ladderImage,ladderOf,seasonLadderSessions,noteParts,shareOf,duoStats,summaryText,summaryImage,monthAwards,matchState,addEvent,ftReb,ghosts,startMatch,endMatch,mergePlayers,savePlayer,nextSession,cashState,hoursUsed,sundays,saveCalendar,dayInfo,parsePasteList,matchPasteName,similarPlayers,curSession,liveMatch,elapsed,remaining,manageClock,render,startSession,aggregate,mvpScore,pname,sessionStats};
+window.__hs={S,mergeSession,matchId,saveSession,teamOfDay,todCounts,defRate,defOff,defLabel,comboStats,att10,winMin,impPerMatch,impLabel,impOk,ladderImage,ladderOf,seasonLadderSessions,noteParts,shareOf,duoStats,summaryText,summaryImage,monthAwards,matchState,addEvent,ftReb,ftLeft,ghosts,startMatch,endMatch,mergePlayers,savePlayer,nextSession,cashState,hoursUsed,sundays,saveCalendar,dayInfo,parsePasteList,matchPasteName,similarPlayers,curSession,liveMatch,elapsed,remaining,manageClock,render,startSession,aggregate,mvpScore,pname,sessionStats};
 boot();
 })();
 </script>
