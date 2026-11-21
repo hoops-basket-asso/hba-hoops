@@ -1,0 +1,49 @@
+# Prévient l'appli Android quand la note de mise à niveau change.
+# Un ticket est ouvert à chaque envoi qui modifie docs/MISE-A-NIVEAU-ANDROID.md, et seulement dans ce cas.
+# La personne à prévenir se règle dans Settings > Secrets and variables > Actions > Variables : ANDROID_CONTACT (identifiant GitHub, sans @).
+name: Note de mise à niveau Android
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/MISE-A-NIVEAU-ANDROID.md'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  ticket:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Ouvrir le ticket
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONTACT: ${{ vars.ANDROID_CONTACT }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          F=docs/MISE-A-NIVEAU-ANDROID.md
+          if ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then BEFORE="$AFTER~1"; fi
+          git diff "$BEFORE" "$AFTER" -- "$F" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)' | head -80 > /tmp/diff.txt || true
+          if [ ! -s /tmp/diff.txt ]; then echo "Aucun changement de contenu."; exit 0; fi
+          {
+            if [ -n "$CONTACT" ]; then echo "Bonjour @$CONTACT,"; else echo "Bonjour,"; fi
+            echo
+            echo "La note de mise à niveau de l'appli Android vient de changer. Voici les lignes ajoutées (+) et retirées (-) :"
+            echo
+            echo '```diff'
+            cat /tmp/diff.txt
+            echo '```'
+            echo
+            echo "La note complète : https://github.com/$REPO/blob/main/$F"
+            echo
+            echo "Ce ticket peut être fermé quand l'appli Android est alignée."
+          } > /tmp/body.md
+          gh label create android --repo "$REPO" --color 4156A7 --description "Mise à niveau de l'appli Android" 2>/dev/null || true
+          gh issue create --repo "$REPO" --title "Appli Android : mise à niveau du $(date +%d/%m/%Y)" --body-file /tmp/body.md --label android
