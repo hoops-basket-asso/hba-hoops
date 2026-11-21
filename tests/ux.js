@@ -55,5 +55,11 @@ const { chromium } = require('playwright'); const fs=require('fs'); const D='out
     if(b){ promptAns='non'; await b.click(); await p.waitForTimeout(800); E(await p.evaluate(()=>!!window.__hs.S.sessions.__t),'séance supprimée sans la confirmation tapée');
       promptAns='supprimer'; b=await pick(); if(b){ await b.click(); await p.waitForTimeout(400); } E(await p.evaluate(()=>!window.__hs.S.sessions.__t),'séance non supprimée après confirmation'); promptAns=''; }
     await p.evaluate(()=>{ delete window.__hs.S.sessions.__t; }); }
+  // écran d'ordinateur : l'accueil, les stats et les joueurs occupent la largeur, sans déborder ; retour au téléphone intact
+  { await p.setViewportSize({width:1440,height:860}); const wide=async(v)=>{ await p.evaluate(v=>{ const h=window.__hs; h.S.sheet=null; h.S.view=v; h.render(); },v); await p.waitForTimeout(350); return p.evaluate(()=>{ const m=document.querySelector('#main'); const k=[...m.children].filter(e=>e.getBoundingClientRect().height>0); return {w:m.getBoundingClientRect().width,cols:new Set(k.map(e=>Math.round(e.getBoundingClientRect().left))).size,ov:document.documentElement.scrollWidth-window.innerWidth}; }); };
+    const h1=await wide('home'); E(h1.w>=1200&&h1.cols>=2&&h1.ov<=1,'grand écran : accueil en deux colonnes attendu : '+JSON.stringify(h1));
+    const s1=await wide('stats'); E(s1.w>=1200&&s1.ov<=1,'grand écran : stats trop étroites ou qui débordent : '+JSON.stringify(s1));
+    const p1=await wide('players'); E(p1.w>=1200&&p1.ov<=1&&await p.evaluate(()=>{ const r=[...document.querySelectorAll('#plist>*')]; return new Set(r.map(e=>Math.round(e.getBoundingClientRect().left))).size>=2; }),'grand écran : liste des joueurs en colonnes attendue');
+    await p.setViewportSize({width:390,height:844}); const h2=await wide('home'); E(h2.cols===1&&h2.ov<=1,'téléphone : l\'accueil doit rester sur une colonne : '+JSON.stringify(h2)); }
   console.log('errors',errs); await b.close(); process.exit(errs.length?1:0);
 })().catch(e=>{ console.error(String(e).slice(0,500)); process.exit(1); });
