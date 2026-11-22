@@ -461,9 +461,9 @@ function notePick(rows,nSess,minGp){ const el=rows.filter(r=>r.gp>=minGp); if(!e
 function mvpPickPM(rows,minGp){ const n=Math.max(1,...rows.map(r=>r.sessions||1)); return notePick(rows,n,minGp); }
 function mvpPickPM_old(rows,minGp){ return [...rows].filter(r=>r.gp>=minGp).map(r=>({r,v:mvpScore(r)/r.gp,tot:mvpScore(r)})).sort((a,b)=>b.v-a.v||b.r.pts-a.r.pts)[0]||null; }
 // récompenses avec seuils : 'day' = séance (3 matchs), 'season' = cumul (10 matchs, ou la moitié du maximum en début de saison)
-function leaders(rows,scope){ const min=scope==='day'?MIN_DAY:seasonMin(rows); const ok=rows.filter(r=>(r.gp||0)>=min); const best=(f,cond)=>{ const c=ok.filter(r=>!cond||cond(r)); return c.length?[...c].sort((a,b)=>f(b)-f(a))[0]:null; };
+function leaders(rows,scope,sess){ const min=scope==='day'?MIN_DAY:seasonMin(rows); const ok=rows.filter(r=>(r.gp||0)>=min); const best=(f,cond)=>{ const c=ok.filter(r=>!cond||cond(r)); return c.length?[...c].sort((a,b)=>f(b)-f(a))[0]:null; };
   const o={min,n:ok.length};
-  o.mvp=scope==='day'?mvpPick(ok):mvpPickPM(ok,min);
+  o.mvp=scope==='day'?mvpOf(sess,ok):mvpPickPM(ok,min);
   o.scorer=best(r=>perM(r,'pts'),r=>r.pts>0); o.passer=best(r=>perM(r,'ast'),r=>(r.ast||0)>=(scope==='day'?3:10)); o.sniper=best(r=>r.fg3,r=>r.fg3>0);
   o.impact=scope==='day'?null:best(r=>impPerMatch(r),r=>impOk(r)&&impPerMatch(r)>0);
   o.ft=best(r=>pct(r.ftm,r.fta),r=>r.fta>=(scope==='day'?6:15));
@@ -471,6 +471,8 @@ function leaders(rows,scope){ const min=scope==='day'?MIN_DAY:seasonMin(rows); c
   o.tech=rows.reduce((a,r)=>a+(r.tech||0),0); o.uns=rows.reduce((a,r)=>a+(r.uns||0),0);
   return o; }
 function ptsLabel(r){ return fmt1(perM(r,'pts'))+' pts/match · '+r.pts+' pts en '+r.gp+' match'+(r.gp>1?'s':''); }
+// MVP officiel : s.mvp = id du joueur annoncé le jour même. Une correction de données faite ensuite ne retire pas le titre ; la note, elle, reste calculée.
+function mvpOf(s,rows,minGp){ const p=mvpPick(rows,minGp); const id=s&&s.mvp; if(!id) return p; const r=rows.find(x=>x.id===id); if(!r) return p; const mg=minGp!=null?minGp:Math.min(MIN_DAY,Math.max(1,...rows.map(x=>x.gp||0))); const el=rows.filter(x=>x.gp>=mg); const N=noteParts(el.includes(r)?el:[...el,r],1); return {r,v:(N[r.id]||{}).note||0,parts:N[r.id],official:true}; }
 function mvpPick(rows,minGp){ const mg=minGp!=null?minGp:Math.min(MIN_DAY,Math.max(1,...rows.map(r=>r.gp||0))); return notePick(rows,1,mg); }
 function mvpLabel(x){ return `note ${noteLabel(x.v)} · ${x.r.pts} pts, ${x.r.ast||0} PD, ${x.r.w} V en ${x.r.gp} matchs`; }
 function aggregate(sessions){
@@ -625,7 +627,7 @@ function summaryText(sess){
   const ss=sessionStats(sess); const rows=Object.values(ss.pl);
   const tRank=teamRank(ss);
   const top=[...rows].sort((a,b)=>perM(b,'pts')-perM(a,'pts')||b.pts-a.pts);
-  const LD=leaders(rows,'day'); const sniper=LD.sniper, pm=LD.impact, ft=LD.ft; const tech=LD.tech, uns=LD.uns;
+  const LD=leaders(rows,'day',sess); const sniper=LD.sniper, pm=LD.impact, ft=LD.ft; const tech=LD.tech, uns=LD.uns;
   const tn=t=>sess.teams[t].name||TNAMES[t];
   const L=[];
   L.push('🏀 HOOPS DU DIMANCHE — '+fmtDate(sess.date));
@@ -672,7 +674,7 @@ async function summaryImage(sess){
   else { const n=Math.max(1,tRank.length), bw=(W-128-16*(n-1))/n, bh=150; tRank.forEach(([t,v],i)=>{ const bx=64+i*(bw+16); card(bx,y,bw,bh,22); dot(t,bx+36,y+42,12);
       F(700,26); x.fillStyle=C.TXT; x.fillText(fit(tn(t),bw-70),bx+58,y+51); F(800,56,true); x.fillStyle=i===0&&!sess.teamsApprox?C.OR2:C.TXT; x.fillText(v.w+' – '+v.l,bx+24,y+116); const cap=sess.teams[t]&&sess.teams[t].captain; if(cap){ F(500,18); x.fillStyle=C.MUT; x.fillText(fit('cap. '+pname(cap),bw-48),bx+24,y+140); } }); y+=bh+40; }
   // MVP du jour
-  const LD=leaders(rows,'day'); const mv=LD.mvp; if(mv){ const r=mv.r; const mh=176; card(64,y,W-128,mh,26); x.save(); rr(64,y,W-128,mh,26); x.clip(); x.fillStyle=C.GOLD; x.fillRect(64,y,8,mh); x.restore();
+  const LD=leaders(rows,'day',sess); const mv=LD.mvp; if(mv){ const r=mv.r; const mh=176; card(64,y,W-128,mh,26); x.save(); rr(64,y,W-128,mh,26); x.clip(); x.fillStyle=C.GOLD; x.fillRect(64,y,8,mh); x.restore();
     F(400,24); x.fillStyle=C.TXT; x.fillText('👑',104,y+52); F(700,20); x.fillStyle=C.GOLD; K.spaced('MVP DU JOUR',144,y+50,3);
     const PHm=await loadPhotos([r.id]); const pm0=PHm[r.id]?112:0; if(pm0){ x.save(); x.beginPath(); x.arc(104+46,y+104,46,0,7); x.clip(); x.drawImage(PHm[r.id],104,y+58,92,92); x.restore(); x.strokeStyle=C.GOLD; x.lineWidth=3; x.beginPath(); x.arc(104+46,y+104,46,0,7); x.stroke(); }
     F(800,76,true); x.fillStyle=C.TXT; x.fillText(fit(pname(r.id),W-128-330-pm0),100+pm0,y+122); const nk=nick(r.id); F(500,22); x.fillStyle=C.MUT;
@@ -997,7 +999,7 @@ function vHome(){
   h+=`</div>`; }
   h+=`<div class="card"><h2>Séances passées</h2>`;
   if(!past.length) h+=`<div class="empty">Aucune séance enregistrée. La première apparaîtra ici avec ses équipes, ses matchs et son MVP.${!S.demo?'<br><button class="btn sm ghost" data-act="demo-on" style="margin-top:10px">Voir une démo avec des données fictives</button>':''}</div>`;
-  else h+=past.slice(0,S.homeAll?30:3).map(s=>{ const ss=sessionStats(s); const mvx=mvpPick(Object.values(ss.pl)); const top=mvx?{id:mvx.r.id,pts:mvx.r.pts}:null; const tw=teamRank(ss)[0];
+  else h+=past.slice(0,S.homeAll?30:3).map(s=>{ const ss=sessionStats(s); const mvx=mvpOf(s,Object.values(ss.pl)); const top=mvx?{id:mvx.r.id,pts:mvx.r.pts}:null; const tw=teamRank(ss)[0];
     return `<div class="lead" style="cursor:pointer" data-act="stats-of" data-id="${s.id}"><div class="dblk"><b>${+s.date.slice(8,10)}</b><span>${esc(new Date(s.date+'T12:00:00').toLocaleDateString('fr-FR',{month:'short'}).replace('.',''))}</span></div><div class="grow"><div class="who">${top&&!s.excluded?'👑 '+esc(pname(top.id)):s.excluded?'Hors stats':esc(fmtDate(s.date))}</div><div class="what">${s.format==='cent'?'Match à 100 · '+ss.done+' quart-temps':ss.done+' match'+(ss.done>1?'s':'')} · ${ss.players} joueurs${tw&&!s.teamsApprox?' · 🏆 '+esc(s.teams[tw[0]].name||TNAMES[tw[0]]):''}${s.teamsApprox&&!s.excluded?' · ⚠️ classement approx.':''}</div></div><div class="big muted">›</div></div>`; }).join('');
   if(past.length>3) h+=`<button class="btn sm ghost" style="width:100%;margin-top:8px" data-act="home-all">${S.homeAll?'Réduire ▲':'Voir les '+Math.min(30,past.length)+' séances ▼'}</button>`;
   h+=`</div>`;
@@ -1053,7 +1055,7 @@ function mySeasonCard(me,season,rows){ const r=rows.find(x=>x.id===me.id); const
   <div class="row" style="margin-top:10px"><button class="btn primary grow" data-act="player-detail" data-id="${me.id}">Ma fiche complète</button></div></div>`; }
 function collectifCard(past,season,rows){ if(!rows.length) return ''; const L=ladderOf([...season].sort((a,b)=>a.date<b.date?-1:1)); const medal=['🥇','🥈','🥉'];
   const ma=monthAwards(); const potm=[...ma].reverse().find(x=>x.done&&x.win); const top=(f)=>[...rows].filter(r=>f(r)>0).sort((a,b)=>f(b)-f(a))[0]; const sc=top(r=>r.pts), pa=top(r=>r.ast||0), sn=top(r=>r.fg3||0);
-  const last=past[0]; let lastTxt=''; if(last){ const ss=sessionStats(last); const tw=teamRank(ss)[0]; const mv=mvpPick(Object.values(ss.pl)); lastTxt=`${esc(fmtShort(last.date))} · ${ss.done} ${last.format==='cent'?'quart-temps':'matchs'}${tw&&!last.teamsApprox?' · 🏆 '+esc(last.teams[tw[0]].name||TNAMES[tw[0]]):''}${mv?' · 👑 '+esc(pname(mv.r.id)):''}`; }
+  const last=past[0]; let lastTxt=''; if(last){ const ss=sessionStats(last); const tw=teamRank(ss)[0]; const mv=mvpOf(last,Object.values(ss.pl)); lastTxt=`${esc(fmtShort(last.date))} · ${ss.done} ${last.format==='cent'?'quart-temps':'matchs'}${tw&&!last.teamsApprox?' · 🏆 '+esc(last.teams[tw[0]].name||TNAMES[tw[0]]):''}${mv?' · 👑 '+esc(pname(mv.r.id)):''}`; }
   const line=(ic,lab,pid,v)=>`<div class="lead" data-act="player-detail" data-id="${pid}" style="cursor:pointer"><div class="ico">${ic}</div><div><div class="who">${esc(pname(pid))}</div><div class="what">${lab}</div></div><div class="big num" style="font-size:18px">${v}</div></div>`;
   const pod=(e,i)=>e?`<button class="hpod hp${i+1}" data-act="player-detail" data-id="${e.r.id}">${pavatar(e.r.id,i===0?64:52)}<span class="pn">${esc(pfirst(e.r.id))}</span><span class="pv num">${fmtN(e.note)}</span><span class="step">${medal[i]}</span></button>`:'<span></span>';
   return `<div class="card" id="collectif"><div class="row"><h2 class="grow">Le podium</h2><span class="muted small">${season.length} dimanche${season.length>1?'s':''} · note sur 10</span></div>
@@ -1112,7 +1114,7 @@ function vLive(){
     h+=`<div class="card"><div class="row"><span class="pill live">● Match à 100 points</span><span class="muted small">${esc(fmtDate(s.date))}</span></div><h2 style="margin-top:8px">${done.length?`${esc(tn('A'))} ${cum.A||0} – ${cum.B||0} ${esc(tn('B'))}`:'Prêt à commencer'}</h2>${done.map(x=>{ const st=matchState(x,s); return `<div class="small">QT ${x.quarter} : ${st.score[x.home]} – ${st.score[x.away]}${x.winner?' · '+esc(tn(x.winner))+' atteint '+x.target:''}</div>`; }).join('')}
     ${rw?(done.length<4?`<button class="btn primary" style="width:100%;margin-top:12px" data-act="start-match-cent">${done.length?'Quart-temps '+(done.length+1):'Engagement'}</button>`:`<p class="small" style="margin-top:8px">Match terminé.</p>`)+`<div class="row" style="margin-top:8px"><button class="btn ghost sm" style="color:var(--bad)" data-act="incident-for">🚩 Incident</button><button class="btn ghost sm" data-act="edit-teams">Modifier les équipes</button><button class="btn ghost sm" data-act="undo-match" ${done.length?'':'disabled'}>Rouvrir le dernier quart-temps</button>${S.scorer?'':`<button class="btn danger sm" data-act="close-session">Clôturer la séance</button>`}${fbMode()&&S.unlocked?`<button class="btn ghost sm" data-act="scorer-links" data-id="${s.id}">🔗 Lien marqueur</button>`:''}</div>`:''}</div>`;
     if((s.incidents||[]).length) h+=`<div class="card"><h3>Incidents signalés aujourd'hui</h3>${s.incidents.map(i=>`<div class="lead"><div class="ico">🚩</div><div><div class="who">${esc(pname(i.pid))}</div><div class="what">${esc((INCIDENTS.find(x=>x[0]===i.kind)||[])[1]||i.kind)}${i.matchN?' · QT '+i.matchN:''}${i.note?' · '+esc(i.note):''}</div></div></div>`).join('')}</div>`;
-    h+=teamTable(s,ss)+leadersCard(ss,'Du jour'); return h; }
+    h+=teamTable(s,ss)+leadersCard(ss,'Du jour',s); return h; }
   if(!m){
     // between matches
     const last=s.matches.filter(x=>x.status==='done').slice(-1)[0];
@@ -1126,7 +1128,7 @@ function vLive(){
       <div class="row" style="margin-top:8px"><button class="btn ghost sm" style="color:var(--bad)" data-act="incident-for">🚩 Incident</button><button class="btn ghost sm" data-act="edit-teams">Modifier les équipes</button><button class="btn ghost sm" data-act="undo-match" ${last?'':'disabled'}>Annuler le dernier match</button>${S.scorer?'':`<button class="btn danger sm" data-act="close-session">Clôturer la séance</button>`}${fbMode()&&S.unlocked?`<button class="btn ghost sm" data-act="scorer-links" data-id="${s.id}">🔗 Lien marqueur</button>`:''}</div>`; }
     h+=`</div>`;
     if((s.incidents||[]).length) h+=`<div class="card"><h3>Incidents signalés aujourd'hui</h3>${s.incidents.map(i=>`<div class="lead"><div class="ico">🚩</div><div><div class="who">${esc(pname(i.pid))}</div><div class="what">${esc((INCIDENTS.find(x=>x[0]===i.kind)||[])[1]||i.kind)}${i.matchN?' · match '+i.matchN:''}${i.note?' · '+esc(i.note):''} · ${i.status==='open'?'à traiter par le bureau':i.status==='sanctioned'?'sanctionné':'classé'}</div></div></div>`).join('')}</div>`;
-    h+=teamTable(s,ss)+leadersCard(ss,'Du jour');
+    h+=teamTable(s,ss)+leadersCard(ss,'Du jour',s);
     return h;
   }
   if(!s.teams[m.home]||!s.teams[m.away]){ m.status='done'; m.winner=m.home; setTimeout(()=>saveSession(s,['matches']),0); return vLive(); }
@@ -1215,10 +1217,10 @@ function ftCard(rows,isDay){ const R=rows.filter(r=>r.fta>0); const tot=R.reduce
 function ptsSplit(r){ if(!r||!r.pts) return ''; const p2=(r.fg2||0)*2, p3=(r.fg3||0)*3, p1=r.ftm||0; const seg=(v,c,l)=>v?`<span style="flex:${v} 1 0;background:${c};height:100%" title="${l}"></span>`:'';
   return `<h3 style="margin:10px 0 6px">D'où viennent ses points</h3><div style="display:flex;height:14px;border-radius:7px;overflow:hidden;gap:2px">${seg(p2,'var(--ink)','2 pts')}${seg(p3,'var(--accent)','3 pts')}${seg(p1,'var(--good)','LF')}</div>
   <div class="row small" style="gap:12px;margin-top:6px;flex-wrap:wrap"><span><b style="color:var(--ink)">●</b> À 2 pts : <b>${p2}</b> <span class="muted">(${r.fg2||0} paniers)</span></span><span><b style="color:var(--accent)">●</b> À 3 pts : <b>${p3}</b> <span class="muted">(${r.fg3||0})</span></span><span><b style="color:var(--good)">●</b> Lancers : <b>${p1}</b> <span class="muted">(${r.ftm||0}/${r.fta||0}${r.fta?' · '+pct(r.ftm,r.fta)+' %':''})</span></span></div>`; }
-function leadersCard(ss,label){ const rows=Object.values(ss.pl); if(!rows.length) return '';
+function leadersCard(ss,label,sx){ const rows=Object.values(ss.pl); if(!rows.length) return '';
   const top=[...rows].sort((a,b)=>b.pts-a.pts)[0]; const sn=[...rows].filter(r=>r.fg3).sort((a,b)=>b.fg3-a.fg3)[0]; const pm=[...rows].filter(r=>impOk(r)&&impPerMatch(r)>0).sort((a,b)=>impPerMatch(b)-impPerMatch(a))[0];
   const ft=[...rows].filter(r=>r.fta>=3).sort((a,b)=>pct(b.ftm,b.fta)-pct(a.ftm,a.fta))[0]; const win=[...rows].filter(r=>r.gp>=3).sort((a,b)=>pct(b.w,b.gp)-pct(a.w,a.gp))[0]; const asr=[...rows].filter(r=>r.ast).sort((a,b)=>b.ast-a.ast)[0];
-  const isDay=/^du /i.test(label)||label==='de la séance'; const L=[]; { const nS=Math.max(1,...rows.map(r=>r.sessions||1)); const mv=isDay?mvpPick(rows):notePick(rows,nS,seasonMin(rows)); if(mv) L.push(['👑','MVP · '+mv.r.pts+' pts · '+(mv.r.ast||0)+' passe'+((mv.r.ast||0)>1?'s':'')+' · '+mv.r.w+' victoire'+(mv.r.w>1?'s':''),pname(mv.r.id),fmtN(mv.v)]); } if(top)L.push(['🔥','Meilleur marqueur',pname(top.id),top.pts+' pts']); if(sn)L.push(['🎯','Sniper · paniers à 3 pts',pname(sn.id),sn.fg3+' × 3 pts']); if(asr)L.push(['🎩','Meilleur passeur',pname(asr.id),asr.ast+' passes']); if(pm)L.push(['🧱','Impact · son équipe fait mieux quand il joue (pts par 10 min)',pname(pm.id),impLabel(pm)]);
+  const isDay=/^du /i.test(label)||label==='de la séance'; const L=[]; { const nS=Math.max(1,...rows.map(r=>r.sessions||1)); const mv=isDay?mvpOf(sx,rows):notePick(rows,nS,seasonMin(rows)); if(mv) L.push(['👑','MVP · '+mv.r.pts+' pts · '+(mv.r.ast||0)+' passe'+((mv.r.ast||0)>1?'s':'')+' · '+mv.r.w+' victoire'+(mv.r.w>1?'s':''),pname(mv.r.id),fmtN(mv.v)]); } if(top)L.push(['🔥','Meilleur marqueur',pname(top.id),top.pts+' pts']); if(sn)L.push(['🎯','Sniper · paniers à 3 pts',pname(sn.id),sn.fg3+' × 3 pts']); if(asr)L.push(['🎩','Meilleur passeur',pname(asr.id),asr.ast+' passes']); if(pm)L.push(['🧱','Impact · son équipe fait mieux quand il joue (pts par 10 min)',pname(pm.id),impLabel(pm)]);
   if(ft)L.push(['🆓','Lancers francs',pname(ft.id),ft.ftm+'/'+ft.fta]); 
   if(!isDay){ const ch=[...rows].sort((a,b)=>(b.chp||0)-(a.chp||0)||b.w-a.w)[0]; if(ch&&ch.gp) L.push(['🏆','Championnat · 2 pts V, 1 pt D, au prorata des minutes',pname(ch.id),fmt1(ch.chp||0)+' pts ('+ch.w+' V · '+(ch.gp-ch.w)+' D)']); const im=[...rows].filter(r=>r.min>0).sort((a,b)=>b.min-a.min)[0]; if(im) L.push(['🦾','Iron Man · le plus de minutes sur le terrain',pname(im.id),Math.round(im.min/60000)+' min']); }
   return `<div class="card"><h2>Récompenses <span class="muted" style="font-size:15px;font-family:var(--body);font-weight:500">${esc(label)}</span></h2><p class="muted small" style="margin-top:-4px">MVP = meilleure note sur 10 du jour (points, passes, poids dans l'équipe, victoires).</p>${L.map(a=>`<div class="lead"><div class="ico">${a[0]}</div><div><div class="who">${esc(a[2])}</div><div class="what">${a[1]}</div></div><div class="big num">${esc(a[3])}</div></div>`).join('')}</div>`; }
@@ -1242,7 +1244,7 @@ function vStats(){
   <div class="tile"><div class="k">Joueurs</div><div class="v num">${rows.length}</div><div class="s">${Math.round(rows.reduce((a,r)=>a+r.gp,0)/Math.max(1,rows.length))} matchs / joueur</div></div>
   <div class="tile"><div class="k">Fair-play</div><div class="v num" style="color:${tech+uns?'var(--warn)':'var(--good)'}">${tech+uns}</div><div class="s">${tech} techniques · ${uns} antisportives</div></div></div>`;
   const perTxt=sess.length===1?'du '+fmtDate(sess[0].date):`saison ${seasonLabel()} · ${sess.length} dimanches, du ${fmtShort(sess[sess.length-1].date)} au ${fmtShort(sess[0].date)}`;
-  if(sess.length===1){ const ss=sessionStats(sess[0]); R.top+=leadersCard(ss,'du '+fmtDate(sess[0].date)); }
+  if(sess.length===1){ const ss=sessionStats(sess[0]); R.top+=leadersCard(ss,'du '+fmtDate(sess[0].date),sess[0]); }
   else R.top+=awardsCard()+monthCard();
   if(rows.length>=2) R.top+=`<div class="card">${sess.length===1?'<details><summary style="cursor:pointer;font-weight:700">Voir les top 5 du jour</summary>':`<h2>Leaders au cumul</h2><p class="muted small" style="margin-top:-4px">${esc(perTxt)}</p>`}
   <h3 style="margin:10px 0 4px">Points par match <span class="muted small">(min. ${S.period==='session'?MIN_DAY:seasonMin(rows)} matchs)</span></h3>${hbars(rows.filter(r=>r.gp>=(S.period==='session'?MIN_DAY:seasonMin(rows))),r=>perM(r,'pts'),r=>fmt1(perM(r,'pts')),5)}
@@ -1257,14 +1259,14 @@ function vStats(){
   const val=(r,k)=>({fgp:(r.a2||0)+(r.a3||0)?((r.k2||0)+(r.k3||0))/((r.a2||0)+(r.a3||0)):-1,reb:(r.orb||0)+(r.drb||0),idx:noteOf(r)??-99,def:defRate(r)==null?-999:-defRate(r),min:r.min||0,champ:r.chp||0,wp:pct(r.w,r.gp),ppm:r.gp?Math.round(10*r.pts/r.gp)/10:0,ftp:r.fta?pct(r.ftm,r.fta):-1,imp:impPerMatch(r)??-99})[k]??r[k];
   const disp=(r,k)=>({fgp:(r.a2||0)+(r.a3||0)?`${pct((r.k2||0)+(r.k3||0),(r.a2||0)+(r.a3||0))} %<small class="muted"> ${(r.k2||0)+(r.k3||0)}/${(r.a2||0)+(r.a3||0)}</small>`:'–',reb:(r.orb||0)+(r.drb||0)?`${(r.orb||0)+(r.drb||0)}<small class="muted"> ${r.orb||0} off.</small>`:'–',idx:noteOf(r)==null?'–':`<b>${fmtN(noteOf(r))}</b>${S.fullCols?`<div class="muted" style="font-size:10px;white-space:nowrap">A ${Math.round(NOTES[r.id].A)} · É ${Math.round(NOTES[r.id].T)} · D ${Math.round(NOTES[r.id].D)} · V ${Math.round(NOTES[r.id].W)}${S.period==='session'?'':' · R '+Math.round(NOTES[r.id].R)}</div>`:''}`,def:defLabel(r,S.period==='session'?20:DEF_MIN),min:r.min?Math.round(r.min/60000):'–',champ:'<b>'+fmt1(r.chp||0)+'</b>',wp:pct(r.w,r.gp)+' %',ppm:(r.gp?Math.round(10*r.pts/r.gp)/10:0).toLocaleString('fr-FR'),ftp:r.fta?pct(r.ftm,r.fta)+' % <span class="muted small">('+r.ftm+'/'+r.fta+')</span>':'–',pm:(r.pm>0?'+':'')+r.pm,imp:impLabel(r),gp:r.gpApprox?r.gp+'<span class="muted small" title="'+r.gpApprox+' match(s) sans remplacements saisis : toute l\'équipe comptée">*</span>':r.gp})[k]??r[k];
   const sorted=[...rows].sort((a,b)=>(S.sort.k==='idx'?(elig(b)-elig(a)):0)||(val(a,S.sort.k)-val(b,S.sort.k))*S.sort.d|| b.pts-a.pts);
-  { const isDay=S.period==='session'; const ranked=rows.filter(r=>noteOf(r)!=null).sort((a,b)=>noteOf(b)-noteOf(a)||b.pts-a.pts); const off=rows.filter(r=>noteOf(r)==null&&r.gp>0).sort((a,b)=>b.pts-a.pts);
+  { const isDay=S.period==='session'; const ranked=rows.filter(r=>noteOf(r)!=null).sort((a,b)=>noteOf(b)-noteOf(a)||b.pts-a.pts); const offMvp=isDay&&sess.length===1&&sess[0].mvp; if(offMvp){ const k=ranked.findIndex(r=>r.id===offMvp); if(k>0) ranked.unshift(...ranked.splice(k,1)); } const off=rows.filter(r=>noteOf(r)==null&&r.gp>0).sort((a,b)=>b.pts-a.pts);
     let prev=null; if(!isDay&&sess.length>1){ const Lp=ladderOf([...sess].sort((a,b)=>a.date<b.date?-1:1).slice(0,-1)); prev={}; Lp.list.forEach((e,i)=>prev[e.r.id]=i+1); }
     const mv=(id,i)=>{ if(!prev) return ''; const was=prev[id]; if(!was) return '<span class="mv nw">NOUVEAU</span>'; const d=was-(i+1); return d>0?`<span class="mv up">▲ ${d}</span>`:d<0?`<span class="mv dn">▼ ${-d}</span>`:''; };
     const sub=r=>`${r.pts} pts · ${r.ast||0} passe${(r.ast||0)>1?'s':''} · ${pct(r.w,r.gp)} % de victoires`;
     const pre=R.rank; R.rank=S.rankTable?pre:'';
     R.rank+=`<div class="row" style="margin:2px 0 10px"><h2 class="grow">${isDay?'Classement du jour':'Le ladder'}</h2><button class="btn sm ghost" data-act="rules">📖</button><button class="btn sm ghost" data-act="rank-view">${S.rankTable?'Vue classement':'Tableau complet'}</button></div>`;
     if(!S.rankTable){ R.rank+=`<div class="lad" id="ladList">`+(ranked.length?ranked.map((r,i)=>i===0
-      ?`<div class="hero" data-act="player-detail" data-id="${r.id}">${pavatar(r.id,64)}<div><div class="lab">${isDay?'👑 MVP du jour':'👑 N° 1'} ${mv(r.id,i)}</div><div class="nm">${esc(S.players[r.id]&&S.players[r.id].nick?(S.players[r.id].name||'').replace(/\s*\(.*\)\s*/,'').trim():pname(r.id))}</div><div class="sub">${S.players[r.id]&&S.players[r.id].nick?'« '+esc(S.players[r.id].nick)+' » · ':''}${sub(r)}</div></div><div class="nt num">${fmtN(noteOf(r))}<small>NOTE SUR 10</small></div></div>`
+      ?`<div class="hero" data-act="player-detail" data-id="${r.id}">${pavatar(r.id,64)}<div><div class="lab">${isDay?'👑 MVP du jour':'👑 N° 1'} ${mv(r.id,i)}</div>${isDay&&offMvp===r.id?'<div class="sub" style="opacity:.8">Annoncé le jour même</div>':''}<div class="nm">${esc(S.players[r.id]&&S.players[r.id].nick?(S.players[r.id].name||'').replace(/\s*\(.*\)\s*/,'').trim():pname(r.id))}</div><div class="sub">${S.players[r.id]&&S.players[r.id].nick?'« '+esc(S.players[r.id].nick)+' » · ':''}${sub(r)}</div></div><div class="nt num">${fmtN(noteOf(r))}<small>NOTE SUR 10</small></div></div>`
       :`<div class="lrow${S.me===r.id?' me':''}" data-act="player-detail" data-id="${r.id}"><div class="rk${i===1?' r2':i===2?' r3':''}">${i+1}</div>${pavatar(r.id,44)}<div><div class="nm"><span class="n">${esc(pname(r.id))}</span>${mv(r.id,i)}</div><div class="sub">${sub(r)}</div><div class="lb"><i style="width:${Math.max(3,Math.round(10*noteOf(r)))}%"></i></div></div><div class="nt num">${fmtN(noteOf(r))}</div></div>`).join('')
       :`<div class="empty">Pas encore assez de matchs pour un classement.</div>`)
       +(off.length?`<details style="margin-top:4px"><summary class="muted small" style="cursor:pointer;padding:6px 2px">Hors classement · ${off.length} joueur${off.length>1?'s':''} (${isDay?'moins de '+minG+' matchs':'présents moins d\'un dimanche sur deux, ou trop peu de matchs'})</summary><div class="lad" style="margin-top:8px">${off.map(r=>`<div class="lrow off" data-act="player-detail" data-id="${r.id}"><div class="rk" style="font-size:16px">–</div>${pavatar(r.id,34)}<div><div class="nm"><span class="n">${esc(pname(r.id))}</span></div><div class="sub">${r.pts} pts · ${r.gp} match${r.gp>1?'s':''}${isDay?'':' · '+(r.sessions||1)+' dim.'}</div></div><div class="nt num" style="font-size:18px;color:var(--muted)">–</div></div>`).join('')}</div></details>`:'')+`</div>`+pre; } }
@@ -1902,7 +1904,7 @@ document.addEventListener('click',async ev=>{
   } }catch(err){ console.error(err); toast('Action impossible : '+(err&&err.message||err)); render(); }
 });
 window.addEventListener('error',e=>{ console.error(e.error||e.message); }); window.addEventListener('unhandledrejection',e=>{ console.error(e.reason); toast('Une action a échoué : '+((e.reason&&e.reason.message)||'erreur')); });
-window.__hs={S,mergeSession,matchId,saveSession,teamOfDay,todCounts,defRate,defOff,defLabel,comboStats,att10,winMin,impPerMatch,impLabel,impOk,ladderImage,ladderOf,seasonLadderSessions,noteParts,shareOf,duoStats,summaryText,summaryImage,monthAwards,matchState,addEvent,ftReb,ftLeft,ghosts,startMatch,endMatch,mergePlayers,savePlayer,nextSession,cashState,hoursUsed,sundays,saveCalendar,dayInfo,parsePasteList,matchPasteName,similarPlayers,curSession,liveMatch,elapsed,remaining,manageClock,render,startSession,aggregate,mvpScore,pname,sessionStats};
+window.__hs={S,mergeSession,matchId,saveSession,teamOfDay,todCounts,defRate,defOff,defLabel,comboStats,att10,winMin,impPerMatch,impLabel,impOk,ladderImage,ladderOf,seasonLadderSessions,noteParts,shareOf,duoStats,summaryText,summaryImage,monthAwards,matchState,addEvent,ftReb,ftLeft,mvpOf,ghosts,startMatch,endMatch,mergePlayers,savePlayer,nextSession,cashState,hoursUsed,sundays,saveCalendar,dayInfo,parsePasteList,matchPasteName,similarPlayers,curSession,liveMatch,elapsed,remaining,manageClock,render,startSession,aggregate,mvpScore,pname,sessionStats};
 boot();
 })();
 </script>

@@ -230,3 +230,5 @@ Des paliers franchis dans un dimanche : gros match, série à 3 points, record p
 - **Le projet repose sur peu de personnes.** Ce mémo, le dépôt et les tests sont là pour ça.
 
 **Moyennes par dimanche.** La fiche du joueur et la carte « Ma saison » donnent les points, passes et victoires par dimanche joué. Rebonds, interceptions et balles perdues sont rapportés aux seuls dimanches en saisie complète. Ces moyennes sont informatives et n'entrent pas dans la note.
+
+**MVP annoncé.** Quand le MVP du jour a été annoncé et qu'une correction ultérieure des données change le classement, le bureau peut maintenir le titre (champ `mvp` de la séance). Le joueur garde le titre de MVP du jour, avec la mention « Annoncé le jour même ». Les notes restent celles du calcul et le ladder de saison n'est pas touché.

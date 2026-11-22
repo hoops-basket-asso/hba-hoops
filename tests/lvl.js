@@ -16,5 +16,9 @@ const { chromium } = require('playwright');
       sessR_tout_complet:((x=>x.pl)(h.aggregate([sess([mk(2),mk(2)])])).find(x=>x&&x.id==='b1')||{}).sessR||0, sessR_partiel:((x=>x.pl)(h.aggregate([sess([mk(2),mk(0)])])).find(x=>x&&x.id==='b1')||{}).sessR||0 }; });
   const want={ herite_complet:'2,2,1,1,1,1', herite_tirs:'2,2,1,0,0,0', herite_simple:'2,0,0,0,0,0', lvl0_dans_seance_complete:'2,0,0,0,0,0', lvl1_dans_seance_complete:'2,2,1,0,0,0', lvl2_dans_seance_simple:'2,2,1,1,1,1', sessR_tout_complet:1, sessR_partiel:0 };
   for(const k of Object.keys(want)) E(String(r[k])===String(want[k]),`${k} : attendu ${want[k]}, obtenu ${r[k]}`);
+  // MVP officiel : s.mvp l'emporte sur le calcul, la note reste calculée ; sans s.mvp, le calcul décide
+  const mv=await p.evaluate(()=>{ const h=window.__hs; const rows=[{id:'a',gp:4,w:4,pts:30,ast:5,sessions:1,min:2400000},{id:'b',gp:4,w:1,pts:10,ast:1,sessions:1,min:2400000}];
+    const c=h.mvpOf({},rows), o=h.mvpOf({mvp:'b'},rows), x=h.mvpOf({mvp:'zz'},rows); return [c.r.id,!!c.official,o.r.id,!!o.official,o.v<c.v,x.r.id].join(','); });
+  E(mv==='a,false,b,true,true,a','MVP officiel : '+mv);
   console.log('errors',errs); await b.close(); process.exit(errs.length?1:0);
 })();

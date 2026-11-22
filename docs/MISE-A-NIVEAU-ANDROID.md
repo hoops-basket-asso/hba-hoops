@@ -20,6 +20,7 @@ Références dans ce dépôt :
 
 | Date | Changement | Où |
 |---|---|---|
+| 22/11 | MVP officiel d'une séance : `mvp` (id du joueur) sur la séance, prioritaire sur le calcul pour le titre du jour | § 2.1 |
 | 22/11 | Niveau de saisie noté sur chaque match : `lvl` | § 2.2 |
 | 18/11 | Niveaux de saisie : `rich` et `richReb` sur la séance | § 2.1 |
 | 18/11 | Nouvelles actions : `miss`, `reb`, `stl`, `to` | § 2.3 |
@@ -72,6 +73,8 @@ Les trois niveaux de saisie :
 | Simple | absent | absent |
 | Tirs | `true` | `false` |
 | Complet | `true` | `true` |
+
+**MVP officiel (`mvp`).** Si la séance porte `mvp`, ce joueur est le MVP du jour partout (classement du jour, résumé, accueil), même si un autre a une meilleure note. Les notes ne changent pas. Sans `mvp`, le calcul décide.
 
 Attention : une séance avec `rich: true` et **sans** `richReb` est lue comme **Complet** (compatibilité avec les premières séances enrichies). Écrivez toujours `richReb` explicitement.
 
