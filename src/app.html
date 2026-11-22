@@ -370,7 +370,7 @@ function matchState(m, sess){
 function matchStateRaw(m, sess){
   const st={score:{},fouls:{},teamFouls:{},on:{},pm:{},pl:{},time:{},hasSubs:false,subsBy:{}};
   const since={}; for(const t of [m.home,m.away]){ st.score[t]=0; st.fouls[t]=0; st.teamFouls[t]=0; st.on[t]=[...(m.lineup[t]||[])]; st.on[t].forEach(x=>{ since[x]=0; }); }
-  const rich=!!(sess&&sess.rich); const P = pid => st.pl[pid] || (st.pl[pid]={pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,onFor:0,onAg:0,a2:0,a3:0,k2:0,k3:0,orb:0,drb:0,stl:0,tov:0});
+  const lv=m.lvl!=null?m.lvl:richLvl(sess); const rich=lv>0, full=lv===2; const P = pid => st.pl[pid] || (st.pl[pid]={pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,onFor:0,onAg:0,a2:0,a3:0,k2:0,k3:0,orb:0,drb:0,stl:0,tov:0});
   const other = t => t===m.home? m.away : m.home;
   for(const e of m.events){
     if(st.bonusFt){ Object.keys(st.bonusFt).forEach(bt=>{ const b=st.bonusFt[bt]; if(e.type==='pt'&&e.team!==bt&&b.got===0&&b.need===2&&Math.abs((e.t||0)-b.at)<=6000) b.need=1; else if((e.type==='pt'&&!(b.got===0&&Math.abs((e.t||0)-b.at)<=6000))||e.type==='out'){ st.bonus[bt]=false; delete st.bonusFt[bt]; } }); }
@@ -378,10 +378,10 @@ function matchStateRaw(m, sess){
     else if(e.type==='ft'){ const p=P(e.pid); p.fta++; if(e.made){ p.ftm++; p.pts++; st.score[e.team]++; st.on[e.team].forEach(x=>{ const q=P(x); q.pm+=1; q.onFor+=1; }); st.on[other(e.team)].forEach(x=>{ const q=P(x); q.pm-=1; q.onAg+=1; });} const ft=other(e.team); if(m.foulRule!=='continuous'&&st.bonus&&st.bonus[ft]&&st.bonusFt&&st.bonusFt[ft]){ const b=st.bonusFt[ft]; b.got++; if(b.got>=b.need){ st.bonus[ft]=false; delete st.bonusFt[ft]; } } }
     else if(e.type==='foul'){ P(e.pid).pf++; st.fouls[e.team]++; st.teamFouls[e.team]++; st.bonus=st.bonus||{}; const lim=(S.config.teamFoulLimit||6); if(m.foulRule==='continuous'){ st.bonus[e.team]=st.teamFouls[e.team]>=lim; } else { st.bonus[e.team]=false; if(st.teamFouls[e.team]>=lim){ st.teamFouls[e.team]=0; st.bonus[e.team]=true; let pi=m.events.indexOf(e)-1; while(pi>=0&&m.events[pi].type==='ast') pi--; const prev=m.events[pi]; const and1=prev&&prev.type==='pt'&&prev.team!==e.team&&Math.abs((e.t||0)-(prev.t||0))<=6000; st.bonusFt=st.bonusFt||{}; st.bonusFt[e.team]={need:and1?1:2,got:0,at:e.t||0}; } } }
     else if(e.type==='ast'){ P(e.pid).ast++; }
-    else if(e.type==='miss'){ const p=P(e.pid); if(e.v===3) p.a3++; else p.a2++; }
-    else if(e.type==='reb'){ const p=P(e.pid); if(e.off) p.orb++; else p.drb++; }
-    else if(e.type==='stl'){ P(e.pid).stl++; }
-    else if(e.type==='to'){ P(e.pid).tov++; }
+    else if(e.type==='miss'){ if(rich){ const p=P(e.pid); if(e.v===3) p.a3++; else p.a2++; } }
+    else if(e.type==='reb'){ if(full){ const p=P(e.pid); if(e.off) p.orb++; else p.drb++; } }
+    else if(e.type==='stl'){ if(full) P(e.pid).stl++; }
+    else if(e.type==='to'){ if(full) P(e.pid).tov++; }
     else if(e.type==='tech'){ P(e.pid).tech++; }
     else if(e.type==='uns'){ P(e.pid).uns++; }
     else if(e.type==='sub'){ const arr=st.on[e.team]; const i=arr.indexOf(e.out); if(i>=0) arr[i]=e.in; else arr.push(e.in); st.hasSubs=true; st.subsBy[e.team]=(st.subsBy[e.team]||0)+1; const el=e.el||0; if(since[e.out]!=null){ st.time[e.out]=(st.time[e.out]||0)+Math.max(0,el-since[e.out]); delete since[e.out]; } since[e.in]=el; }
@@ -476,7 +476,7 @@ function mvpLabel(x){ return `note ${noteLabel(x.v)} · ${x.r.pts} pts, ${x.r.as
 function aggregate(sessions){
   const pl={}; const P = id => pl[id] || (pl[id]={id,sessions:0,gp:0,gpApprox:0,w:0,pts:0,fg2:0,fg3:0,fta:0,ftm:0,pf:0,tech:0,uns:0,pm:0,ast:0,imp:0,nImp:0,min:0,chp:0,shareSum:0,nShare:0,onPm:0,onT:0,offPm:0,offT:0,tPts:0,tAst:0,tGp:0,gMin:0,wMin:0,onFor:0,onAg:0,offAg:0});
   let matches=0;
-  for(const s of sessions){ const ss=sessionStats(s); matches+=ss.done; for(const [pid,x] of Object.entries(ss.pl)){ const p=P(pid); p.sessions++; if(richFull(s)) p.sessR=(p.sessR||0)+1; for(const k of ['gp','gpApprox','w','pts','fg2','fg3','fta','ftm','pf','tech','uns','pm','ast','imp','nImp','min','chp','onPm','onT','offPm','offT','tPts','tAst','tGp','gMin','wMin','onFor','onAg','offAg','a2','a3','k2','k3','orb','drb','stl','tov']) p[k]=(p[k]||0)+(x[k]||0); if(x.gp){ p.shareSum+=x.tp?((x.pts||0)+1.5*(x.ast||0))/x.tp:0; p.nShare++; } } }
+  for(const s of sessions){ const ss=sessionStats(s); matches+=ss.done; for(const [pid,x] of Object.entries(ss.pl)){ const p=P(pid); p.sessions++; if(sessFull(s)) p.sessR=(p.sessR||0)+1; for(const k of ['gp','gpApprox','w','pts','fg2','fg3','fta','ftm','pf','tech','uns','pm','ast','imp','nImp','min','chp','onPm','onT','offPm','offT','tPts','tAst','tGp','gMin','wMin','onFor','onAg','offAg','a2','a3','k2','k3','orb','drb','stl','tov']) p[k]=(p[k]||0)+(x[k]||0); if(x.gp){ p.shareSum+=x.tp?((x.pts||0)+1.5*(x.ast||0))/x.tp:0; p.nShare++; } } }
   return {pl:Object.values(pl),matches,sessions:sessions.length};
 }
 function inStats(s){ return !!s&&(s.status==='closed'||s.status==='live')&&!s.excluded; }
@@ -860,6 +860,9 @@ function richLine(s){ if(!s||!s.rich) return ''; let pt=0,mi=0,rb=0,st=0,tv=0; (
 // niveaux de saisie : simple (rich absent), tirs (rich, richReb=false), complet (rich, rebonds et interceptions)
 const richFull=s=>!!(s&&s.rich&&s.richReb!==false);
 const richLvl=s=>!s||!s.rich?0:(s.richReb===false?1:2);
+// niveau réellement tenu sur chaque match : le niveau peut changer en cours de séance, donc il est noté sur le match (lvl : 0 simple, 1 tirs, 2 complet)
+const matchLvl=(m,s)=>m&&m.lvl!=null?m.lvl:richLvl(s);
+const sessFull=s=>{ const ms=(s&&s.matches||[]).filter(x=>x.status==='done'); return ms.length>0&&ms.every(x=>matchLvl(x,s)===2); };
 const RICH_LV=[['Simple','points, passes, fautes','comme d\'habitude'],['Tirs','+ les tirs ratés','pour l\'adresse'],['Complet','+ rebonds et interceptions','à deux à la table']];
 function richPick(cur){ return `<div class="lvpick">${RICH_LV.map((x,i)=>`<button class="lvb ${i===cur?'on':''}" data-act="rich-lvl" data-id="${i}"><b>${x[0]}</b><small>${x[1]}</small><small class="muted">${x[2]}</small></button>`).join('')}</div>`; }
 function armReb(m,team){ const s0=curSession(); if(!richFull(s0)){ const e=m.events[m.events.length-1]; if(e&&e.type==='miss') toastUndo(evLabel(e,s0).replace(/<[^>]+>/g,'')); return; } S.rebStrip={team,n:m.events.length}; clearTimeout(S.rebTimer); S.rebTimer=setTimeout(()=>{ S.rebStrip=null; render(); },15000); }
@@ -1505,7 +1508,7 @@ function renderSheet(){
     ${(sh.tab||'season')==='season'?`
     ${sq.susp?`<div class="alert">Suspendu jusqu'au ${esc(fmtShort(sq.susp.until))} (${esc(sq.susp.type)}, ${esc(fmtShort(sq.susp.date))})</div>`:''}${sq.fineDue.length?`<div class="alert">🍺 Amende non réglée (${sq.fineDue.map(x=>esc(fmtShort(x.date))).join(', ')}). Inscription bloquée tant qu'elle n'est pas réglée (carafe ou ${S.config.fineAmount||45} € au compte de l'association).</div>`:''}${sq.level?`<div class="alert ${sq.level===2?'':'warn'}">${esc(sq.msg)}</div>`:''}
     <div class="tiles" style="grid-template-columns:repeat(3,1fr)"><div class="tile"><div class="k">Présences</div><div class="v num">${att.length}</div><div class="s">${seasonAtt} cette saison</div></div><div class="tile"><div class="k">Points</div><div class="v num">${tot.pts}</div><div class="s">${tot.gp?Math.round(10*tot.pts/tot.gp)/10:0} / match</div></div><div class="tile"><div class="k">Victoires</div><div class="v num">${pct(tot.w,tot.gp)} %</div><div class="s">${tot.w} / ${tot.gp} matchs</div></div></div>
-    ${sundayAvg(perf.filter(x=>x.r.gp>0).reduce((a,x)=>{ a.n++; a.pts+=x.r.pts||0; a.ast+=x.r.ast||0; a.w+=x.r.w||0; a.gp+=x.r.gp||0; if(richFull(x.s)){ a.nR++; a.reb+=(x.r.orb||0)+(x.r.drb||0); a.stl+=x.r.stl||0; a.tov+=x.r.tov||0; } return a; },{n:0,pts:0,ast:0,w:0,gp:0,nR:0,reb:0,stl:0,tov:0}))}
+    ${sundayAvg(perf.filter(x=>x.r.gp>0).reduce((a,x)=>{ a.n++; a.pts+=x.r.pts||0; a.ast+=x.r.ast||0; a.w+=x.r.w||0; a.gp+=x.r.gp||0; if(sessFull(x.s)){ a.nR++; a.reb+=(x.r.orb||0)+(x.r.drb||0); a.stl+=x.r.stl||0; a.tov+=x.r.tov||0; } return a; },{n:0,pts:0,ast:0,w:0,gp:0,nR:0,reb:0,stl:0,tov:0}))}
     ${ptsSplit(perf.reduce((a,x)=>({pts:a.pts+(x.r.pts||0),fg2:a.fg2+(x.r.fg2||0),fg3:a.fg3+(x.r.fg3||0),ftm:a.ftm+(x.r.ftm||0),fta:a.fta+(x.r.fta||0)}),{pts:0,fg2:0,fg3:0,ftm:0,fta:0}))}
     ${(()=>{ const z=perf.reduce((a,x)=>{ ['a2','a3','k2','k3','orb','drb','stl','tov'].forEach(k=>a[k]+=(x.r[k]||0)); return a; },{a2:0,a3:0,k2:0,k3:0,orb:0,drb:0,stl:0,tov:0}); if(!(z.a2+z.a3+z.orb+z.drb+z.stl)) return ''; return `<h3 style="margin:12px 0 6px">Stats enrichies <span class="muted small" style="font-weight:500">· dimanches suivis à deux</span></h3><div class="tiles" id="richTiles" style="grid-template-columns:repeat(3,1fr)"><div class="tile"><div class="k">Tirs</div><div class="v num">${z.a2+z.a3?pct(z.k2+z.k3,z.a2+z.a3)+' %':'–'}</div><div class="s">${z.k2+z.k3}/${z.a2+z.a3} · à 3 : ${z.k3}/${z.a3}</div></div><div class="tile"><div class="k">Rebonds</div><div class="v num">${z.orb+z.drb}</div><div class="s">${z.orb} off. · ${z.drb} déf.</div></div><div class="tile"><div class="k">Interceptions</div><div class="v num">${z.stl}</div><div class="s">ballons volés</div></div></div>`; })()}
 
@@ -1651,7 +1654,7 @@ function startSession(){ const st=S.setup; { const lv=st.richLvl!=null?st.richLv
   S.sid=id; saveSession(s); startMatch(s,h0,a0); S.setup=null; go('live'); S.sheet={type:'five'}; render(); }
 function startMatch(s,home,away){ if(home===away||!s.teams[home].players.length||!s.teams[away].players.length){ toast('Choisissez deux équipes différentes'); return; }
   const lastFive=t=>{ const prev=[...s.matches].reverse().find(x=>x.status==='done'&&(x.home===t||x.away===t)); if(!prev) return null; const st=matchState(prev,s); const on=(st.on[t]||[]).filter(pid=>s.teams[t].players.includes(pid)); return on.length>=Math.min(5,s.teams[t].players.length)?on.slice(0,5):null; };
-  const m={n:s.matches.length+1,home,away,lineup:{[home]:lastFive(home)||s.teams[home].players.slice(0,5),[away]:lastFive(away)||s.teams[away].players.slice(0,5)},roster:{home:[...s.teams[home].players],away:[...s.teams[away].players]},events:[],status:'live',elapsedMs:0,running:false,startedAt:null,createdAt:Date.now()};
+  const m={n:s.matches.length+1,home,away,lineup:{[home]:lastFive(home)||s.teams[home].players.slice(0,5),[away]:lastFive(away)||s.teams[away].players.slice(0,5)},roster:{home:[...s.teams[home].players],away:[...s.teams[away].players]},events:[],status:'live',lvl:richLvl(s),elapsedMs:0,running:false,startedAt:null,createdAt:Date.now()};
   if(s.format==='cent'){ const prev=s.matches.filter(x=>x.status==='done'&&x.quarter); const q=prev.length+1; const cum={[home]:0,[away]:0}; prev.forEach(x=>{ const st=matchState(x,s); cum[x.home]=(cum[x.home]||0)+st.score[x.home]; cum[x.away]=(cum[x.away]||0)+st.score[x.away]; }); const last=prev[prev.length-1]; if(last){ m.lineup={[home]:[...(last.lineup[home]||m.lineup[home])],[away]:[...(last.lineup[away]||m.lineup[away])]}; } m.quarter=q; m.cum=cum; m.foulRule='continuous'; m.target=25*q; }
   s.matches.push(m); saveSession(s,['matches','nextHome','nextAway']); }
 function canToCent(s){ const used=TEAMS.filter(t=>s.teams[t]&&s.teams[t].players.length); return used.length===2&&used.includes('A')&&used.includes('B')&&s.matches.filter(x=>x.status==='done').length<4; }
@@ -1799,7 +1802,7 @@ document.addEventListener('click',async ev=>{
     case 'ft-none': setFt(null); render(); break;
     case 'to-pick': { const a=S.toStrip; S.toStrip=null; clearTimeout(S.toTimer); if(a&&m&&a.n===m.events.length&&id){ addEvent(s,m,{type:'to',team:a.team,pid:id,stl:true}); toastUndo('Balle perdue · '+pname(id)); } render(); break; }
     case 'reb-pick': { if(S.rebStrip&&m){ S.rebStrip=null; clearTimeout(S.rebTimer); if(id){ addEvent(s,m,{type:'reb',team:el.dataset.team,pid:id,off:el.dataset.off==='1'}); toastUndo('Rebond '+(el.dataset.off==='1'?'offensif':'défensif')+' · '+pname(id)); } } render(); break; }
-    case 'rich-lvl': { const lv=+id; if(S.sheet&&S.sheet.type==='livemore'){ const s1=curSession(); if(s1&&canScore()){ s1.rich=lv>0; s1.richReb=lv===2; S.rebStrip=null; (s1.matches||[]).forEach(x=>delete x._memo); S._cache.stats={}; saveSession(s1,['rich','richReb']); toast('Niveau de saisie : '+RICH_LV[lv][0]+' ('+RICH_LV[lv][1]+')'); } S.sheet=null; } else if(S.setup){ S.setup.richLvl=lv; } render(); break; }
+    case 'rich-lvl': { const lv=+id; if(S.sheet&&S.sheet.type==='livemore'){ const s1=curSession(); if(s1&&canScore()){ s1.rich=lv>0; s1.richReb=lv===2; { const lm=liveMatch(s1); if(lm) lm.lvl=lv; } S.rebStrip=null; (s1.matches||[]).forEach(x=>delete x._memo); S._cache.stats={}; saveSession(s1,['rich','richReb','matches']); toast('Niveau de saisie : '+RICH_LV[lv][0]+' ('+RICH_LV[lv][1]+')'); } S.sheet=null; } else if(S.setup){ S.setup.richLvl=lv; } render(); break; }
     case 'rich-toggle': { const s1=curSession(); if(s1&&canScore()){ s1.rich=!s1.rich; (s1.matches||[]).forEach(x=>delete x._memo); S._cache.stats={}; saveSession(s1,['rich']); toast(s1.rich?'Stats enrichies activées : tirs ratés, rebonds, interceptions':'Stats enrichies désactivées'); } S.sheet=null; render(); break; }
     case 'ast-pick': { if(S.astStrip&&m){ const {team,endAfter}=S.astStrip; S.astStrip=null; clearTimeout(S.astTimer); if(id) addEvent(s,m,{type:'ast',team,pid:id}); if(endAfter&&!S.sheet) S.sheet={type:'end'}; } render(); break; }
     case 'tap-player': { if(!canScore()||!m) break; const team=el.dataset.team; const bench=el.dataset.bench==='1';

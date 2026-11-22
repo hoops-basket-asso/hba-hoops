@@ -108,6 +108,7 @@ Ce qu'on en tire : le pourcentage de réussite au tir (à partir de 5 tirs sur u
 - Table PC : la ligne du joueur porte les paniers, les ratés, les lancers et la faute. Un clic sur le nom ouvre seulement le reste : technique, antisportive, remplacement, et au niveau Complet l'interception (« INT ») et le rebond oublié (« REB », offensif ou défensif selon l'équipe du dernier tir raté).
 - Balles perdues (niveau Complet) : après une interception, l'appli demande à qui le ballon a été pris. Pour un marcher ou une passe dehors, bouton « BP » dans la fiche du joueur. Elles sont comptées et affichées, sans entrer dans la note.
 - Sur grand écran, la table s'agrandit pour occuper la fenêtre (base 1366 × 740, jusqu'à × 2). Elle ne rétrécit jamais.
+- Le niveau de saisie est noté sur chaque match (`lvl`). S'il change en cours de séance, l'adresse au tir ne porte que sur les matchs suivis, et le dimanche n'entre pas dans les moyennes de rebonds.
 - Un compteur de saisie (paniers, ratés ; rebonds et vols au niveau Complet) s'affiche sous le score. Il alerte quand il y a moins de ratés que de paniers.
 - Guidage des lancers (écran large) : une faute qui donne des lancers ouvre « qui tire ? », puis Réussi / Raté lancer par lancer. Un seul lancer si le panier a été marqué sur la faute. Un premier lancer saisi à la main fait proposer le second.
 - Un tir raté sur une faute ne se saisit pas : on saisit la faute, puis les lancers.

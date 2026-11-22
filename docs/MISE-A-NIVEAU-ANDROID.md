@@ -1,6 +1,6 @@
 # Hoops Stats — note de mise à niveau pour l'appli Android
 
-État au 21 novembre 2026. Cette note liste ce qui a changé dans l'appli web depuis le 12 novembre, et ce qu'une autre appli doit respecter pour lire et écrire la même base sans écart.
+État au 22 novembre 2026. Cette note liste ce qui a changé dans l'appli web depuis le 12 novembre, et ce qu'une autre appli doit respecter pour lire et écrire la même base sans écart.
 
 **La règle d'or.** Les deux applis partagent la même base Firebase (`hba-hoops`). Une séance saisie dans l'une doit donner exactement les mêmes chiffres dans l'autre. On ne vise pas le même code, on vise les mêmes données et les mêmes calculs.
 
@@ -20,6 +20,7 @@ Références dans ce dépôt :
 
 | Date | Changement | Où |
 |---|---|---|
+| 22/11 | Niveau de saisie noté sur chaque match : `lvl` | § 2.2 |
 | 18/11 | Niveaux de saisie : `rich` et `richReb` sur la séance | § 2.1 |
 | 18/11 | Nouvelles actions : `miss`, `reb`, `stl`, `to` | § 2.3 |
 | 16/11 | Match à 100 : `quarter`, `cum`, `target`, `foulRule` sur chaque quart-temps | § 2.2 |
@@ -90,6 +91,8 @@ En match à 100, chaque quart-temps est un match à part entière, avec en plus 
 | `foulRule` | `"continuous"` | Voir § 3.2 |
 
 Le quart-temps se termine quand `cum[équipe] + score du quart ≥ target`. Le vainqueur du match à 100 est celui qui atteint 100. Les équipes sont toujours `A` et `B`.
+
+**Niveau de saisie du match (`lvl`).** Depuis le 22/11, chaque match porte `lvl` : 0 pour Simple, 1 pour Tirs, 2 pour Complet. Le niveau peut changer en cours de séance, donc c'est celui du match qui compte. Sans `lvl` (anciens matchs), le niveau de la séance s'applique. Règles de calcul : un tir raté n'est compté que si `lvl ≥ 1` ; un panier ne compte comme tir tenté que si `lvl ≥ 1` ; rebonds, interceptions et balles perdues ne sont comptés que si `lvl = 2`. Un dimanche n'entre dans les moyennes de rebonds par dimanche que si tous ses matchs sont à `lvl = 2`.
 
 Les champs dont le nom commence par `_` sont des mémos locaux. Ils ne sont jamais écrits dans la base.
 
