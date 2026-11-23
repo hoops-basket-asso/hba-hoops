@@ -20,7 +20,7 @@ Références dans ce dépôt :
 
 | Date | Changement | Où |
 |---|---|---|
-| 23/11 | Nouvelle action `blk` (contre) ; `out` peut porter `miss: true` (tir raté sorti : `team` = équipe qui récupère) | § 2.3 |
+| 23/11 | Nouvelle action `blk` (contre, saisi par la fiche du joueur) ; `out` peut porter `miss: true` (tir raté sorti, sans `team`) ; champs `noFt` / `ftFix` sur une faute (lancers volontairement non tirés / rattrapés en fin de match) | § 2.3 |
 | 23/11 | Lancers après technique / antisportive : 2 lancers, tireur au choix ; double faute (une de chaque côté) = pas de lancers | § 3.4 |
 | 22/11 | MVP officiel d'une séance : `mvp` (id du joueur) sur la séance, prioritaire sur le calcul pour le titre du jour | § 2.1 |
 | 22/11 | Niveau de saisie noté sur chaque match : `lvl` | § 2.2 |
@@ -114,12 +114,13 @@ Chaque action porte `type`, `team`, `t` (horodatage en ms) et `el` (temps de jeu
 | `tech` | `pid` | — | Faute technique |
 | `uns` | `pid` | — | Faute antisportive |
 | `sub` | `out`, `in` | — | Remplacement |
-| `out` | `miss` (optionnel) | — | Sortie de balle. `team` = équipe qui remet en jeu. Depuis le 23/11, `miss: true` quand elle suit un tir raté (pas de rebond) |
+| `out` | `miss` (optionnel) | — | Sortie de balle. `team` = équipe qui remet en jeu. Depuis le 23/11, `miss: true` quand elle suit un tir raté (pas de rebond) ; `team` est alors absent |
 | `miss` | `pid`, `v` (2 ou 3) | 18/11 | Tir raté |
 | `reb` | `pid`, `off` (booléen) | 18/11 | Rebond. `team` = équipe du rebondeur |
 | `stl` | `pid` | 18/11 | Interception |
 | `to` | `pid`, `stl` (optionnel) | 18/11 | Balle perdue. `stl: true` si elle suit une interception |
-| `blk` | `pid` | 23/11 | Contre. Écrit juste après le `miss` contré, avant le `reb`. `team` = équipe du contreur |
+| `blk` | `pid` | 23/11 | Contre. Écrit après le `miss` contré (souvent avant le `reb`, pas toujours). `team` = équipe du contreur |
+| `foul`, `tech`, `uns` | `noFt`, `ftFix` (optionnels) | 23/11 | `noFt` : la table a choisi « Pas de lancer ». `ftFix` : lancers saisis en rattrapage à la fin du match (ils sont en fin de journal) |
 
 Règles d'écriture :
 

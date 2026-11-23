@@ -24,8 +24,8 @@ const { chromium } = require('playwright'); const fsx=require('fs'); console.log
   await p.waitForTimeout(300); p.on('dialog',d=>d.accept());
   const snap=()=>p.evaluate(()=>{ const h=window.__hs, s=h.curSession(), m=h.liveMatch(s); return {st:s.status,n:s.matches.length,mn:m&&m.n,home:m&&m.home,away:m&&m.away,teams:['A','B','C'].map(t=>s.teams[t].players.join(',')),pres:s.present.length,delM:Object.keys(s.delM||{}).length,sheet:h.S.sheet&&h.S.sheet.type,ros:m&&m.roster&&m.roster.home.join(',')}; });
   const before=await snap(); console.log('avant',before);
-  await p.evaluate(()=>{ window.__hs.S.sheet=null; window.__hs.render(); }); await p.click('[data-act="live-more"]'); await p.waitForTimeout(400);
-  if(!(await p.$('[data-act="rematch"]'))) errs.push('« Changer l\'affiche » absent avant la 1re action');
+  await p.evaluate(()=>{ window.__hs.S.sheet=null; window.__hs.render(); }); await p.click('[data-act="rematch-open"]'); await p.waitForTimeout(500);
+  if(!(await p.$('[data-act="rematch"]'))) errs.push('« Pas les bonnes équipes ? » absent du tableau avant la 1re action');
   const sel=async(q,v)=>p.evaluate(([q,v])=>{ const e=document.querySelector(q); e.value=v; e.dispatchEvent(new Event('change',{bubbles:true})); },[q,v]);
   await sel('#rmHome','C'); await sel('#rmAway','A'); await p.click('[data-act="rematch"]'); await p.waitForTimeout(400);
   const after=await snap(); console.log('après',after);
@@ -42,7 +42,17 @@ const { chromium } = require('playwright'); const fsx=require('fs'); console.log
   if(su.teams.join('|')!==before.teams.join('|')||su.home!=='C'||su.away!=='A') errs.push('la préparation ne reprend pas les équipes et l\'affiche : '+JSON.stringify(su));
   await p.evaluate(()=>{ window.__hs.startSession(); }); await p.waitForTimeout(400);
   const re=await snap(); console.log('relance',re); if(!(re.st==='live'&&re.home==='C'&&re.away==='A'&&re.delM>=1&&re.teams.join('|')===before.teams.join('|'))) errs.push('relance : '+JSON.stringify(re));
-  await p.evaluate(()=>{ const h=window.__hs, s=h.curSession(), m=h.liveMatch(s); h.S.sheet=null; h.addEvent(s,m,{type:'pt',team:m.home,pid:m.lineup[m.home][0],v:2}); h.render(); }); await p.click('[data-act="live-more"]'); await p.waitForTimeout(400);
-  if(await p.$('[data-act="rematch"]')) errs.push('« Changer l\'affiche » ne doit plus apparaître une fois le match commencé');
+  // vérification de fin de match : 6e faute sans lancers → alerte → « Saisir » → 2 lancers → retour à la fin de match, sans alerte
+  await p.evaluate(()=>{ const h=window.__hs, s=h.curSession(), m=h.liveMatch(s); h.S.sheet=null; const st=h.matchState(m,s); for(let i=0;i<6;i++) h.addEvent(s,m,{type:'foul',team:m.home,pid:st.on[m.home][i%st.on[m.home].length]}); h.S.ftStrip=null; h.S.sheet={type:'end'}; h.render(); }); await p.waitForTimeout(500);
+  if(!(await p.$('.endchk'))||!/6e faute/.test(await p.textContent('.endchk'))) errs.push('fin de match : alerte « 6e faute sans lancers » absente');
+  await p.click('.endchk [data-act="chk-ft"]'); await p.waitForTimeout(300); await p.click('.ftbar [data-act="ft-who"]'); await p.waitForTimeout(150); await p.click('.ftbar [data-act="ft-go"][data-made="1"]'); await p.waitForTimeout(450); await p.click('.ftbar [data-act="ft-go"][data-made="0"]'); await p.waitForTimeout(450);
+  { const r=await p.evaluate(()=>{ const h=window.__hs, m=h.liveMatch(h.curSession()); return {sheet:h.S.sheet&&h.S.sheet.type,chk:!!document.querySelector('.endchk'),ft:m.events.filter(e=>e.type==='ft').length,rb:!!document.querySelector('.rebbar')}; }); if(!(r.sheet==='end'&&!r.chk&&r.ft===2&&!r.rb)) errs.push('rattrapage des lancers : '+JSON.stringify(r)); }
+  // technique sans lancers → alerte ; double technique → pas d'alerte
+  await p.evaluate(()=>{ const h=window.__hs, s=h.curSession(), m=h.liveMatch(s); h.S.sheet=null; const st=h.matchState(m,s); h.addEvent(s,m,{type:'tech',team:m.home,pid:st.on[m.home][0]}); h.S.ftStrip=null; h.S.sheet={type:'end'}; h.render(); }); await p.waitForTimeout(400);
+  if(!(await p.$('.endchk'))||!/Technique/.test(await p.textContent('.endchk'))) errs.push('fin de match : alerte technique sans lancers absente');
+  await p.evaluate(()=>{ const h=window.__hs, s=h.curSession(), m=h.liveMatch(s); h.S.sheet=null; const st=h.matchState(m,s); h.addEvent(s,m,{type:'uns',team:m.away,pid:st.on[m.away][0]}); h.S.ftStrip=null; h.S.sheet={type:'end'}; h.render(); }); await p.waitForTimeout(400);
+  if(await p.$('.endchk')) errs.push('double technique / antisportive : aucune alerte attendue');
+  await p.evaluate(()=>{ window.__hs.S.sheet=null; window.__hs.render(); });
+  if(await p.$('[data-act="rematch-open"]')) errs.push('« Pas les bonnes équipes ? » ne doit plus apparaître une fois le match commencé');
   console.log('errors',errs); await b.close(); if(errs.length) process.exit(1);
 })().catch(e=>{console.error(e);process.exit(1);});
