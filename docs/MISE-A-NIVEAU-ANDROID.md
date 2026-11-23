@@ -1,6 +1,6 @@
 # Hoops Stats — note de mise à niveau pour l'appli Android
 
-État au 22 novembre 2026. Cette note liste ce qui a changé dans l'appli web depuis le 12 novembre, et ce qu'une autre appli doit respecter pour lire et écrire la même base sans écart.
+État au 23 novembre 2026, après lecture des dépôts `hba-android` et `hba-ios`. Cette note liste ce qui a changé dans l'appli web depuis le 12 novembre, et ce qu'une autre appli doit respecter pour lire et écrire la même base sans écart.
 
 **La règle d'or.** Les deux applis partagent la même base Firebase (`hba-hoops`). Une séance saisie dans l'une doit donner exactement les mêmes chiffres dans l'autre. On ne vise pas le même code, on vise les mêmes données et les mêmes calculs.
 
@@ -24,6 +24,8 @@ Références dans ce dépôt :
 | 23/11 | Lancers après technique / antisportive : 2 lancers, tireur au choix ; double faute (une de chaque côté) = pas de lancers | § 3.4 |
 | 22/11 | MVP officiel d'une séance : `mvp` (id du joueur) sur la séance, prioritaire sur le calcul pour le titre du jour | § 2.1 |
 | 22/11 | Niveau de saisie noté sur chaque match : `lvl` | § 2.2 |
+| 21/11 | Chrono d'attaque partagé : `shotDuration`, `shotOrigin`, `lastMinute`, `shotExpired` sur le match | § 9.1 |
+| 21/11 | Signalements d'incident dans une collection privée `incidents` (à venir côté web) | § 9.2 |
 | 18/11 | Niveaux de saisie : `rich` et `richReb` sur la séance | § 2.1 |
 | 18/11 | Nouvelles actions : `miss`, `reb`, `stl`, `to` | § 2.3 |
 | 16/11 | Match à 100 : `quarter`, `cum`, `target`, `foulRule` sur chaque quart-temps | § 2.2 |
@@ -285,3 +287,64 @@ Tant que ce critère n'est pas tenu, l'appli Android ne doit pas écrire dans un
 ## 8. Tenue à jour
 
 Chaque changement de format de données ou de règle de calcul sera ajouté en tête du § 1 de cette note, avec sa date.
+
+---
+
+## 9. Ce que les applis natives apportent au contrat commun
+
+Lecture des dépôts `hba-android` et `hba-ios` du 21 novembre. L'appli web reprend ces points pour que les trois applis écrivent la même chose.
+
+### 9.1 Chrono d'attaque partagé (rotation, dernière minute)
+
+Le chrono d'attaque suit le temps de jeu du match, pauses comprises. Il est enregistré dans le match, donc visible à l'identique sur tous les appareils.
+
+| Champ du match | Valeur | Sens |
+|---|---|---|
+| `shotDuration` | millisecondes | Durée réglée (20 000 ou 14 000) |
+| `shotOrigin` | millisecondes | Temps de jeu écoulé au moment du réglage |
+| `lastMinute` | booléen | Vrai dès qu'une commande ou une action a remplacé les 20 s automatiques |
+| `shotExpired` | booléen | Remis à faux à chaque réglage |
+| `shotActionID` | texte | Reçu de la dernière commande (applis natives) |
+
+Calcul du temps restant, identique partout :
+
+1. Rien en match à 100, sur un match terminé, ou hors de la dernière minute.
+2. Si `shotDuration` et `shotOrigin` existent : `shotDuration − (écoulé − shotOrigin)`, borné à zéro.
+3. Sinon, si `lastMinute` est vrai : pas de chrono d'attaque (il a été arrêté).
+4. Sinon : 20 s automatiques depuis l'entrée dans la dernière minute.
+
+L'appli web applique ce calcul et écrit ces champs à partir de la livraison du 23 novembre. Elle le vérifie sur les douze états de référence du dépôt `hba-ios` (`tests/attack.js`, `tests/contrat/attack-clock.json`).
+
+**Un écart à trancher.** L'appli web remet 20 s sur un panier, une faute, une technique, une antisportive **et une sortie de balle** (`out`). Les applis natives ne le font pas sur la sortie de balle.
+
+### 9.2 Signalements d'incident privés
+
+Aujourd'hui, l'appli web range les signalements dans la séance, qui est lisible par tous. Les applis natives les rangent dans une collection réservée au bureau. C'est le bon choix, et l'appli web va le reprendre.
+
+Document `incidents/{id}` : `id`, `sid` (séance), `date`, `pid`, `kind` (`contestation`, `blocage`, `insulte`, `menace`, `bagarre`, `autre`), `note` (2 000 caractères au plus), `matchN`, `t`, `status` (`open` au dépôt), `reportedBy`, puis `sanctionId` et `reviewedAt` au traitement.
+
+Cela demande trois choses, dans cet ordre : de nouvelles règles Firebase publiées par le bureau, le déplacement des anciens signalements, puis la bascule de l'appli web. Tant que les règles ne sont pas publiées, les écritures dans `incidents` sont refusées par la base.
+
+### 9.3 Champs ajoutés par les applis natives
+
+Ils sont conservés tels quels par l'appli web, qui ne les lit pas.
+
+- Sur une action : `eventId` (identifiant unique, pour ne pas la doubler après une réponse perdue) et `source` (`android` ou `ios`).
+- Sur la séance : `nativeLaunchID` (reçu de lancement).
+
+### 9.4 Écarts relevés dans le code natif
+
+| Sujet | Appli web | Applis natives au 21/11 | À faire |
+|---|---|---|---|
+| Niveaux de saisie, tirs ratés, rebonds, interceptions, balles perdues | En place (§ 2) | Absents | Reprendre § 2 et § 3 |
+| Chrono en match à 100 | Démarre seul à la première action, et compte le temps de jeu | Ne démarre pas à la première action | Aligner : sans temps de jeu, la note par 10 minutes est faussée |
+| Cinq de départ en match à 100 | Redemandé à chaque quart-temps | Reconduit d'office au quart suivant | Acceptable si les remplacements sont bien saisis |
+| Fin d'un quart-temps | Proposée à la table, puis validée | Écrite d'office quand le palier est atteint | Acceptable : le résultat enregistré est le même |
+| Signalements | Dans la séance | Collection privée | L'appli web s'aligne (§ 9.2) |
+
+### 9.5 Pour travailler ensemble
+
+- Les fichiers `docs/FEATURE_PARITY.md`, `docs/ANDROID_FOUNDATION.md` et `docs/PRIVATE_DATA_ROLLOUT.md`, cités dans les deux dépôts natifs, n'y sont pas déposés. Ils seraient utiles ici.
+- Toute modification de l'appli web faite de votre côté est la bienvenue sous forme de proposition (« pull request ») sur ce dépôt. Elle sera relue, testée sur les 31 scénarios, puis intégrée.
+- Tout champ nouveau, d'un côté comme de l'autre, s'écrit d'abord dans cette note.
+

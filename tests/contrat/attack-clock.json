@@ -1,0 +1,184 @@
+[
+  {
+    "name": "before-last-minute",
+    "now": 1800000000000,
+    "minutes": 9,
+    "format": "rotation",
+    "match": {
+      "n": 1,
+      "status": "live",
+      "elapsedMs": 470000,
+      "running": false,
+      "startedAt": null
+    },
+    "expected": null
+  },
+  {
+    "name": "minute-boundary",
+    "now": 1800000000000,
+    "minutes": 9,
+    "format": "rotation",
+    "match": {
+      "n": 1,
+      "status": "live",
+      "elapsedMs": 480000,
+      "running": false,
+      "startedAt": null
+    },
+    "expected": 20000
+  },
+  {
+    "name": "delayed-refresh",
+    "now": 1800000000000,
+    "minutes": 9,
+    "format": "rotation",
+    "match": {
+      "n": 1,
+      "status": "live",
+      "elapsedMs": 485000,
+      "running": false,
+      "startedAt": null
+    },
+    "expected": 15000
+  },
+  {
+    "name": "automatic-expired",
+    "now": 1800000000000,
+    "minutes": 9,
+    "format": "rotation",
+    "match": {
+      "n": 1,
+      "status": "live",
+      "elapsedMs": 501000,
+      "running": false,
+      "startedAt": null
+    },
+    "expected": 0
+  },
+  {
+    "name": "manual-14-paused",
+    "now": 1800000000000,
+    "minutes": 9,
+    "format": "rotation",
+    "match": {
+      "n": 1,
+      "status": "live",
+      "elapsedMs": 488000,
+      "running": false,
+      "startedAt": null,
+      "shotDuration": 14000,
+      "shotOrigin": 485000,
+      "lastMinute": true
+    },
+    "expected": 11000
+  },
+  {
+    "name": "manual-14-running",
+    "now": 1800000000000,
+    "minutes": 9,
+    "format": "rotation",
+    "match": {
+      "n": 1,
+      "status": "live",
+      "elapsedMs": 488000,
+      "running": true,
+      "startedAt": 1799999998000,
+      "shotDuration": 14000,
+      "shotOrigin": 485000,
+      "lastMinute": true
+    },
+    "expected": 9000
+  },
+  {
+    "name": "manual-stop",
+    "now": 1800000000000,
+    "minutes": 9,
+    "format": "rotation",
+    "match": {
+      "n": 1,
+      "status": "live",
+      "elapsedMs": 488000,
+      "running": false,
+      "startedAt": null,
+      "lastMinute": true
+    },
+    "expected": null
+  },
+  {
+    "name": "expired",
+    "now": 1800000000000,
+    "minutes": 9,
+    "format": "rotation",
+    "match": {
+      "n": 1,
+      "status": "live",
+      "elapsedMs": 510000,
+      "running": false,
+      "startedAt": null,
+      "shotDuration": 20000,
+      "shotOrigin": 485000,
+      "lastMinute": true
+    },
+    "expected": 0
+  },
+  {
+    "name": "time-up",
+    "now": 1800000000000,
+    "minutes": 9,
+    "format": "rotation",
+    "match": {
+      "n": 1,
+      "status": "live",
+      "elapsedMs": 540000,
+      "running": false,
+      "startedAt": null
+    },
+    "expected": null
+  },
+  {
+    "name": "finished",
+    "now": 1800000000000,
+    "minutes": 9,
+    "format": "rotation",
+    "match": {
+      "n": 1,
+      "status": "done",
+      "elapsedMs": 488000,
+      "running": false,
+      "startedAt": null
+    },
+    "expected": null
+  },
+  {
+    "name": "century",
+    "now": 1800000000000,
+    "minutes": 9,
+    "format": "cent",
+    "match": {
+      "n": 1,
+      "status": "live",
+      "elapsedMs": 488000,
+      "running": false,
+      "startedAt": null,
+      "format": "cent"
+    },
+    "expected": null
+  },
+  {
+    "name": "future-anchor",
+    "now": 1800000000000,
+    "minutes": 9,
+    "format": "rotation",
+    "match": {
+      "n": 1,
+      "status": "live",
+      "elapsedMs": 485000,
+      "running": false,
+      "startedAt": null,
+      "shotDuration": 14000,
+      "shotOrigin": 486000,
+      "lastMinute": true
+    },
+    "expected": 14000
+  }
+]
