@@ -1,5 +1,7 @@
 # Prévient l'appli Android quand la note de mise à niveau change.
-# Un ticket est ouvert à chaque envoi qui modifie docs/MISE-A-NIVEAU-ANDROID.md, et seulement dans ce cas.
+# À chaque envoi qui modifie docs/MISE-A-NIVEAU-ANDROID.md (et seulement dans ce cas) :
+# s'il existe déjà un ticket « android » ouvert, on y ajoute un commentaire ; sinon on en ouvre un.
+# Un seul fil à suivre, pas un ticket par jour.
 # La personne à prévenir se règle dans Settings > Secrets and variables > Actions > Variables : ANDROID_CONTACT (identifiant GitHub, sans @).
 name: Note de mise à niveau Android
 
@@ -43,7 +45,12 @@ jobs:
             echo
             echo "La note complète : https://github.com/$REPO/blob/main/$F"
             echo
-            echo "Ce ticket peut être fermé quand l'appli Android est alignée."
+            echo "Ce ticket peut être fermé quand les applis Android et iOS sont alignées. Le suivant s'ouvrira tout seul au prochain changement."
           } > /tmp/body.md
           gh label create android --repo "$REPO" --color 4156A7 --description "Mise à niveau de l'appli Android" 2>/dev/null || true
-          gh issue create --repo "$REPO" --title "Appli Android : mise à niveau du $(date +%d/%m/%Y)" --body-file /tmp/body.md --label android
+          OPEN=$(gh issue list --repo "$REPO" --label android --state open --json number --jq 'sort_by(.number) | .[0].number // empty')
+          if [ -n "$OPEN" ]; then
+            gh issue comment "$OPEN" --repo "$REPO" --body-file /tmp/body.md
+          else
+            gh issue create --repo "$REPO" --title "Applis Android et iOS : mises à niveau à faire (depuis le $(date +%d/%m/%Y))" --body-file /tmp/body.md --label android
+          fi
