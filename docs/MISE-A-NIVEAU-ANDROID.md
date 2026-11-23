@@ -278,6 +278,7 @@ Couleurs du club : vert `#01A54E`, rouge `#EE312B`, jaune `#FABF25`, bleu `#4156
    - niveau Tirs : `https://hoops-basket-asso.github.io/hba-hoops/?mode=test&demo=table`
    - niveau Complet : `https://hoops-basket-asso.github.io/hba-hoops/?mode=test&demo=table&niveau=complet`
 2. **Le jeu d'essai** : `tests/fixture-export.json` est une base fictive complète. Chargée dans les deux applis, elle doit donner le même ladder, les mêmes notes et les mêmes stats par joueur.
+   `tests/fixture-2211.json` (ajouté le 23/11) est la séance réelle du 22/11, anonymisée : 18 « Joueur NN », 9 matchs, niveaux de saisie par match (4 en Complet), tirs ratés, rebonds, interceptions, balles perdues, lancers, techniques, MVP officiel. Ni sanctions, ni paiements, ni emails. Repères attendus : 9 matchs ; Joueur 10 et Joueur 03 à 21 points ; Joueur 10 à 6/8 aux tirs suivis ; MVP officiel = Joueur 10 ; la vérification de fin de match ne signale que le match 7.
 3. **Le critère** : pour une même séance, les compteurs du § 2.4 sont égaux joueur par joueur, et le score de chaque match aussi.
 
 Tant que ce critère n'est pas tenu, l'appli Android ne doit pas écrire dans une vraie séance.
