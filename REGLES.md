@@ -97,20 +97,24 @@ Raccourcis clavier : **Espace** lance ou arrête le chrono, **Retour arrière** 
 **Les stats enrichies** se cochent au lancement de la séance (ou dans le menu ⋯ pendant le match). Elles sont prévues pour deux personnes à la table : une qui regarde et annonce, une qui saisit.
 
 - **Tir raté** : un bouton « 2 » et un bouton « 3 » en pointillés à côté des paniers.
-- **Rebond** : après chaque tir raté, et après le dernier lancer franc raté de la série (le second en général ; le seul quand le panier a été marqué sur la faute, « and one » ; jamais après une technique ou une antisportive, puisque le ballon est rendu), l'appli demande « Qui prend le rebond ? » et montre les dix joueurs sur le terrain. Un clic suffit : l'appli sait toute seule s'il est offensif ou défensif, selon l'équipe du joueur. Si on enchaîne sur une autre action, la question disparaît et le rebond n'est pas compté.
+- **Rebond** : après chaque tir raté, et après le dernier lancer franc raté de la série (le second en général ; le seul quand le panier a été marqué sur la faute, « and one » ; jamais après une technique ou une antisportive, puisque le ballon est rendu), l'appli demande « Qui prend le rebond ? » et montre les dix joueurs sur le terrain. Un clic suffit : l'appli sait toute seule s'il est offensif ou défensif, selon l'équipe du joueur. Si on enchaîne sur une autre action, la question disparaît et le rebond n'est pas compté. Le tireur peut prendre son propre rebond (offensif).
+- **Tir sorti ou airball** : sous la question du rebond, « Sorti · ballon à … » note quelle équipe récupère la remise en jeu. Le tir est ainsi « suivi » dans le rapport de table, sans rebond pour personne.
+- **Contre** (niveau Complet) : sur un tir raté, « ⛔ Contré ? » dans la question du rebond, puis le contreur parmi les 5 défenseurs. La question du rebond revient ensuite. Le contre est affiché, il n'entre pas dans la note.
 - **Interception** : dans la fiche du joueur (« ⋯ » ou clic sur son nom).
 
 Ce qu'on en tire : le pourcentage de réussite au tir (à partir de 5 tirs sur un dimanche, 20 sur la saison), les rebonds offensifs et défensifs, les interceptions.
 
 **Les garde-fous**
 - Ces chiffres ne portent que sur les dimanches où le mode était activé. Les paniers des autres dimanches n'entrent pas dans le pourcentage.
-- Trois niveaux de saisie, choisis au lancement et modifiables en séance : **Simple** (points, passes, fautes), **Tirs** (+ tirs ratés), **Complet** (+ rebonds et interceptions). Dans les données : `rich` absent, `rich` + `richReb:false`, `rich` + `richReb:true`.
+- Trois niveaux de saisie, choisis au lancement et modifiables en séance : **Simple** (points, passes, fautes), **Tirs** (+ tirs ratés), **Complet** (+ rebonds, interceptions et contres). Dans les données : `rich` absent, `rich` + `richReb:false`, `rich` + `richReb:true`.
 - Table PC : la ligne du joueur porte les paniers, les ratés, les lancers et la faute. Un clic sur le nom ouvre seulement le reste : technique, antisportive, remplacement, et au niveau Complet l'interception (« INT ») et le rebond oublié (« REB », offensif ou défensif selon l'équipe du dernier tir raté).
 - Balles perdues (niveau Complet) : après une interception, l'appli demande à qui le ballon a été pris. Pour un marcher ou une passe dehors, bouton « BP » dans la fiche du joueur. Elles sont comptées et affichées, sans entrer dans la note.
 - Sur grand écran, la table s'agrandit pour occuper la fenêtre (base 1366 × 740, jusqu'à × 2). Elle ne rétrécit jamais.
 - Le niveau de saisie est noté sur chaque match (`lvl`). S'il change en cours de séance, l'adresse au tir ne porte que sur les matchs suivis, et le dimanche n'entre pas dans les moyennes de rebonds.
 - Un compteur de saisie (paniers, ratés ; rebonds et vols au niveau Complet) s'affiche sous le score. Il alerte quand il y a moins de ratés que de paniers.
-- Guidage des lancers (écran large) : une faute qui donne des lancers ouvre « qui tire ? », puis Réussi / Raté lancer par lancer. Un seul lancer si le panier a été marqué sur la faute. Un premier lancer saisi à la main fait proposer le second.
+- Guidage des lancers (écran large) : une faute qui donne des lancers ouvre « qui tire ? », puis Réussi / Raté lancer par lancer. Un seul lancer si le panier a été marqué sur la faute (saisir le panier **avant** la faute). Un premier lancer saisi à la main fait proposer le second.
+- Technique ou antisportive : 2 lancers pour l'adversaire, tireur au choix dans toute l'équipe, pas de rebond, possession rendue. Sur grand écran, « 2 lancers · qui tire ? » s'ouvre tout seul.
+- Double technique ou antisportive (une de chaque côté sur la même action, saisies à moins de 15 s d'écart) : les fautes s'annulent, pas de lancers. L'appli le dit dans la confirmation de la seconde. La carafe reste due pour chaque technique.
 - Un tir raté sur une faute ne se saisit pas : on saisit la faute, puis les lancers.
 - Ils n'entrent pas dans la note cette saison : le classement ne doit pas dépendre de la qualité de la saisie du jour.
 - Un tir raté oublié gonfle le pourcentage sans que le score le trahisse. À surveiller : sur un dimanche bien saisi, le groupe tourne en général entre 35 et 50 % de réussite.

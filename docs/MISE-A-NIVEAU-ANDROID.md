@@ -20,6 +20,8 @@ Références dans ce dépôt :
 
 | Date | Changement | Où |
 |---|---|---|
+| 23/11 | Nouvelle action `blk` (contre) ; `out` peut porter `miss: true` (tir raté sorti : `team` = équipe qui récupère) | § 2.3 |
+| 23/11 | Lancers après technique / antisportive : 2 lancers, tireur au choix ; double faute (une de chaque côté) = pas de lancers | § 3.4 |
 | 22/11 | MVP officiel d'une séance : `mvp` (id du joueur) sur la séance, prioritaire sur le calcul pour le titre du jour | § 2.1 |
 | 22/11 | Niveau de saisie noté sur chaque match : `lvl` | § 2.2 |
 | 18/11 | Niveaux de saisie : `rich` et `richReb` sur la séance | § 2.1 |
@@ -112,11 +114,12 @@ Chaque action porte `type`, `team`, `t` (horodatage en ms) et `el` (temps de jeu
 | `tech` | `pid` | — | Faute technique |
 | `uns` | `pid` | — | Faute antisportive |
 | `sub` | `out`, `in` | — | Remplacement |
-| `out` | — | — | Sortie de balle |
+| `out` | `miss` (optionnel) | — | Sortie de balle. `team` = équipe qui remet en jeu. Depuis le 23/11, `miss: true` quand elle suit un tir raté (pas de rebond) |
 | `miss` | `pid`, `v` (2 ou 3) | 18/11 | Tir raté |
 | `reb` | `pid`, `off` (booléen) | 18/11 | Rebond. `team` = équipe du rebondeur |
 | `stl` | `pid` | 18/11 | Interception |
 | `to` | `pid`, `stl` (optionnel) | 18/11 | Balle perdue. `stl: true` si elle suit une interception |
+| `blk` | `pid` | 23/11 | Contre. Écrit juste après le `miss` contré, avant le `reb`. `team` = équipe du contreur |
 
 Règles d'écriture :
 
@@ -148,6 +151,7 @@ Le moteur produit par joueur : `pts`, `fg2`, `fg3`, `fta`, `ftm`, `pf`, `tech`, 
 | `orb`, `drb` | Rebonds offensifs et défensifs |
 | `stl` | Interceptions |
 | `tov` | Balles perdues |
+| `blk` | Contres (niveau Complet, depuis le 23/11) |
 
 Point important : `a2`, `a3`, `k2`, `k3` ne sont incrémentés par un `pt` **que si la séance a `rich: true`**. Sinon ils restent à zéro. Le pourcentage au tir ne se calcule donc que sur les séances enrichies, jamais sur l'historique.
 
@@ -195,13 +199,15 @@ Code de référence : fonction `ftReb` dans `src/app.html`.
 
 Sur grand écran, une faute qui donne des lancers ouvre « qui tire ? », puis Réussi / Raté lancer par lancer. C'est une aide de saisie. Elle n'écrit rien d'autre que des actions `ft` normales.
 
+Depuis le 23/11 : une technique ou une antisportive ouvre aussi « 2 lancers · qui tire ? » (tireur au choix dans toute l'équipe, sans rebond). Si l'action juste avant est une technique ou une antisportive de l'autre équipe, saisie il y a moins de 15 s, les deux fautes s'annulent : pas de lancers (fonction `dblFoul`).
+
 ### 3.5 Moyennes par dimanche
 
 Points, passes et victoires sont divisés par le nombre de dimanches joués (au moins un match). Rebonds, interceptions et balles perdues sont divisés par le nombre de dimanches au niveau **Complet** seulement.
 
 ### 3.6 Ce qui n'entre pas dans la note
 
-Tirs ratés, rebonds, interceptions et balles perdues sont affichés mais **n'entrent pas dans la note** pour l'instant. Décision du bureau : pas de changement de pondération avant la 10e journée, et pas avant quatre séances au niveau Complet.
+Tirs ratés, rebonds, interceptions, balles perdues et contres sont affichés mais **n'entrent pas dans la note** pour l'instant. Décision du bureau : pas de changement de pondération avant la 10e journée, et pas avant quatre séances au niveau Complet.
 
 ---
 
