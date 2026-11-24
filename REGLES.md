@@ -183,6 +183,20 @@ Des paliers franchis dans un dimanche : gros match, série à 3 points, record p
 
 ---
 
+### L'identité d'un joueur sur sa fiche
+
+L'en-tête de la fiche porte trois choses, toutes facultatives et choisies par le bureau dans « Modifier » :
+
+- **Le surnom**, écrit en très grand et très pâle derrière le nom. Sans surnom, c'est le prénom.
+- **Une couleur**, parmi 9. Sans choix, c'est la couleur de la saison.
+- **Un motif** dessiné maison, parmi 12 (flamme, éclair, couronne, cible, montagne, comète, bouclier, plume, boussole, aimant, diamant, étoile). Aucun motif n'est repris d'une marque ou d'un personnage.
+
+**Le profil automatique.** Pour les réguliers (présents à au moins la moitié des dimanches du ladder), l'appli calcule six classements : points par match, passes par match, paniers à 3 points par match, taux de victoires, points encaissés quand il joue, présences. Chacun reçoit le profil où il est le mieux classé, s'il y est dans les 5 premiers : le marqueur, le passeur, l'artilleur, le gagneur, le verrou, le pilier. Un même profil sert 3 fois au plus. Hors des 5 premiers partout : pas de profil. Le profil donne le motif par défaut. Il change tout seul au fil de la saison.
+
+**La couleur de la saison** se règle dans Bureau → Réglages. L'orange du club ne change pas. Cette couleur habille les fiches sans couleur propre.
+
+**La fiche en deux niveaux.** En haut, toujours visibles : rang, note, présences, points, victoires, courbe des points. En dessous, trois volets à ouvrir : Points et tirs, Jeu collectif, Badges. Le téléphone retient les volets ouverts.
+
 ## 7. Les images à partager
 
 - **Le résumé de la séance** : équipe du jour, MVP, leaders du jour, résultats, badges.
