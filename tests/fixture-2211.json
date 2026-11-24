@@ -700,21 +700,22 @@
        "pid": "q15"
       },
       {
-       "type": "pt",
-       "pid": "q03",
-       "el": 68133,
        "team": "B",
-       "v": 2,
-       "t": 1795342554275,
-       "fix": "2026-11-22"
+       "el": 68133,
+       "pid": "q09",
+       "type": "ft",
+       "made": true,
+       "edited": true,
+       "t": 1795342554275
       },
       {
-       "type": "ast",
        "team": "B",
-       "pid": "q09",
-       "t": 1795342554276,
        "el": 68133,
-       "fix": "2026-11-22"
+       "pid": "q09",
+       "type": "ft",
+       "made": true,
+       "edited": true,
+       "t": 1795342554276
       },
       {
        "t": 1795342583354,
@@ -3494,7 +3495,7 @@
    "format": "rotation",
    "nextHome": "A",
    "rich": true,
-   "updatedAt": 1795349513820,
+   "updatedAt": 1795349513821,
    "nextAway": "B",
    "present": [
     "q04",
