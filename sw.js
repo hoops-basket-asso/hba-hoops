@@ -1,7 +1,7 @@
 // Hoops Stats · service worker : la page et ses dépendances sont mises en cache pour un démarrage instantané et un fonctionnement hors ligne (lecture).
-const VERSION = 'hs-v2';
+const VERSION = 'hs-v3';
 const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
-const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './fonts/barlow-latin-400-normal.woff2', './fonts/barlow-latin-500-normal.woff2', './fonts/barlow-latin-600-normal.woff2', './fonts/barlow-latin-700-normal.woff2', './fonts/barlow-condensed-latin-600-normal.woff2', './fonts/barlow-condensed-latin-700-normal.woff2', './fonts/barlow-condensed-latin-800-normal.woff2'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {

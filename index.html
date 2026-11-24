@@ -3,7 +3,7 @@
 <meta name="theme-color" content="#151515"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="description" content="Hoops Basket Association · stats et table de marque du dimanche">
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
-<link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin><link rel="preload" href="fonts/barlow-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/barlow-condensed-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <script>if('serviceWorker' in navigator){ addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }</script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-11-24 18:53';</script>
+window.HS_VERSION = '2026-11-24 19:26';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -138,8 +138,16 @@ window.HS_VERSION = '2026-11-24 18:53';</script>
 })();
 </script>
 <title>Hoops Stats</title>
-<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
 <style>
+/* Polices embarquées (Barlow, licence libre OFL, voir fonts/LICENSE-OFL.txt) : plus aucun appel à Google Fonts, même rendu hors ligne. */
+@font-face{font-family:"Barlow";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/barlow-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/barlow-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/barlow-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/barlow-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/barlow-condensed-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:800;font-display:swap;src:url(fonts/barlow-condensed-latin-800-normal.woff2) format("woff2")}
+
 /* Layout: phone-first scoreboard. One column, sticky scoreboard on top in scorer mode, tabs at the bottom. */
 :root{
   --bg:#F7F4EE; --panel:#FFFFFF; --fg:#151515; --muted:#5A5A60; --line:#E6E1D6;
