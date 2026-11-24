@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-11-24 19:57';</script>
+window.HS_VERSION = '2026-11-24 20:43';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -1205,7 +1205,7 @@ function vHome(){
   if(live){ const ss=sessionStats(live); const m=liveMatch(live);
     h+=`<div class="card"><div class="row"><span class="pill live">● Séance en cours</span><span class="muted small">${esc(fmtDate(live.date))}</span></div>
     <h2 style="margin-top:8px">${live.format==='cent'?`Match à 100 points · ${ss.done} quart-temps joué${ss.done>1?'s':''}`:`${ss.done} match${ss.done>1?'s':''} joué${ss.done>1?'s':''}`}${m?(live.format==='cent'?` · QT ${m.quarter} en cours`:` · match ${m.n} en cours`):''}</h2>
-    <div class="row" style="margin-top:10px"><button class="btn primary grow" data-act="open-live" data-id="${live.id}">${canScore()?'Reprendre la table de marque':'Suivre la séance'}</button><button class="btn ghost" data-act="stats-of" data-id="${live.id}">Stats</button></div></div>`; }
+    <div class="row" style="margin-top:10px"><button class="btn primary grow" data-act="open-live" data-id="${live.id}">${canScore()?'Reprendre la table de marque':'Suivre la séance'}</button><button class="btn ghost" data-act="stats-of" data-id="${live.id}">Stats</button></div>${S.demo||!fbMode()?'':`<a class="btn ghost" style="display:block;text-align:center;margin-top:8px;text-decoration:none" href="direct.html" target="_blank" rel="noopener">Le direct animé · à partager à ceux qui ne sont pas là</a>`}</div>`; }
   if(!live&&S.loaded&&!S.demo){ const nx=nextSession(); const dd=Math.round((new Date(nx.date+'T12:00:00')-new Date(today()+'T12:00:00'))/864e5); const when=dd===0?"aujourd'hui":dd===1?'demain':'dans '+dd+' jours'; const col=nx.status==='cancelled'?'var(--bad)':nx.status==='changed'?'var(--warn)':'';
     h+=`<div class="card" id="nextCard" style="${col?'border:2px solid '+col:''}"><div class="row"><h2 class="grow">Prochaine séance</h2><span class="pill ${nx.status==='ok'?'live':''}" style="${col?'background:'+col+';color:#fff':''}">${nx.status==='cancelled'?'Annulée':nx.status==='changed'?'Modifiée':nx.manual?'Confirmée':'Prévue'}</span></div><div style="font-family:var(--display);font-size:22px;font-weight:800;margin-top:6px;${nx.status==='cancelled'?'text-decoration:line-through;opacity:.6':''}">${esc(fmtDate(nx.date))} · ${esc(nx.time)}</div><div class="muted small">${esc(nx.place)} · ${when}${nx.prep?' · '+(nx.prep.present||[]).length+' inscrit'+((nx.prep.present||[]).length>1?'s':''):''}</div>${nx.note?`<p class="small" style="margin:6px 0 0"><b>${esc(nx.note)}</b></p>`:''}${S.unlocked&&!S.scorer?`<div class="row" style="margin-top:12px"><button class="btn ${prepToday?'ghost':'primary'} grow" data-act="new-session">${Object.values(S.sessions).some(x=>x.status==='setup')?'Reprendre la préparation':'Préparer la séance'}</button>${fbMode()?`<button class="btn ghost" data-act="next-edit">Modifier</button>`:''}</div>`:''}</div>`; }
   if(S.loaded&&!S.demo&&S.unlocked&&!S.scorer) h+=bureauTiles();

@@ -199,6 +199,16 @@ L'en-tête de la fiche porte trois choses, toutes facultatives et choisies par l
 
 **La fiche en deux niveaux.** En haut, toujours visibles : rang, note, présences, points, victoires, courbe des points. En dessous, trois volets à ouvrir : Points et tirs, Jeu collectif, Badges. Le téléphone retient les volets ouverts.
 
+### Le direct (direct.html)
+
+Une page à part, en lecture seule, pour suivre la séance à distance : tableau de score, animation à chaque action marquante (panier, lancer, contre, interception, balle perdue, technique), série en cours, meilleurs marqueur, passeur et équipe de la séance, fil du match, écran de fin de match, écran de fin de séance.
+
+- **Différé de 20 secondes** (réglable : `?delai=30`). Une saisie annulée ou corrigée par la table dans ce délai n'apparaît jamais. Après, l'affichage est recalculé à chaque mise à jour, donc une correction tardive se répercute quand même sur le score et les compteurs.
+- La page ne peut rien écrire dans la base et ne charge pas l'appli. Elle lit la séance « en cours » et les joueurs, comme le fait l'appli en consultation.
+- Contres, interceptions et balles perdues n'existent que sur les matchs en saisie complète.
+- `direct.html?rejouer=1` rejoue la dernière séance en accéléré (`&vitesse=40`). `direct.html?src=tests/fixture-2211.json` rejoue le jeu d'essai anonymisé, sans toucher à la base.
+- Coût : chaque spectateur lit la séance à chaque action saisie. Compter environ 600 lectures par spectateur et par dimanche, pour un quota gratuit de 50 000 par jour.
+
 ## 7. Les images à partager
 
 - **Le résumé de la séance** : équipe du jour, MVP, leaders du jour, résultats, badges.

@@ -21,7 +21,7 @@
     doc:(id)=>docRef(c+'/'+id),
     get:async()=>{ const docs=Object.entries(data[c]||{}).map(([id,d])=>({id,data:()=>revive(JSON.parse(JSON.stringify(d)))})); return {docs,empty:!docs.length}; },
     orderBy:()=>({ limit:(n)=>({ get:async()=>{ const docs=Object.entries(data[c]||{}).sort((a,b)=>a[0]<b[0]?1:-1).slice(0,n).map(([id,d])=>({id,data:()=>d})); return {docs,empty:!docs.length}; } }) }),
-    where:(f,op,v)=>({ get:async()=>{ const docs=Object.entries(data[c]||{}).filter(([id,d])=>d[f]===v).map(([id,d])=>({id,data:()=>revive(JSON.parse(JSON.stringify(d)))})); return {docs,empty:!docs.length}; } }),
+    where:(f,op,v)=>{ const pick=()=>Object.entries(data[c]||{}).filter(([id,d])=>d[f]===v).map(([id,d])=>({id,data:()=>revive(JSON.parse(JSON.stringify(d)))})); return { get:async()=>{ const docs=pick(); return {docs,empty:!docs.length}; }, onSnapshot:(a,b)=>{ const cb=typeof a==='function'?a:b; const g=()=>{ const docs=pick(); cb({docs,empty:!docs.length}); }; g(); subs.push(g); return ()=>{}; } }; },
     onSnapshot:(a,b,c2)=>{ const cb=typeof a==='function'?a:b; const f=()=>{ const docs=Object.entries(data[c]||{}).map(([id,d])=>({id,data:()=>revive(JSON.parse(JSON.stringify(d)))})); cb({docs,empty:!docs.length,metadata:{fromCache:false}}); }; f(); subs.push(f); return ()=>{}; }
   });
   const fsObj={ doc:docRef, collection:colRef, settings:()=>{}, enablePersistence:()=>Promise.resolve(), batch:()=>{ const ops=[]; return { set:(ref,d)=>ops.push(()=>ref.set(d)), commit:async()=>{ for(const o of ops) await o(); } }; } };
