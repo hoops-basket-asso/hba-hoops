@@ -275,3 +275,4 @@ Une page à part, en lecture seule, pour suivre la séance à distance : tableau
 - Tirs : comptés sur les matchs où les tirs sont notés (niveau « Tirs » ou « Complet »). Rebonds, interceptions, balles perdues, contres : sur les matchs en complet uniquement.
 - La case « contres » n'apparaît que si au moins un contre a été saisi dans la séance (avant le 29/11/2026, on ne les saisissait pas).
 - En dessous de 8 tirs, le pourcentage est accompagné d'une mise en garde.
+- L'image du résumé reprend ces chiffres dans un bandeau « Le zoom » : main chaude (meilleure adresse, 5 tirs tentés au minimum), rebonds, interceptions, contres s'il y en a. Chaque carte rappelle le nombre de matchs suivis ; les ex æquo sont tous cités. Une ligne donne l'adresse générale du jour. Les balles perdues ne sont pas mises en avant sur l'image.
