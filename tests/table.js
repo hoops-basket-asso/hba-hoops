@@ -37,6 +37,9 @@ const { chromium } = require('playwright'); const BASE=process.env.BASE||'http:/
   await conf(1,0,'tech'); E(!!(await p.$('.ftbar'))&&/2 lancers/.test(await p.textContent('.ftbar'))&&(await p.$$('.ftbar [data-act="ft-who"]')).length>=5,'technique : le bandeau « 2 lancers · qui tire ? » doit s\'ouvrir');
   await p.click('.ftbar [data-act="ft-who"]'); await p.waitForTimeout(120); await p.click('.ftbar [data-act="ft-go"][data-made="0"]'); await p.waitForTimeout(500);
   E(!!(await p.$('.ftbar'))&&/Lancer 2\/2/.test(await p.textContent('.ftbar')),'technique : le 2e lancer doit être proposé'); await p.click('.ftbar [data-act="ft-go"][data-made="0"]'); await p.waitForTimeout(200); E(!(await p.$('.rebbar')),'pas de rebond après les lancers d\'une technique');
+  // 2e technique du même joueur dans le match : exclusion annoncée, rappel tant qu'il est sur le terrain et qu'un remplaçant existe
+  { const tx=await conf(1,0,'tech'); const bench=await p.evaluate(()=>{ const h=window.__hs, s=h.curSession(), m=h.liveMatch(s), st=h.matchState(m,s); return s.teams[m.away].players.filter(x=>!st.on[m.away].includes(x)).length; });
+    if(bench){ E(/exclu/.test(tx),'2e technique : exclusion non annoncée'); await p.evaluate(()=>{ window.__hs.S.ftStrip=null; window.__hs.render(); }); E(!!(await p.$('#exclu')),'2e technique : rappel d\'exclusion absent'); } else E(/aucun remplaçant/.test(tx)&&!(await p.$('#exclu')),'2e technique sans banc : le joueur doit rester'); await p.evaluate(()=>{ window.__hs.S.ftStrip=null; window.__hs.render(); }); }
   await conf(0,0,'tech'); const t2=await conf(1,1,'uns'); E(/s'annulent/.test(t2)&&!(await p.$('.ftbar')),'double technique / antisportive : les fautes s\'annulent, pas de lancers');
   // interception par « ⋯ », clavier
   E(await p.evaluate(()=>!document.querySelector('.lvw .qb.qo')&&!document.querySelector('.lvw .qb.qs')),'la ligne du joueur ne doit plus porter « ⋯ » ni « INT »');
