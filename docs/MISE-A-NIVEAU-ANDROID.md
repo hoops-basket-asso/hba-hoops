@@ -21,6 +21,7 @@ Références dans ce dépôt :
 | Date | Changement | Où |
 |---|---|---|
 | 23/11 | Nouvelle action `blk` (contre, saisi par la fiche du joueur) ; `out` peut porter `miss: true` (tir raté sorti, sans `team`) ; champs `noFt` / `ftFix` sur une faute (lancers volontairement non tirés / rattrapés en fin de match) | § 2.3 |
+| 24/11 | Fiche joueur : champs facultatifs `color` et `motif` sur le joueur ; `skin` dans `config/main` (couleur de la saison). Purement visuels, à conserver tels quels à l'écriture. Valeurs : voir `PCOLORS`, `MOTIFS`, `SKINS` dans `src/app.html` | § 2 |
 | 23/11 | Lancers après technique / antisportive : 2 lancers, tireur au choix ; double faute (une de chaque côté) = pas de lancers | § 3.4 |
 | 22/11 | MVP officiel d'une séance : `mvp` (id du joueur) sur la séance, prioritaire sur le calcul pour le titre du jour | § 2.1 |
 | 22/11 | Niveau de saisie noté sur chaque match : `lvl` | § 2.2 |

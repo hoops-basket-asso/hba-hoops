@@ -6,6 +6,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
   await ctx.route(/gstatic\.com\/firebasejs\//, r=>r.fulfill({contentType:'application/javascript',body:'/* noop */'}));
   await ctx.route(/gstatic\.com\/firebasejs\/.*firebase-app-compat/, r=>r.fulfill({contentType:'application/javascript',body:fake}));
   await ctx.route(/fonts\.googleapis|fonts\.gstatic/, r=>r.fulfill({contentType:'text/css',body:''}));
+  await ctx.addInitScript(()=>{ try{ localStorage.setItem('hs-fold',JSON.stringify(['tcash','tpack','tproj','tledg','pts','col','bdg'])); }catch(e){} }); // volets ouverts : les tests lisent ce qu'ils contiennent
   const p=await ctx.newPage(); p.setDefaultTimeout(8000); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); p.on('dialog',d=>d.accept());
   const E=(c,m)=>{ if(!c) errs.push(m); };
   await p.goto('http://127.0.0.1:8099/index.html'); await p.waitForTimeout(800);
@@ -21,7 +22,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
   await p.fill('#lgDate','2026-10-15'); await p.fill('#lgAmt','4500'); await p.fill('#lgLabel','1er virement Hoops Factory (60 %)'); await p.selectOption('#lgCat','pack_out'); await p.click('[data-act="ledger-add"]'); await p.waitForTimeout(400);
   const cs=await p.evaluate(()=>window.__hs.cashState()); console.log('caisse', cs);
   E(Math.abs(cs.balance-(871.97+cs.cotEur+cs.partEur-4500-cs.bank))<0.01,'solde faux: '+cs.balance); E(cs.packDue===3000,'reste dû faux: '+cs.packDue); E(cs.packPaid===4500,'pack payé faux');
-  t=await txt(); E(/Reste à payer au Hoops/i.test(t)&&/3.000.€/.test(t),'reste dû non affiché');
+  t=await txt(); E(/À payer/i.test(t)&&/au Hoops/i.test(t)&&/3.000.€/.test(t),'reste dû non affiché');
   // persistance via fake db
   const saved=await p.evaluate(()=>{ const d=JSON.parse(localStorage.getItem('fakefs')); return d.treasury&&d.treasury.ledger; }); E(saved&&saved.items&&saved.items.length===1&&saved.opening&&saved.opening.amt===871.97,'ledger non persisté');
   // suppression

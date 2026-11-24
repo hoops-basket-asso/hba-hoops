@@ -8,6 +8,7 @@ const { chromium } = require('playwright'); const fs=require('fs');
   await ctx.route(/gstatic\.com\/firebasejs\//, r=>r.fulfill({contentType:'application/javascript',body:'/* noop */'}));
   await ctx.route(/gstatic\.com\/firebasejs\/.*firebase-app-compat/, r=>r.fulfill({contentType:'application/javascript',body:fake}));
   await ctx.route(/fonts\.googleapis|fonts\.gstatic/, r=>r.fulfill({contentType:'text/css',body:''}));
+  await ctx.addInitScript(()=>{ try{ localStorage.setItem('hs-fold',JSON.stringify(['tcash','tpack','tproj','tledg','pts','col','bdg'])); }catch(e){} }); // volets ouverts : les tests lisent ce qu'ils contiennent
   const p=await ctx.newPage(); p.setDefaultTimeout(8000); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); p.on('dialog',d=>d.accept());
   const E=(c,m)=>{ if(!c) errs.push(m); };
   await p.goto('http://127.0.0.1:8099/index.html'); await p.waitForTimeout(800);
