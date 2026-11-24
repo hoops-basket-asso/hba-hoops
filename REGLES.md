@@ -268,3 +268,10 @@ Une page à part, en lecture seule, pour suivre la séance à distance : tableau
 **MVP annoncé.** Quand le MVP du jour a été annoncé et qu'une correction ultérieure des données change le classement, le bureau peut maintenir le titre (champ `mvp` de la séance). Le joueur garde le titre de MVP du jour, avec la mention « Annoncé le jour même ». Les notes restent celles du calcul et le ladder de saison n'est pas touché.
 
 **Stats avancées : affichage.** Dans la vue d'une séance, la carte « Stats avancées » est visible par tous, avec la liste des matchs suivis en saisie complète (« 4 matchs sur 9 »). Dans les vues mois et saison, elle n'apparaît aux joueurs qu'à partir de 3 dimanches comptant au moins un match suivi en complet. Les colonnes « Tirs % » et « Reb. » du tableau suivent la même règle. Le bureau voit tout, tout de suite, avec la mention de ce seuil. Le bureau dispose aussi d'un « Rapport de table » par séance : niveau tenu par match, rythme de saisie, tirs ratés suivis d'un rebond, passes par panier.
+
+## Matchs suivis en détail (carte du joueur)
+
+- Quand une séance mélange saisie complète et saisie simple, chaque joueur voit, dans « Mon dernier dimanche » et sur sa fiche, un bloc « Matchs suivis en détail » : combien de ses matchs ont été suivis en complet, et ses chiffres sur ces matchs-là seulement.
+- Tirs : comptés sur les matchs où les tirs sont notés (niveau « Tirs » ou « Complet »). Rebonds, interceptions, balles perdues, contres : sur les matchs en complet uniquement.
+- La case « contres » n'apparaît que si au moins un contre a été saisi dans la séance (avant le 29/11/2026, on ne les saisissait pas).
+- En dessous de 8 tirs, le pourcentage est accompagné d'une mise en garde.
