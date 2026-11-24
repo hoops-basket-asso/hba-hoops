@@ -700,22 +700,23 @@
        "pid": "q15"
       },
       {
-       "team": "B",
-       "el": 68133,
+       "type": "pt",
        "pid": "q09",
-       "type": "ft",
-       "made": true,
-       "edited": true,
-       "t": 1795342554275
+       "el": 68133,
+       "team": "B",
+       "v": 2,
+       "t": 1795342554275,
+       "fix": "2026-11-22",
+       "edited": true
       },
       {
+       "type": "ast",
        "team": "B",
+       "pid": "q03",
+       "t": 1795342554276,
        "el": 68133,
-       "pid": "q09",
-       "type": "ft",
-       "made": true,
-       "edited": true,
-       "t": 1795342554276
+       "fix": "2026-11-22",
+       "edited": true
       },
       {
        "t": 1795342583354,
