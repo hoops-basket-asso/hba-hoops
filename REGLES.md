@@ -207,6 +207,7 @@ Une page à part, en lecture seule, pour suivre la séance à distance : tableau
 - **Différé de 20 secondes** (réglable : `?delai=30`). Une saisie annulée ou corrigée par la table dans ce délai n'apparaît jamais. Après, l'affichage est recalculé à chaque mise à jour, donc une correction tardive se répercute quand même sur le score et les compteurs.
 - La page ne peut rien écrire dans la base et ne charge pas l'appli. Elle lit la séance « en cours » et les joueurs, comme le fait l'appli en consultation.
 - Contres, interceptions et balles perdues n'existent que sur les matchs en saisie complète.
+- Chaque action a sa scène dessinée (ballon dans le filet, main du contre, ballon qui roule, sifflet). Aucun fichier image ni son : tout est tracé et synthétisé dans la page. Le son est coupé par défaut, bouton « Son » en haut. Le « film du match » montre un trait par panier, à la couleur de l'équipe. En cas de gros retard (téléphone en veille), la page rattrape sans animer.
 - `direct.html?rejouer=1` rejoue la dernière séance en accéléré (`&vitesse=40`). `direct.html?src=tests/fixture-2211.json` rejoue le jeu d'essai anonymisé, sans toucher à la base.
 - Coût : chaque spectateur lit la séance à chaque action saisie. Compter environ 600 lectures par spectateur et par dimanche, pour un quota gratuit de 50 000 par jour.
 

@@ -4,6 +4,8 @@ const { chromium } = require('playwright');
   const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
   await p.goto('http://127.0.0.1:8099/direct.html?src=tests/fixture-2211.json&vitesse=200'); await p.waitForTimeout(1200);
   if(!(await p.$('#board'))) errs.push('tableau de score absent');
+  // le son est coupé par défaut ; un appui l'active, sans erreur
+  if(!/Son/.test(await p.textContent('#snd'))) errs.push('bouton Son absent'); await p.click('#snd'); if(await p.evaluate(()=>localStorage.getItem('hs-direct-son'))!=='1') errs.push('le son ne s\'active pas'); if(!(await p.$('#film'))) errs.push('film du match absent');
   // on attend la fin du 1er match : écran de victoire, score final 8–7 pour l'équipe à l'extérieur
   await p.waitForSelector('#stage .endc',{timeout:40000}).catch(()=>errs.push('écran de fin de match jamais affiché'));
   const t=await p.textContent('#stage').catch(()=>'' ); if(!/Victoire/.test(t)||!/8 – 7/.test(t)||!/Meilleur marqueur/.test(t)) errs.push('écran de fin incomplet : '+t.slice(0,120));

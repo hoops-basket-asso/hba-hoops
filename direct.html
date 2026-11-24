@@ -32,7 +32,7 @@ body{background:var(--bg);color:var(--fg);font:500 15px/1.4 var(--b);overflow-x:
 .mid{text-align:center;padding:0 4px}.mid .ck{font:800 30px/1 var(--d);font-variant-numeric:tabular-nums}.mid .lab{font:700 10px/1.2 var(--b);letter-spacing:.14em;color:#D5DAE3;margin-top:4px;text-transform:uppercase}
 .board .run{position:absolute;left:0;right:0;top:0;text-align:center;font:800 15px/1 var(--d);letter-spacing:.08em;height:38px;display:flex;align-items:center;justify-content:center;background:#000A;transform:translateY(-100%);transition:transform .35s}.board .run.on{transform:none}
 /* scène des actions */
-.stage{position:relative;height:210px;border-radius:22px;border:1px solid var(--line);background:radial-gradient(120% 90% at 50% 0%,#1B2029,#0E1116);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.stage{position:relative;height:256px;border-radius:22px;border:1px solid var(--line);background:radial-gradient(120% 90% at 50% 0%,#1B2029,#0E1116);overflow:hidden;display:flex;align-items:center;justify-content:center}
 .stage .idle{color:var(--muted);font:700 12px/1.5 var(--b);letter-spacing:.14em;text-transform:uppercase;text-align:center;padding:0 20px}
 .fx{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;--c:#fff;animation:fxout .4s 1.9s both}
 .fx .rays{position:absolute;left:50%;top:50%;width:560px;height:560px;margin:-280px;background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--c) 34%,transparent) 0 9deg,transparent 9deg 22deg);border-radius:50%;animation:spin 5s linear infinite,rin .5s both;-webkit-mask-image:radial-gradient(circle,#000 0,transparent 68%);mask-image:radial-gradient(circle,#000 0,transparent 68%)}
@@ -44,7 +44,7 @@ body{background:var(--bg);color:var(--fg);font:500 15px/1.4 var(--b);overflow-x:
 .fx.blk .big{font-size:74px;animation:slam .5s cubic-bezier(.2,1.5,.4,1) both}.fx.blk .wall{position:absolute;left:8%;right:8%;top:50%;height:10px;border-radius:6px;background:var(--c);animation:wall .45s .05s both;opacity:.85}
 .fx.stl .big,.fx.to .big,.fx.foul .big,.fx.tech .big{font-size:62px}.fx.stl .big{animation:swipe .5s cubic-bezier(.2,1.2,.3,1) both}.fx.stl .trail{position:absolute;top:50%;left:-20%;width:140%;height:70px;margin-top:-66px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--c) 45%,transparent),transparent);animation:trail .7s both;transform:skewX(-18deg)}
 .fx.to .big{color:#C9D0DA;animation:wob .7s both}.fx.tech{background:#B3261E33}.fx.tech .big{color:#FF6B5E;animation:pop .5s both,flash .25s 3}
-.fx.ft .big{font-size:86px}
+
 .shake{animation:shake .4s}
 @keyframes pop{0%{transform:scale(.2) rotate(-8deg);opacity:0}60%{opacity:1}100%{transform:none;opacity:1}}
 @keyframes slam{0%{transform:translateY(-140px) scale(1.4);opacity:0}100%{transform:none;opacity:1}}
@@ -58,11 +58,40 @@ body{background:var(--bg);color:var(--fg);font:500 15px/1.4 var(--b);overflow-x:
 @keyframes spin{to{rotate:360deg}}
 @keyframes fxout{to{opacity:0;transform:scale(1.06)}}
 @keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+/* scènes dessinées (ballon, panier, main) : formes simples animées, aucun fichier image */
+.fx{background:radial-gradient(90% 120% at 50% 100%,color-mix(in srgb,var(--c) 26%,transparent),transparent 70%)}
+.scn{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.scn .bx{animation:bx 1.3s linear both}.scn .by{animation:by 1.3s both}
+.scn.far .bx{animation-name:bxf}.scn.far .by{animation-name:byf}
+@keyframes bx{0%{transform:translateX(0)}65%,100%{transform:translateX(225px)}}
+@keyframes bxf{0%{transform:translateX(0)}65%,100%{transform:translateX(265px)}}
+@keyframes by{0%{transform:translateY(0);animation-timing-function:cubic-bezier(.2,.7,.5,1)}36%{transform:translateY(-118px);animation-timing-function:cubic-bezier(.5,0,.8,.4)}65%{transform:translateY(-74px);opacity:1;animation-timing-function:ease-in}100%{transform:translateY(-8px);opacity:0}}
+@keyframes byf{0%{transform:translateY(0);animation-timing-function:cubic-bezier(.2,.7,.5,1)}36%{transform:translateY(-150px);animation-timing-function:cubic-bezier(.5,0,.8,.4)}65%{transform:translateY(-84px);opacity:1;animation-timing-function:ease-in}100%{transform:translateY(-18px);opacity:0}}
+.scn .net{transform-origin:285px 80px;animation:net .5s .82s both}
+@keyframes net{0%{transform:scaleY(1)}35%{transform:scaleY(1.32) skewX(-5deg)}70%{transform:scaleY(.9) skewX(3deg)}100%{transform:none}}
+.scn .rim{animation:rimf .4s .82s both}@keyframes rimf{50%{stroke:#fff}}
+.fx.pt .big{animation-delay:.72s}.fx.pt .tag{animation-delay:.84s}.fx.pt .who{animation-delay:.92s}.fx.pt .sub{animation-delay:1s}.fx.pt .rays{animation-delay:0s,.72s}
+.fx.pt .txt{position:relative;display:flex;flex-direction:column;align-items:center;margin-right:24%;margin-top:14px}.fx.pt .big{font-size:92px}.fx.pt .who{font-size:23px;margin-top:5px}
+.scn .bk{animation:bkx 1s both}@keyframes bkx{0%{transform:translate(0,0);animation-timing-function:cubic-bezier(.2,.7,.5,1)}42%{transform:translate(150px,-88px);animation-timing-function:ease-in}100%{transform:translate(40px,60px);opacity:0}}
+.scn .hand{transform-origin:214px 40px;animation:hand .5s .18s both}@keyframes hand{0%{transform:translateY(-90px) rotate(-30deg);opacity:0}60%{transform:translateY(6px) rotate(8deg);opacity:1}100%{transform:none;opacity:1}}
+.scn .roll{animation:roll 1.5s both}@keyframes roll{0%{transform:translate(0,0)}18%{transform:translate(50px,-34px)}34%{transform:translate(96px,0)}48%{transform:translate(134px,-16px)}60%{transform:translate(168px,0)}100%{transform:translate(330px,0);opacity:0}}
+.scn .snap{animation:snap 1s both}@keyframes snap{0%{transform:translate(0,0)}45%{transform:translate(140px,-10px)}52%{transform:translate(146px,-14px) scale(1.25)}100%{transform:translate(-90px,-40px);opacity:0}}
+.scn .whi{transform-box:fill-box;transform-origin:center;animation:whi .5s 2}@keyframes whi{25%{transform:rotate(-9deg)}75%{transform:rotate(9deg)}}
+.fx.foul .big{font-size:50px}.fx.foul{animation-delay:1.05s}
+.fx.blk .txt,.fx.to .txt,.fx.stl .txt,.fx.foul .txt,.fx.tech .txt,.fx.ft .txt{position:relative;display:flex;flex-direction:column;align-items:center}
+.fx.blk .txt,.fx.foul .txt,.fx.tech .txt{margin-top:70px}.fx.to .txt{margin-bottom:34px}.fx .txt{position:relative;display:flex;flex-direction:column;align-items:center}
+.teamtag{position:relative;display:inline-block;font:700 11px/1 var(--b);letter-spacing:.14em;text-transform:uppercase;padding:5px 9px;border-radius:999px;background:var(--c);color:#fff;margin-top:6px;animation:up .4s .3s both}
+/* film du match : un carré par panier, dans l'ordre, à la couleur de l'équipe */
+.film{display:flex;gap:3px;align-items:flex-end;padding:0 14px 10px;min-height:22px;overflow:hidden;justify-content:center;flex-wrap:nowrap}
+.film i{flex:none;width:9px;border-radius:2px;background:var(--c);height:8px}.film i.v2{height:13px}.film i.v3{height:19px}.film i:last-child{animation:up .3s both;box-shadow:0 0 0 2px #fff6}
+.snd{border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:8px 11px;font:700 12px/1 var(--b);cursor:pointer;min-height:34px}.snd.on{background:#fff;color:#111;border-color:#fff}
+.it.away{flex-direction:row-reverse;text-align:right;border-left:1px solid var(--line);border-right:4px solid var(--c,#555)}
+.tm.hit .nm{color:#fff;text-shadow:0 0 14px #fff}.tm .nm{transition:text-shadow .3s}
 /* fin de match */
 .endc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:linear-gradient(160deg,color-mix(in srgb,var(--c) 62%,#0E1116),#0E1116 78%);animation:rin .45s both;padding:10px}
 .endc .t1{font:700 12px/1 var(--b);letter-spacing:.18em;text-transform:uppercase;color:#E9ECF2}.endc .t2{font:800 46px/1 var(--d);text-transform:uppercase;margin:6px 0 2px;animation:pop .6s .1s both}.endc .t3{font:800 34px/1 var(--d);font-variant-numeric:tabular-nums}.endc .t4{margin-top:10px;font:500 14px/1.3 var(--b);color:#E9ECF2}.endc .t4 b{font-weight:700;color:#fff}
 .cf{position:absolute;top:-12px;width:8px;height:14px;border-radius:2px;animation:fall linear both;pointer-events:none}
-@keyframes fall{to{transform:translateY(250px) rotate(540deg);opacity:.9}}
+@keyframes fall{to{transform:translateY(300px) rotate(540deg);opacity:.9}}
 /* leaders */
 .lead{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .lc{position:relative;border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:11px 12px;overflow:hidden;min-height:76px}
@@ -80,12 +109,12 @@ h3{font:800 15px/1 var(--d);letter-spacing:.12em;text-transform:uppercase;color:
 .btn{display:inline-block;margin-top:14px;padding:13px 18px;border-radius:13px;background:var(--accent);color:#fff;font:700 15px/1 var(--b);text-decoration:none;border:0;cursor:pointer}
 .btn.gh{background:transparent;border:1px solid var(--line);color:var(--fg)}
 .foot{margin-top:auto;text-align:center;color:var(--muted);font-size:12px;padding-top:8px}.foot a{color:var(--muted)}
-@media (min-width:900px){.wrap{max-width:1080px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:14px;align-content:start}.top,.foot{grid-column:1/-1}.colA,.colB{display:flex;flex-direction:column;gap:12px}.stage{height:260px}.tm .sc{font-size:110px}}
+@media (min-width:900px){.wrap{max-width:1080px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:14px;align-content:start}.top,.foot{grid-column:1/-1}.colA,.colB{display:flex;flex-direction:column;gap:12px}.stage{height:300px}.tm .sc{font-size:110px}}
 @media (max-width:899px){.colA,.colB{display:contents}}
 @media (max-width:360px){.tm .sc{font-size:68px}.fx .big{font-size:92px}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important}}
 </style></head><body>
-<div class="wrap"><div class="top"><div class="brand"><small>HOOPS BASKET ASSOCIATION</small>Le direct</div><span class="live off" id="live"><i></i><span id="liveTx">HORS ANTENNE</span></span></div>
+<div class="wrap"><div class="top"><div class="brand"><small>HOOPS BASKET ASSOCIATION</small>Le direct</div><button class="snd" id="snd" type="button" aria-pressed="false" style="margin-left:auto">🔇 Son</button><span class="live off" id="live" style="margin-left:0"><i></i><span id="liveTx">HORS ANTENNE</span></span></div>
 <div class="colA" id="colA"></div><div class="colB" id="colB"></div>
 <div class="foot" id="foot"></div></div>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -136,9 +165,10 @@ function render(){ const s=D.sess; const A=$('#colA'), B=$('#colB'); const lv=$(
   document.documentElement.style.setProperty('--ta',m?tcol(m.home):'#555'); document.documentElement.style.setProperty('--tb',m?tcol(m.away):'#555');
   const side=t=>{ const lim=D.cfg.teamFoulLimit||6, f=st.tf[t]||0; return `<div class="tm"><div class="nm">${esc(tname(t))}</div><div class="sc" data-t="${t}">${st.sc[t]||0}</div><div class="fl" title="Fautes d'équipe">${Array.from({length:lim},(_,i)=>`<i class="${i<f?(f>=lim-1?'hot':'on'):''}"></i>`).join('')}</div><div class="w">${plural(st.wins[t]||0,'victoire')}</div></div>`; };
   const sig=m?[m.createdAt,m.home,m.away,st.sc[m.home],st.sc[m.away],st.tf[m.home],st.tf[m.away],st.ended,st.wins[m.home],st.wins[m.away]].join('|'):'none';
-  if(sig!==D.last.board){ const prev=D.last.sc||{}; $('#board').innerHTML=m?`<div class="meta"><span>${s.format==='cent'?'Quart-temps '+(m.quarter||m.n):'Match '+m.n}</span><span>·</span><span>${st.ended?'terminé':'en cours'}</span></div><div class="row">${side(m.home)}<div class="mid"><div class="ck" id="ck">–</div><div class="lab">${st.ended?'final':'à jouer'}</div></div>${side(m.away)}</div><div class="run" id="run"></div>`:`<div class="meta" style="padding:26px 12px"><span>La séance démarre bientôt</span></div>`;
+  if(sig!==D.last.board){ const prev=D.last.sc||{}; D.last.film=null; $('#board').innerHTML=m?`<div class="meta"><span>${s.format==='cent'?'Quart-temps '+(m.quarter||m.n):'Match '+m.n}</span><span>·</span><span>${st.ended?'terminé':'en cours'}</span></div><div class="row">${side(m.home)}<div class="mid"><div class="ck" id="ck">–</div><div class="lab">${st.ended?'final':'à jouer'}</div></div>${side(m.away)}</div><div class="film" id="film"></div><div class="run" id="run"></div>`:`<div class="meta" style="padding:26px 12px"><span>La séance démarre bientôt</span></div>`;
     if(m) [m.home,m.away].forEach(t=>{ if(prev[t]!=null&&prev[t]!==(st.sc[t]||0)&&D.last.mid===m.createdAt){ const e=$('.sc[data-t="'+t+'"]'); if(e) e.classList.add('bump'); } });
     D.last.board=sig; D.last.sc={...st.sc}; D.last.mid=m&&m.createdAt; }
+  const fl=$('#film'); if(fl&&m){ const pts=(m.events||[]).filter(e=>(e.t||0)<=T&&(e.type==='pt'||(e.type==='ft'&&e.made))).slice(-34); const fs=pts.length+'|'+(pts[pts.length-1]||{}).t; if(fs!==D.last.film){ D.last.film=fs; fl.innerHTML=pts.map(e=>`<i class="v${e.type==='pt'?(e.v||2):1}" style="--c:${tcol(e.team)}" title="${esc(pname(e.pid))}"></i>`).join(''); } }
   const ck=$('#ck'); if(ck&&m){ const c=clockOf(st,T); ck.textContent=st.ended?(st.sc[m.home]||0)===(st.sc[m.away]||0)?'=':'FIN':mmss(c); }
   const rn=$('#run'); if(rn&&m){ const r=st.run; const on=!st.ended&&r&&r.n>=6&&(st.sc[r.t===m.home?m.away:m.home]||0)>=0; rn.className='run'+(on?' on':''); if(on){ rn.style.color='#fff'; rn.style.background='color-mix(in srgb,'+tcol(r.t)+' 80%,#000)'; rn.textContent='🔥 SÉRIE '+r.n+'-0 · '+tname(r.t).toUpperCase(); } }
   const idle=$('#idle'); if(idle) idle.textContent=!m?'En attente du premier match':st.ended?'Pause · le prochain match arrive':'Le jeu continue…';
@@ -165,7 +195,7 @@ function describe(it,st){ const e=it.e, m=it.m; if(it.k==='start') return {ic:'�
     case 'blk': return {ic:'CTR',c,tx:`${n} contre le tir`,fx:'blk',big:'CONTRE !',tag:''};
     case 'stl': return {ic:'INT',c,tx:`${n} intercepte`,fx:'stl',big:'INTERCEPTION',tag:''};
     case 'to': return e.stl?{skip:1}:{ic:'BP',c,tx:`${n} perd le ballon`,fx:'to',big:'BALLE PERDUE',tag:''};
-    case 'foul': return {ic:'F',c,tx:`Faute de ${n}`,dim:1};
+    case 'foul': return {ic:'F',c,tx:`Faute de ${n}`,dim:1,fx:'foul',big:'FAUTE',tag:''};
     case 'tech': return {ic:'T',c:'#FF6B5E',tx:`Faute technique : ${n}`,fx:'tech',big:'TECHNIQUE',tag:''};
     case 'uns': return {ic:'AS',c:'#FF6B5E',tx:`Faute antisportive : ${n}`,fx:'tech',big:'ANTISPORTIVE',tag:''};
     case 'miss': return {ic:'✕',c,tx:`${n} rate ${e.v===3?'à 3 points':'son tir'}`,dim:1};
@@ -174,21 +204,33 @@ function describe(it,st){ const e=it.e, m=it.m; if(it.k==='start') return {ic:'�
     default: return {skip:1}; } }
 const s_fmt=m=>D.sess&&D.sess.format==='cent'?'Quart-temps '+(m.quarter||m.n):'Match '+m.n;
 function scoreOf(m){ const sc={[m.home]:0,[m.away]:0}; (m.events||[]).forEach(e=>{ if(e.type==='pt') sc[e.team]+=e.v||2; else if(e.type==='ft'&&e.made) sc[e.team]+=1; }); return sc; }
-function pushFeed(d,it){ if(d.skip||d.merge) return; D.feed.unshift({d,el:it.e?it.e.el:null,key:it.key}); D.feed=D.feed.slice(0,14); const el=$('#feed'); if(!el) return;
-  el.innerHTML=D.feed.map((f,i)=>`<div class="it${i===0?' new':''}${f.d.dim?' dim':''}" style="--c:${f.d.c}"><span class="ic">${esc(f.d.ic)}</span><span class="tx">${f.d.tx}${f.d.ast?` <span style="color:var(--muted)">· passe de ${esc(f.d.ast)}</span>`:''}</span>${f.el!=null?`<span class="tm2">${mmss(Math.max(0,(D.cfg.minutes||9)*60000-f.el))}</span>`:''}</div>`).join(''); }
+function pushFeed(d,it){ if(d.skip||d.merge) return; D.feed.unshift({d,el:it.e?it.e.el:null,key:it.key,away:!!(it.e&&it.m&&it.e.team===it.m.away)}); D.feed=D.feed.slice(0,14); const el=$('#feed'); if(!el) return;
+  el.innerHTML=D.feed.map((f,i)=>`<div class="it${i===0?' new':''}${f.d.dim?' dim':''}${f.away?' away':''}" style="--c:${f.d.c}"><span class="ic">${esc(f.d.ic)}</span><span class="tx">${f.d.tx}${f.d.ast?` <span style="color:var(--muted)">· passe de ${esc(f.d.ast)}</span>`:''}</span>${f.el!=null?`<span class="tm2">${mmss(Math.max(0,(D.cfg.minutes||9)*60000-f.el))}</span>`:''}</div>`).join(''); }
+const BALL=(x,y,cls)=>`<g transform="translate(${x} ${y})"><g class="${cls}"><circle r="13" fill="#E9833F" stroke="#7A3A14" stroke-width="2"/><path d="M-13 0h26M0-13v26M-9-9c5 5 5 13 0 18M9-9c-5 5-5 13 0 18" fill="none" stroke="#7A3A14" stroke-width="1.6"/></g></g>`;
+const HOOP=`<rect x="314" y="26" width="7" height="66" rx="2" fill="#E9ECF2"/><rect x="300" y="52" width="14" height="26" fill="none" stroke="#E9ECF2" stroke-width="2"/><g class="net"><path d="M263 80l8 40M274 82l4 38M285 83v37M296 82l-4 38M307 80l-8 40M266 96h38M269 110h32" fill="none" stroke="#fff" stroke-width="1.6" opacity=".85"/></g><ellipse class="rim" cx="285" cy="80" rx="24" ry="6" fill="none" stroke="#FF6A2B" stroke-width="4"/>`;
+function scene(fx){ const sv=(cls,inner)=>`<svg class="scn ${cls||''}" viewBox="0 0 360 210" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${inner}</svg>`;
+  if(fx==='pt2'||fx==='ft') return sv('',HOOP+`<g transform="translate(60 154)"><g class="bx"><g class="by">${BALL(0,0,'')}</g></g></g>`);
+  if(fx==='pt3') return sv('far',HOOP+`<path d="M22 196c40-22 120-22 190 0" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="5 6" opacity=".35"/><g transform="translate(20 164)"><g class="bx"><g class="by">${BALL(0,0,'')}</g></g></g>`);
+  if(fx==='blk') return sv('',`<g transform="translate(-34 0)"><g class="hand"><rect x="196" y="26" width="34" height="46" rx="9" fill="currentColor"/><rect x="198" y="6" width="7" height="26" rx="3.5" fill="currentColor"/><rect x="207" y="2" width="7" height="30" rx="3.5" fill="currentColor"/><rect x="216" y="4" width="7" height="28" rx="3.5" fill="currentColor"/><rect x="225" y="10" width="6" height="24" rx="3" fill="currentColor"/></g></g>${BALL(50,150,'bk')}`);
+  if(fx==='to') return sv('',`<path d="M10 188h340" stroke="#fff" stroke-width="2" opacity=".25"/>${BALL(30,174,'roll')}`);
+  if(fx==='stl') return sv('',BALL(70,60,'snap'));
+  if(fx==='foul'||fx==='tech') return sv('',`<g transform="translate(154 8)"><g class="whi" fill="currentColor"><path d="M0 8h30a16 16 0 1 1-16 16V20H0z"/><circle cx="30" cy="24" r="6" fill="#0E1116"/><path d="M34-2l5-6M42 4l7-4M44 12h8" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/></g></g>`);
+  return ''; }
 function play(it,d){ const stg=$('#stage'); if(!stg) return 0; stg.querySelectorAll('.fx,.endc').forEach(x=>x.remove()); const idle=$('#idle'); if(idle) idle.style.visibility='hidden';
   if(d.end){ const m=it.m, sc=scoreOf(m), w=m.winner; const mp={}; (m.events||[]).forEach(e=>{ if(e.type==='pt') mp[e.pid]=(mp[e.pid]||0)+(e.v||2); else if(e.type==='ft'&&e.made) mp[e.pid]=(mp[e.pid]||0)+1; }); const top=Object.entries(mp).sort((a,b)=>b[1]-a[1])[0]; const c=w?tcol(w):'#555';
     const cf=w?Array.from({length:26},(_,i)=>`<i class="cf" style="left:${(i*37)%100}%;background:${['#fff',c,'#FABF25','#E4692B'][i%4]};animation-duration:${1.4+(i%5)*.25}s;animation-delay:${(i%7)*.12}s"></i>`).join(''):'';
-    stg.insertAdjacentHTML('beforeend',`<div class="endc" style="--c:${c}">${cf}<div class="t1">${esc(s_fmt(m))} · terminé</div><div class="t2">${w?'Victoire '+esc(tname(w)):'Égalité'}</div><div class="t3">${Math.max(sc[m.home],sc[m.away])} – ${Math.min(sc[m.home],sc[m.away])}</div>${top?`<div class="t4">Meilleur marqueur : <b>${esc(pname(top[0]))}</b>, ${plural(top[1],'point')}</div>`:''}</div>`); return 5200; }
+    sound('win'); stg.insertAdjacentHTML('beforeend',`<div class="endc" style="--c:${c}">${cf}<div class="t1">${esc(s_fmt(m))} · terminé</div><div class="t2">${w?'Victoire '+esc(tname(w)):'Égalité'}</div><div class="t3">${Math.max(sc[m.home],sc[m.away])} – ${Math.min(sc[m.home],sc[m.away])}</div>${top?`<div class="t4">Meilleur marqueur : <b>${esc(pname(top[0]))}</b>, ${plural(top[1],'point')}</div>`:''}</div>`); return 5200; }
   if(!d.fx) return 0; const who=it.e.pid; const cls=d.fx==='pt3'||d.fx==='pt2'?'pt':d.fx;
-  stg.insertAdjacentHTML('beforeend',`<div class="fx ${cls}" style="--c:${d.c}">${d.fx==='pt3'||d.fx==='pt2'||d.fx==='ft'?`<div class="rays" style="${d.fx==='pt3'?'':'opacity:.5'}"></div>`:''}${d.fx==='blk'?'<div class="wall"></div>':''}${d.fx==='stl'?'<div class="trail"></div>':''}<div class="big">${esc(d.big)}</div>${d.tag?`<div class="tag">${esc(d.tag)}</div>`:''}<div class="who">${av(who,d.c)}<span>${esc(pname(who))}</span></div>${d.ast?`<div class="sub">sur une passe de ${esc(d.ast)}</div>`:`<div class="sub">${esc(tname(it.e.team))}</div>`}</div>`);
+  const isPt=d.fx==='pt3'||d.fx==='pt2'||d.fx==='ft';
+  stg.insertAdjacentHTML('beforeend',`<div class="fx ${isPt?'pt':cls}" style="--c:${d.c};color:color-mix(in srgb,${d.c} 60%,#fff)">${d.fx==='pt3'?'<div class="rays"></div>':''}${scene(d.fx)}${d.fx==='stl'?'<div class="trail"></div>':''}<div class="txt"><div class="big" style="${d.fx==='ft'?'font-size:86px':''}">${esc(d.big)}</div>${d.tag?`<div class="tag" style="color:#fff">${esc(d.tag)}</div>`:''}<div class="who" style="color:#fff">${av(who,d.c)}<span>${esc(pname(who))}</span></div>${d.ast?`<div class="sub">sur une passe de ${esc(d.ast)}</div>`:''}<span class="teamtag">${esc(tname(it.e.team))}</span></div></div>`);
+  sound(d.fx); { const tmEl=document.querySelector('.sc[data-t="'+it.e.team+'"]'); const box=tmEl&&tmEl.closest('.tm'); if(box&&isPt){ box.classList.add('hit'); setTimeout(()=>box.classList.remove('hit'),1600); } }
   if(d.fx==='pt3'||d.fx==='tech'){ const bd=$('#board'); if(bd){ bd.classList.remove('shake'); void bd.offsetWidth; bd.classList.add('shake'); } }
-  return d.fx==='pt3'?2300:d.fx==='ft'?1500:2000; }
+  return d.fx==='pt3'?2700:d.fx==='pt2'?2400:d.fx==='ft'?2000:d.fx==='foul'?1300:2000; }
 function pump(){ if(D.busy) return; const it=D.queue.shift(); if(!it){ const idle=$('#idle'); if(idle&&!$('#stage .endc')) idle.style.visibility='visible'; return; }
   const d=describe(it,D.st); if(d.skip||d.merge){ return pump(); }
   // la passe décisive suit le panier dans le journal : on la rattache à l'animation du panier
   if(it.k==='ev'&&it.e.type==='pt'){ const nx=(it.m.events||[])[ (it.m.events||[]).indexOf(it.e)+1 ]; if(nx&&nx.type==='ast'&&nx.team===it.e.team) d.ast=pname(nx.pid); }
-  pushFeed(d,it); render(); let ms=play(it,d); if(D.queue.length>4) ms=Math.min(ms,700); else if(D.queue.length>1) ms=Math.min(ms,1300); if(!ms){ return pump(); }
+  pushFeed(d,it); render(); if(D.queue.length>10&&!d.end){ return pump(); } /* gros retard (téléphone en veille, reconnexion) : on rattrape sans animer */ let ms=play(it,d); if(D.queue.length>4) ms=Math.min(ms,700); else if(D.queue.length>1) ms=Math.min(ms,1300); if(!ms){ return pump(); }
   D.busy=true; setTimeout(()=>{ D.busy=false; if(!d.end) { const f=$('#stage .fx'); if(f&&!D.queue.length) f.remove(); } pump(); },ms); }
 function tick(){ const s=D.sess; if(!s){ return; } if(REPLAY) advance(); const T=now(); const all=items(s);
   if(D.seen===null){ D.seen=new Set(all.filter(x=>x.t<=T).map(x=>x.key)); // à l'ouverture : pas d'avalanche d'animations, on reprend au présent
@@ -200,6 +242,22 @@ function tick(){ const s=D.sess; if(!s){ return; } if(REPLAY) advance(); const T
 // Rediffusion : le temps de jeu défile en accéléré, les temps morts sont sautés.
 function advance(){ const r=performance.now(); const dt=r-(D.rt0||r); D.rt0=r; D.vt+=dt*SPEED; const nx=D.tl.find(x=>x.t>D.vt); if(nx&&nx.t-D.vt>25000&&!D.busy&&!D.queue.length) D.vt=nx.t-2500; if(!nx&&!D.queue.length&&!D.busy&&!D.over){ D.over=true; setTimeout(()=>{ const stg=$('#stage'); if(stg) stg.insertAdjacentHTML('beforeend',`<div class="endc" style="--c:#E4692B"><div class="t1">Rediffusion terminée</div><div class="t2">À dimanche</div><a class="btn gh" href="?rejouer=1${SRC?'&src='+encodeURIComponent(SRC):''}">Revoir</a></div>`); },5600); } }
 
+// ---------- son : fabriqué par le téléphone (aucun fichier à télécharger), coupé par défaut ----------
+const SND={on:false,ctx:null};
+function tone(f0,f1,dur,type,vol,when){ const c=SND.ctx, t=c.currentTime+(when||0); const o=c.createOscillator(), g=c.createGain(); o.type=type||'sine'; o.frequency.setValueAtTime(f0,t); if(f1) o.frequency.exponentialRampToValueAtTime(f1,t+dur); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||.2,t+.012); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(g).connect(c.destination); o.start(t); o.stop(t+dur+.02); }
+function noise(dur,f0,f1,q,vol,when){ const c=SND.ctx, t=c.currentTime+(when||0); const n=Math.floor(c.sampleRate*dur); const buf=c.createBuffer(1,n,c.sampleRate); const d=buf.getChannelData(0); for(let i=0;i<n;i++) d[i]=Math.random()*2-1; const src=c.createBufferSource(); src.buffer=buf; const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=q||1; bp.frequency.setValueAtTime(f0,t); if(f1) bp.frequency.exponentialRampToValueAtTime(f1,t+dur); const g=c.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||.3,t+.02); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); src.connect(bp).connect(g).connect(c.destination); src.start(t); }
+function sound(k){ if(!SND.on||!SND.ctx) return; try{ if(SND.ctx.state==='suspended') SND.ctx.resume();
+  if(k==='pt2'||k==='ft'){ noise(.28,5200,2600,1.2,.34,.84); tone(880,0,.12,'triangle',.07,.84); }            // le filet
+  else if(k==='pt3'){ noise(.32,5600,2400,1.2,.38,.84); tone(659,0,.14,'triangle',.11,.9); tone(988,0,.22,'triangle',.11,1.02); } // filet + deux notes
+  else if(k==='blk'){ tone(150,48,.2,'sine',.5,.42); noise(.07,1400,500,.8,.3,.42); }                          // la claque
+  else if(k==='stl'){ noise(.3,700,3800,2.5,.26,.36); }                                                        // le souffle
+  else if(k==='to'){ tone(330,262,.2,'sawtooth',.08,.1); tone(247,165,.36,'sawtooth',.08,.34); }              // deux notes qui descendent
+  else if(k==='foul'){ tone(2900,2750,.26,'square',.05,0); }                                                   // le sifflet
+  else if(k==='tech'){ tone(2900,2750,.2,'square',.06,0); tone(2900,2600,.34,'square',.06,.28); }
+  else if(k==='win'){ [523,659,784,1047].forEach((f,i)=>tone(f,0,.3,'triangle',.13,i*.12)); }
+  }catch(e){} }
+function setSound(on){ SND.on=on; const b=$('#snd'); if(on&&!SND.ctx){ try{ SND.ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ SND.on=false; } } if(SND.on&&SND.ctx&&SND.ctx.state==='suspended') SND.ctx.resume(); b.classList.toggle('on',SND.on); b.textContent=SND.on?'🔊 Son':'🔇 Son'; b.setAttribute('aria-pressed',SND.on?'true':'false'); try{ localStorage.setItem('hs-direct-son',SND.on?'1':'0'); }catch(e){} if(SND.on) tone(880,0,.1,'triangle',.08,0); }
+$('#snd').addEventListener('click',()=>setSound(!SND.on));
 // ---------- données ----------
 function setSession(s){ if(!REPLAY&&s){ // Écart d'horloge entre la table et ce téléphone : mesuré seulement quand une action toute neuve arrive (son heure de saisie contre l'heure de réception).
     let mx=0; (s.matches||[]).forEach(m=>{ mx=Math.max(mx,m.createdAt||0); (m.events||[]).forEach(e=>{ if(e.t>mx) mx=e.t; }); });
