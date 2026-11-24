@@ -26,6 +26,10 @@ const { chromium } = require('playwright');
   await p3.waitForTimeout(3300); if(await sc()!=='2-3') errs.push('direct : panier à 3 points non affiché après le différé : '+await sc()); if(!/3 points/i.test(await p3.textContent('#feed'))) errs.push('direct : fil sans le panier à 3 points');
   // une erreur corrigée par la table dans le délai ne s'affiche jamais
   await add({type:'pt',team:'A',pid:'a1',v:3}); await p3.waitForTimeout(800); await add('undo'); await p3.waitForTimeout(4200); if(await sc()!=='2-3') errs.push('direct : une saisie annulée dans le délai a été affichée : '+await sc());
+  // le bouton « Partager le direct » de l'accueil donne le lien complet de direct.html
+  { const p4=await c3.newPage(); p4.on('pageerror',e=>errs.push('accueil '+e.message)); await p4.addInitScript(()=>{ window.__sh=null; Object.defineProperty(navigator,'share',{configurable:true,value:d=>{ window.__sh=d; return Promise.resolve(); }}); });
+    await p4.goto('http://127.0.0.1:8099/index.html?x=1'); await p4.waitForSelector('[data-act="direct-share"]',{timeout:8000}).catch(()=>errs.push('accueil : bouton « Partager le direct » absent pendant une séance'));
+    if(await p4.$('[data-act="direct-share"]')){ await p4.click('[data-act="direct-share"]'); await p4.waitForTimeout(300); const sh=await p4.evaluate(()=>window.__sh); if(!sh||sh.url!=='http://127.0.0.1:8099/direct.html') errs.push('accueil : lien partagé incorrect : '+JSON.stringify(sh)); } await p4.close(); }
   await add('close'); await p3.waitForSelector('#stage .endc',{timeout:9000}).catch(()=>errs.push('direct : pas d\'écran de fin')); await p3.waitForTimeout(6500);
   if(!/Séance terminée/.test(await p3.textContent('#stage'))) errs.push('direct : écran « séance terminée » absent : '+(await p3.textContent('#stage')).slice(0,80));
   console.log('errors',errs); await b.close(); if(errs.length) process.exit(1); })().catch(e=>{ console.error(e); process.exit(1); });
