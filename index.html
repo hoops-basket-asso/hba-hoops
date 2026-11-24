@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-11-24 19:26';</script>
+window.HS_VERSION = '2026-11-24 19:43';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -501,7 +501,7 @@ function pident(id){ const p=S.players[id]||{}; const sg=psigAll()[id]; const si
 function motifSvg(key,size,style){ const m=MOTIFS[key]; return m?`<svg viewBox="0 0 48 48" width="${size}" height="${size}" aria-hidden="true" style="${style||''}"><path fill="currentColor" fill-rule="evenodd" d="${m[1]}"/></svg>`:''; }
 function phero(id,rank,note){ const p=S.players[id]||{name:pname(id)}; const I=pident(id); const posL={M:'Meneur',A:'Arrière',AI:'Ailier',AF:'Ailier fort',P:'Pivot'}[p.pos]||''; const c=I.col||'var(--season)';
   const sub=[I.nick?'« '+esc(I.nick)+' »':'',I.sig?esc(I.sig.label):'',esc(posL)].filter(Boolean).join(' · ');
-  return `<div class="phero" style="--pc:${c}"><div class="wm" aria-hidden="true" style="font-size:${Math.max(40,Math.min(104,Math.round(560/Math.max(1,I.wm.length))))}px">${esc(I.wm)}</div>${I.motif?`<div class="mo">${motifSvg(I.motif,170)}</div>`:''}<div class="in">${pavatar(id,84)}<div class="tx"><div class="nm">${esc(p.name)}</div>${sub?`<div class="sub">${sub}</div>`:''}<div class="rk">${rank?rank+(rank>1?'e':'er')+' du ladder':'hors classement'}</div></div>${note!=null?`<div class="nt num">${fmtN(note)}<small>NOTE SUR 10</small></div>`:''}</div></div>`; }
+  return `<div class="phero" style="--pc:${c}"><div class="wm" aria-hidden="true" style="font-size:${Math.max(48,Math.min(124,Math.round(760/Math.max(1,I.wm.length))))}px">${esc(I.wm)}</div>${I.motif?`<div class="mo">${motifSvg(I.motif,170)}</div>`:''}<div class="in">${pavatar(id,84)}<div class="tx"><div class="nm">${esc(p.name)}</div>${sub?`<div class="sub">${sub}</div>`:''}<div class="rk">${rank?rank+(rank>1?'e':'er')+' du ladder':'hors classement'}</div></div>${note!=null?`<div class="nt num">${fmtN(note)}<small>NOTE SUR 10</small></div>`:''}</div></div>`; }
 // Volet repliable. L'appli retient ceux que la personne a ouverts (sur son téléphone).
 function foldSet(){ if(!S._fold){ let a=[]; try{ a=JSON.parse(localStorage.getItem('hs-fold')||'[]'); }catch(e){} S._fold=new Set(a); } return S._fold; }
 function fold(key,title,sub,body){ if(!body||!String(body).trim()) return ''; return `<details class="fold" data-fold="${key}" ${foldSet().has(key)?'open':''}><summary><span class="ft"><b>${title}</b>${sub?`<small>${sub}</small>`:''}</span></summary><div class="fb">${body}</div></details>`; }
