@@ -189,7 +189,9 @@ L'en-tête de la fiche porte trois choses, toutes facultatives et choisies par l
 
 - **Le surnom**, écrit en très grand et très pâle derrière le nom. Sans surnom, c'est le prénom.
 - **Une couleur**, parmi 9. Sans choix, c'est la couleur de la saison.
-- **Un motif** dessiné maison, parmi 12 (flamme, éclair, couronne, cible, montagne, comète, bouclier, plume, boussole, aimant, diamant, étoile). Aucun motif n'est repris d'une marque ou d'un personnage.
+- **Un motif** dessiné maison, parmi 17 (flamme, éclair, couronne, cible, montagne, comète, bouclier, plume, boussole, aimant, diamant, étoile, poing, aile, alvéoles, croix, fusée). Aucun motif n'est repris d'une marque ou d'un personnage.
+
+**Chargement groupé.** Un fichier contenant `playerStyles` (identifiant du joueur → surnom, couleur, motif), chargé par Bureau → Réglages → « Restaurer un fichier », met à jour ces trois champs sur les fiches existantes sans toucher au reste.
 
 **Le profil automatique.** Pour les réguliers (présents à au moins la moitié des dimanches du ladder), l'appli calcule six classements : points par match, passes par match, paniers à 3 points par match, taux de victoires, points encaissés quand il joue, présences. Chacun reçoit le profil où il est le mieux classé, s'il y est dans les 5 premiers : le marqueur, le passeur, l'artilleur, le gagneur, le verrou, le pilier. Un même profil sert 3 fois au plus. Hors des 5 premiers partout : pas de profil. Le profil donne le motif par défaut. Il change tout seul au fil de la saison.
 
