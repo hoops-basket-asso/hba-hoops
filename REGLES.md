@@ -295,3 +295,5 @@ Une page à part, en lecture seule, pour suivre la séance à distance : tableau
 - Le MVP du mois est le même que le joueur du mois de l'accueil (même calcul, même gel).
 - Cotisation « close » : sur une cotisation partielle, le bureau peut appuyer sur « Clore » (don, adhérent parti). Le reste n'est plus attendu : il sort des cotisations à rentrer, de la prévision et du point du président. « Rouvrir » annule.
 - Les participations non réglées sont données en nombre et en montant (« à recouvrer »), sans formule adressée aux intéressés : ils ne sont pas dans le groupe des membres.
+- Le message WhatsApp du point du président ne répète pas les awards (ils sont sur l'image). Il donne : ce qu'il y a en caisse, les prochaines dépenses, la fréquentation moyenne avec la part adhérents / participants et l'écart avec le mois précédent, puis la tendance de fin d'exercice (résultat = caisse prévue en fin de saison − solde de départ). Les titres sont en gras WhatsApp.
+- L'image n'utilise aucun texte sous 19 px (sur 1080 px de large) et pas d'émojis.
