@@ -285,3 +285,11 @@ Une page à part, en lecture seule, pour suivre la séance à distance : tableau
 - L'application compare le total indiqué à sa caisse calculée. Au-delà de 50 € d'écart, un mot d'explication est demandé avant de valider.
 - La validation enregistre le point (`treasury/points`), propose d'envoyer le résumé au bureau, et les autres membres du bureau voient un bandeau « Point validé » jusqu'à ce qu'ils appuient sur « Vu ».
 - Le pack peut porter une date prévue pour son solde (formulaire du pack). La sortie est alors placée à cette date sur la courbe de la caisse ; la prévision de fin de saison ne change pas.
+
+## Le point du président (édition mensuelle pour les membres)
+
+- Il vient après le point du mois et s'appuie sur les soldes relevés. Une image et un message WhatsApp sont proposés, déjà remplis : finances (en caisse, reste dû au Hoops, cotisations, avancement du pack, prévision de fin de saison), présences du mois, awards (MVP du mois, meilleur marqueur, meilleur passeur), faits du mois, la suite.
+- Faits du mois : seules les sanctions lourdes sont nominatives (suspension, récidive, radiation, ou 3 fautes techniques dans le mois). Les autres techniques sont comptées sans nom. Le bureau peut retirer ou ajouter des lignes.
+- « Modifier le contenu » permet de corriger « En caisse » et « Reste dû au Hoops » et d'écrire les trois blocs de texte. Un chiffre différent de celui de l'application est signalé à l'auteur puis au bureau.
+- Circuit : préparé par un membre du bureau, validé par un autre (une seule validation suffit), puis « Partager au groupe » envoie l'image et le message ensemble. Toute modification renvoie en validation.
+- Le MVP du mois est le même que le joueur du mois de l'accueil (même calcul, même gel).
