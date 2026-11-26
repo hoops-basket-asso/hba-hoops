@@ -356,3 +356,4 @@ Ils sont conservés tels quels par l'appli web, qui ne les lit pas.
 - Nouveau document `treasury/points` : `{months:{'AAAA-MM':{q,p,e,total,app,gap,note,by,at,date,nDue,dueEur,cotN,members}}}`. À conserver tel quel lors d'une écriture (ne pas réécrire le document sans ce champ).
 - `treasury/pack` peut contenir `dueDate` (date prévue du solde du pack, facultative). À conserver à l'enregistrement du pack.
 - Chaque mois de `treasury/points` peut porter `ed` (le point du président) : `{cash,due,gestion,facts,next,status:'sent'|'ok',by,byId,at,okBy,okById,okAt,sharedAt}`. `byId` = e-mail du compte bureau.
+- `treasury/cotis[pid].closed` (booléen) : cotisation close à son montant reçu. Le montant dû devient alors le montant reçu (plus d'écart, plus de relance).

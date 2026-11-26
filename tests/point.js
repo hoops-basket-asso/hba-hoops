@@ -68,4 +68,12 @@ const { chromium } = require('playwright'); const fs=require('fs');
   if(due>0){ const before=await p.textContent('#cashCard'); await p.click('[data-act="pack-edit"]'); await p.waitForTimeout(200); await p.fill('#pkD','2027-01-05'); await p.click('[data-act="pack-save"]'); await p.waitForTimeout(400); const after=await p.textContent('#cashCard');
     E(/prévu le 5 janv/.test(after),'tuile « À payer » sans la date prévue'); const m=after.match(/(\d+ \S+)\.? · Solde pack/); E(m&&/10 janv/.test(m[1]),'solde du pack attendu le dimanche 10 janv., lu '+(m&&m[1])); const end=t=>(t.match(/Fin de saison prévue : ([^,]+)/)||[])[1]; E(end(before)===end(after),'la prévision de fin de saison ne doit pas changer : '+end(before)+' → '+end(after)); }
   else errs.push('jeu d\'essai : pack déjà soldé, la date prévue n\'est pas testée');
+  // cotisation close (don, départ) : le reste n'est plus attendu, ni dans la caisse à venir ni dans le point du président
+  { const mid=await p.evaluate(()=>{ const h=window.__hs; const m=Object.values(h.S.players).find(x=>x.member&&x.active!==false&&!x.newMember); return m.id; });
+    await p.click('[data-tre-seg="cot"]'); await p.waitForTimeout(300); await p.fill('#cot-'+mid,'160'); await p.click(`[data-act="cot-mark"][data-id="${mid}"]`); await p.waitForTimeout(500);
+    const c0=await p.evaluate(()=>{ const c=window.__hs.cashState(); return {left:c.cotLeft,partial:c.partial.length,n:c.cotN}; }); E(c0.partial===1,'cotisation partielle non détectée');
+    await p.click(`[data-act="cot-close"][data-id="${mid}"]`); await p.waitForTimeout(500); const c1=await p.evaluate(()=>{ const h=window.__hs; const c=h.cashState(); return {left:c.cotLeft,partial:c.partial.length,n:c.cotN,g:h.editionAuto('2026-10').gestion.join(' ')}; });
+    E(c1.partial===0&&Math.abs(c0.left-c1.left-140)<0.01&&c1.n===c0.n,'« Clore » : le reste (140 €) doit sortir des cotisations à rentrer, '+JSON.stringify([c0,c1])); E(/à recouvrer \(/.test(c1.g)&&!/Merci/.test(c1.g),'ligne des participations : '+c1.g);
+    E(/close à ce montant/.test(await p.textContent('#main')),'la ligne ne dit pas que la cotisation est close'); await p.waitForTimeout(450); await p.click(`[data-act="cot-close"][data-id="${mid}"]`); await p.waitForTimeout(500);
+    E(await p.evaluate(()=>window.__hs.cashState().partial.length)===1,'« Rouvrir » ne rétablit pas le montant attendu'); }
   console.log('errors',errs); await b.close(); if(errs.length) process.exit(1); })().catch(e=>{ console.error(e); process.exit(1); });

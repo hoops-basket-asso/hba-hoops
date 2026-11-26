@@ -293,3 +293,5 @@ Une page à part, en lecture seule, pour suivre la séance à distance : tableau
 - « Modifier le contenu » permet de corriger « En caisse » et « Reste dû au Hoops » et d'écrire les trois blocs de texte. Un chiffre différent de celui de l'application est signalé à l'auteur puis au bureau.
 - Circuit : préparé par un membre du bureau, validé par un autre (une seule validation suffit), puis « Partager au groupe » envoie l'image et le message ensemble. Toute modification renvoie en validation.
 - Le MVP du mois est le même que le joueur du mois de l'accueil (même calcul, même gel).
+- Cotisation « close » : sur une cotisation partielle, le bureau peut appuyer sur « Clore » (don, adhérent parti). Le reste n'est plus attendu : il sort des cotisations à rentrer, de la prévision et du point du président. « Rouvrir » annule.
+- Les participations non réglées sont données en nombre et en montant (« à recouvrer »), sans formule adressée aux intéressés : ils ne sont pas dans le groupe des membres.
