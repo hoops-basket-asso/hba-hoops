@@ -350,3 +350,8 @@ Ils sont conservés tels quels par l'appli web, qui ne les lit pas.
 - Toute modification de l'appli web faite de votre côté est la bienvenue sous forme de proposition (« pull request ») sur ce dépôt. Elle sera relue, testée sur les 31 scénarios, puis intégrée.
 - Tout champ nouveau, d'un côté comme de l'autre, s'écrit d'abord dans cette note.
 
+
+## Trésorerie : point du mois et date du solde du pack (26/11/2026)
+
+- Nouveau document `treasury/points` : `{months:{'AAAA-MM':{q,p,e,total,app,gap,note,by,at,date,nDue,dueEur,cotN,members}}}`. À conserver tel quel lors d'une écriture (ne pas réécrire le document sans ce champ).
+- `treasury/pack` peut contenir `dueDate` (date prévue du solde du pack, facultative). À conserver à l'enregistrement du pack.

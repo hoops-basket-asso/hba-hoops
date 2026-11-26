@@ -277,3 +277,11 @@ Une page à part, en lecture seule, pour suivre la séance à distance : tableau
 - En dessous de 8 tirs, le pourcentage est accompagné d'une mise en garde.
 - L'image du résumé reprend ces chiffres dans un bandeau « Le zoom » : main chaude (meilleure adresse, 5 tirs tentés au minimum), rebonds, interceptions, contres s'il y en a. Chaque carte rappelle le nombre de matchs suivis ; les ex æquo sont tous cités. Une ligne donne l'adresse générale du jour. Les balles perdues ne sont pas mises en avant sur l'image.
 - Image du résumé, ordre de lecture : équipe du jour, MVP (photo, note dans son anneau), leaders du jour avec leur visage, panneau « Le zoom » (matchs suivis, leaders, adresse du jour en barres), résultats sur trois colonnes, fair-play. Les badges du jour n'y figurent plus : ils restent dans l'application. Sans photo, le joueur apparaît avec ses initiales sur sa couleur.
+
+## Le point du mois (bureau)
+
+- Du 24 du mois au 10 du mois suivant, l'accueil bureau affiche « Le point de <mois> est prêt » tant qu'il n'est pas validé. Le bouton « Envoyer le lien » partage un lien direct (`?point=AAAA-MM`) qui ouvre la feuille, après connexion si besoin.
+- La feuille tient en trois parties : les participations non réglées de la saison, par personne (« Relancer » prépare un message personnel, « Payé » confirme toutes ses séances dues) ; les cotisations ; les soldes lus sur Qonto, PayPal et en espèces.
+- L'application compare le total indiqué à sa caisse calculée. Au-delà de 50 € d'écart, un mot d'explication est demandé avant de valider.
+- La validation enregistre le point (`treasury/points`), propose d'envoyer le résumé au bureau, et les autres membres du bureau voient un bandeau « Point validé » jusqu'à ce qu'ils appuient sur « Vu ».
+- Le pack peut porter une date prévue pour son solde (formulaire du pack). La sortie est alors placée à cette date sur la courbe de la caisse ; la prévision de fin de saison ne change pas.
