@@ -358,3 +358,4 @@ Ils sont conservés tels quels par l'appli web, qui ne les lit pas.
 - Chaque mois de `treasury/points` peut porter `ed` (le point du président) : `{cash,due,gestion,facts,next,status:'sent'|'ok',by,byId,at,okBy,okById,okAt,sharedAt}`. `byId` = e-mail du compte bureau.
 - `treasury/cotis[pid].closed` (booléen) : cotisation close à son montant reçu. Le montant dû devient alors le montant reçu (plus d'écart, plus de relance).
 - `treasury/pack.accStart` (date, facultative) : début des comptes de l'exercice. À conserver à l'enregistrement du pack.
+- `treasury/ledger.log` : journal `[{at,by,byId,what:'opening'|'add'|'del',from,to,note}]`. À conserver à chaque écriture du document `ledger` ; toute modification du solde de départ doit y ajouter une ligne avec un motif.

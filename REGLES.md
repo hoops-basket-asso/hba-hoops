@@ -303,3 +303,10 @@ Une page à part, en lecture seule, pour suivre la séance à distance : tableau
 - Début des comptes de l'exercice : le premier dimanche du pack, ou la date saisie dans le formulaire du pack (« Début des comptes de l'exercice »). Participations, frais et comparaisons mensuelles partent de cette date. Un mois entamé après le 7 est marqué d'un astérisque et ses totaux ne sont pas comparés aux suivants.
 - Les participations à recouvrer sont détaillées par mois en note. Tous les chiffres portent leur unité (€, joueurs, matchs).
 - Un seul chiffre de fin de saison : la caisse prévue, avant barbecue. Le pont l'explique : report de la saison passée (ce qui était déjà en caisse et ne relève pas de l'exercice) + entrées de l'exercice − sorties de l'exercice. Le bénéfice net de l'exercice est la différence entrées − sorties ; report + bénéfice = caisse de fin de saison, et c'est le même chiffre que la fin de la courbe.
+
+## Le détail de la caisse et son journal
+
+- Depuis le point du mois (« D'où vient ce montant ? ») ou la tuile « En caisse » de la trésorerie, une feuille détaille le solde de l'application : solde de départ, cotisations reçues, participations confirmées, autres recettes, dépenses par nature. « Voir » ouvre la page où chaque montant est saisi (cotisations, participations, mouvements). Les soldes déjà tapés dans le point du mois sont gardés pendant ce détour.
+- Le solde de départ se modifie depuis cette feuille. Dès qu'un solde existe, un motif est obligatoire. Chaque modification est notée au journal avec le nom de son auteur, la date et l'heure, l'ancien et le nouveau montant.
+- Les mouvements ajoutés ou supprimés sont notés au journal de la même façon, sans motif obligatoire.
+- Le journal est dans `treasury/ledger.log` (réservé au bureau). Il n'est pas modifiable depuis l'application.

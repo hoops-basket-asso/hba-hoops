@@ -29,8 +29,20 @@ const { chromium } = require('playwright'); const fs=require('fs');
   await p.click(`#mpSheet [data-act="mp-paid"][data-id="${first.pid}"]`); await p.waitForTimeout(400);
   const f1=await p.evaluate(()=>{ const f=window.__hs.pointFacts('2026-10'); return {nDue:f.nDue,app:f.app}; }); E(f1.nDue===f0.nDue-first.n,'« Payé » : attendu '+(f0.nDue-first.n)+' restantes, lu '+f1.nDue); E(Math.abs(f1.app-(f0.app+12*first.n))<0.01,'« Payé » : la caisse doit monter de '+12*first.n+' €, '+f0.app+' → '+f1.app);
   E(await p.$('#mpSheet'),'la feuille doit rester ouverte après « Payé »');
+  // « D'où vient ce montant ? » : le détail de la caisse, le solde de départ modifiable avec motif obligatoire, le journal nominatif
+  { await p.fill('#mpQ','123'); await p.waitForTimeout(450); await p.click('#mpSheet [data-act="cash-open"]'); await p.waitForSelector('#cashSheet');
+    const tot=await p.evaluate(()=>[document.querySelector('#cashTotal').textContent.replace(/[^\d,]/g,'').replace(',','.'),window.__hs.cashState().balance]); E(Math.abs(+tot[0]-tot[1])<0.01,'détail de la caisse : total '+tot[0]+' ≠ '+tot[1]);
+    const had=await p.evaluate(()=>!!(window.__hs.S.treasury.ledger&&window.__hs.S.treasury.ledger.opening)); await p.click('#cashSheet [data-act="opening-edit"]'); await p.waitForSelector('#opSheet');
+    if(!had){ await p.fill('#opDate','2026-09-22'); await p.fill('#opAmt','100'); await p.waitForTimeout(450); await p.click('[data-act="opening-save"]'); await p.waitForSelector('#cashSheet'); await p.waitForTimeout(450); await p.click('#cashSheet [data-act="opening-edit"]'); await p.waitForSelector('#opSheet'); }
+    const b0=await p.evaluate(()=>window.__hs.cashState().balance); const o0=await p.evaluate(()=>window.__hs.S.treasury.ledger.opening.amt); await p.fill('#opAmt',String(o0+50)); await p.waitForTimeout(450); await p.click('[data-act="opening-save"]'); await p.waitForTimeout(300);
+    E(await p.$('#opSheet'),'solde de départ modifié sans motif'); E(await p.evaluate(()=>window.__hs.S.treasury.ledger.opening.amt)===o0,'le solde a changé alors que le motif manquait');
+    await p.fill('#opNote','relevé relu, erreur de saisie'); await p.waitForTimeout(450); await p.click('[data-act="opening-save"]'); await p.waitForSelector('#cashSheet');
+    const lg=await p.evaluate(()=>window.__hs.cashLog()[0]); E(lg&&lg.what==='opening'&&lg.by==='Claude'&&lg.byId==='claude.test@example.org'&&lg.note==='relevé relu, erreur de saisie'&&lg.from.amt===o0&&lg.to.amt===o0+50&&Date.now()-lg.at<3600e3*24*400,'journal : '+JSON.stringify(lg));
+    E(Math.abs(await p.evaluate(()=>window.__hs.cashState().balance)-(b0+50))<0.01,'la caisse doit suivre le solde de départ'); E(/relevé relu/.test(await p.textContent('#cashSheet'))&&/Claude/.test(await p.textContent('#cashSheet')),'le journal n\'apparaît pas dans le détail');
+    await p.waitForTimeout(450); await p.click('#cashSheet [data-act="mp-open"]'); await p.waitForSelector('#mpSheet'); E((await p.inputValue('#mpQ'))==='123','le solde déjà tapé est perdu au retour du détail'); await p.fill('#mpQ',''); }
   // 3. les comptes : sans soldes, pas de validation ; écart > 50 € sans explication, pas de validation
   await p.click('[data-act="mp-validate"]'); await p.waitForTimeout(450); E(await p.$('#mpSheet'),'validation sans soldes acceptée');
+  f1.app=await p.evaluate(()=>window.__hs.pointFacts('2026-10').app); // le solde de départ vient d'être modifié
   const q=Math.round((f1.app+70-200)*100)/100; await p.fill('#mpQ',String(q).replace('.',',')); await p.fill('#mpP','200'); await p.waitForTimeout(150);
   E(/écart de \+70/.test(await p.textContent('#mpGap')),'écart en direct : '+await p.textContent('#mpGap'));
   await p.click('[data-act="mp-validate"]'); await p.waitForTimeout(450); E(await p.$('#mpSheet'),'écart de 70 € validé sans explication');
