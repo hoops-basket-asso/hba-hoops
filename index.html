@@ -17,7 +17,7 @@
   appId: "1:7886544443:web:4681a55c9e13d80494061e"
 };
 
-window.HS_VERSION = '2026-11-26 15:43';</script>
+window.HS_VERSION = '2026-11-26 15:44';</script>
 <script>// ---------- Hoops Stats · couche Firebase (remplace la base de l'artefact Claude) ----------
 (function(){
   const cfg = window.FIREBASE_CONFIG;
@@ -1848,7 +1848,7 @@ async function editionImage(ed){ await (document.fonts&&document.fonts.ready||Pr
           x.globalAlpha=last?1:0.55; if(wc>2){ x.beginPath(); x.roundRect(tx,Y,wc-(wp>2?1:0),th,wp>2?[10,0,0,10]:10); x.fillStyle=BL; x.fill(); } if(wp>2){ x.beginPath(); x.roundRect(tx+wc+1,Y,wp-1,th,wc>2?[0,10,10,0]:10); x.fillStyle=G; x.fill(); } x.globalAlpha=1;
           F(800,21,true); x.fillStyle='#0D1015'; x.textAlign='center'; if(wc>80) x.fillText(eur(cotS),tx+wc/2,Y+th/2+7); if(wp>62) x.fillText(eur(r.pS),tx+wc+wp/2,Y+th/2+7); x.textAlign='left'; F(800,last?25:21,true); x.fillStyle=Math.round(r.d)<0?C.DN:last?C.UP:C.MUT; x.fillText(sg(r.d),Math.max(tx+wc+wp,x100)+12,Y+th/2+9); });
         x.strokeStyle='rgba(255,255,255,.75)'; x.lineWidth=2; x.setLineDash([7,6]); x.beginPath(); rows.forEach((r,i)=>{ const Y=ty+i*rh; x.moveTo(x100,Y-(i?rh-40-3:14)); x.lineTo(x100,Y-3); }); x.moveTo(x100,ty+(rows.length-1)*rh+43); x.lineTo(x100,ty+(rows.length-1)*rh+54); x.stroke(); x.setLineDash([]); F(600,18); x.fillStyle=C.TXT; x.textAlign='right'; x.fillText('coût de la séance : '+eur(slot),x100+2,ty-22); x.textAlign='left'; y+=hh;
-        y=note('Le pack : '+eur(a.pk.cost)+' pour '+nSlot+' séances de 2 h, soit '+eur(slot)+' la séance. Cotisations : '+eur(+a.cs.cotEur||0)+' reçus, soit '+eur(cotS)+' par séance. Participations : '+fee+' € chacune, seules celles encaissées comptent. À droite de chaque barre : ce qui reste une fois la séance payée.',y+36)-10; }
+        y=note('Pack : '+eur(a.pk.cost)+' pour '+nSlot+' séances, soit '+eur(slot)+' la séance. Cotisations reçues : '+eur(+a.cs.cotEur||0)+', soit '+eur(cotS)+' par séance. À droite : ce qui reste une fois la séance payée.',y+36)-10; }
       if(part){ const pm2=M.find(m=>m.partial); y=note('* '+monthName(pm2.ym)+' : à partir du '+fmtShort(a.from)+', début des comptes. Les totaux de ce mois ne sont pas comparables aux suivants.',y+(slot>0?20:36))-10; } y+=58; }
     { const A=[a.mvp&&['MVP DU MOIS',[a.mvp.id],a.mvp.note!=null?fmtN(a.mvp.note):'★',C.GOLD,a.mvp.note!=null?'note sur 10':''],a.pts&&['MEILLEUR MARQUEUR',a.pts.ids,a.pts.v,null,'points'],a.ast&&['MEILLEUR PASSEUR',a.ast.ids,a.ast.v,null,'passes']].filter(Boolean);
       if(A.length){ sect('LES AWARDS DU MOIS',y); y+=22; const n=A.length, tw=(W-128-(n-1)*14)/n, th=214; A.forEach(([lab,ids,v,gold,unit],k)=>{ const X=64+k*(tw+14); card(X,y,tw,th,22); if(gold){ x.save(); rr(X,y,tw,th,22); x.clip(); x.fillStyle=C.GOLD; x.fillRect(X,y,8,th); x.restore(); }
