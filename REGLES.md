@@ -313,3 +313,13 @@ Une page à part, en lecture seule, pour suivre la séance à distance : tableau
 - Sur la courbe du solde, la zone à droite d'aujourd'hui est teintée et marquée « prévision ». Dans « de mois en mois », la carte « Une séance coûte X € · qui la paye ? » montre un tube par mois en euros, avec le coût d'une séance de 2 h en repère, le nombre de participations payées par séance, celui qu'il faut pour payer la séance, et ce qui reste une fois la séance payée : la part des cotisations (cotisations reçues ÷ nombre de séances du pack) puis celle des participations (encaissées pour les séances jouées du mois ÷ nombre de séances). Les participations payées d'avance pour une séance pas encore jouée ne comptent pas dans cette moyenne.
 - « Enregistrer ou envoyer les 2 images » : disponible à tout moment dans la feuille du point du président, les deux images partent en un seul geste. Avant validation, elles portent la mention « projet à valider ».
 - `tests/edition.js` rejoue le point du président sur onze situations (premier mois, mois entamé, 5 dimanches, changement d'année, pack soldé, exercice déficitaire, mois sans séance, trésorerie vide, fin de saison…) et vérifie à chaque fois que les chiffres se recoupent : report + bénéfice = caisse de fin de saison = fin de la courbe, totaux = somme des lignes, détail à recouvrer = total.
+
+## Participations non réglées : alerte et inscription bloquée
+
+- La règle vaut à partir du 22/11/2026 (constante `DUES_FROM`).
+- Le délai est d'un mois, compté depuis le plus ancien impayé du joueur. Pour un impayé antérieur au 22/11, le mois court à partir du 22/11.
+- Passé ce délai, deux cas. Si le bureau a relancé le joueur (bouton « Relancer » dans le point du mois), son inscription est bloquée : impossible de le cocher à la préparation ou de l'ajouter par la liste collée. Sinon, l'accueil du bureau indique « relance à faire » et rien n'est bloqué.
+- La relance est notée avec la date et le nom de celui qui l'a faite (`treasury/dues`). Elle n'est notée que si le message est parti ou a été copié.
+- Dès que les participations sont marquées payées, l'alerte et le blocage disparaissent.
+- Les noms n'apparaissent que pour le bureau. Dans le point du président, la ligne est sans nom : « N inscription(s) bloquée(s) pour participations non réglées ».
+- Test : `tests/impayes.js`.
