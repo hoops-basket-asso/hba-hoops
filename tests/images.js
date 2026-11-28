@@ -14,7 +14,7 @@ const SRC=process.argv[2]||'tests/fixture-export.json';
   // Images à partager : ladder de la semaine + résumé de séance, et impact « terrain / banc »
   await p.click('[data-go="stats"]'); await p.waitForTimeout(300); await p.click('[data-period="season"]').catch(()=>{}); await p.waitForTimeout(300);
   await p.click('[data-act="ladder-img"]'); await p.waitForTimeout(1500);
-  E(await p.evaluate(()=>{ const i=document.querySelector('#ladImg img'); return !!(i&&i.naturalWidth===1080&&i.naturalHeight>1200&&i.naturalHeight<1700); }),'image ladder absente ou mal dimensionnée');
+  E(await p.evaluate(()=>{ const i=document.querySelector('#ladImg img'); return !!(i&&i.naturalWidth===1080&&i.naturalHeight>1200&&i.naturalHeight<1900); }),'image ladder absente ou mal dimensionnée');
   const sum=await p.evaluate(async()=>{ const h=window.__hs; const s=Object.values(h.S.sessions).filter(x=>x.status==='closed').sort((a,b)=>a.date<b.date?1:-1)[0]; const c=await h.summaryImage(s); return [c.width,c.height]; });
   E(sum[0]===1080&&sum[1]>900&&sum[1]<3200,'image résumé mal dimensionnée '+sum);
   const lad=await p.evaluate(()=>{ const h=window.__hs; const L=h.ladderOf(h.seasonLadderSessions()); return {n:L.list.length,sorted:L.list.every((e,i,a)=>!i||a[i-1].note>=e.note),bounded:L.list.every(e=>e.note>=0&&e.note<=10.0001)}; });

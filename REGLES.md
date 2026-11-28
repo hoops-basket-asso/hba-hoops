@@ -337,3 +337,25 @@ Une page à part, en lecture seule, pour suivre la séance à distance : tableau
 - Tablette tenue en paysage (écran de 900 à 1199 px de large, tactile) : pendant la saisie, la page est dessinée sur 1200 px et réduite à l'écran. On a la table en trois colonnes, comme sur PC. Les boutons sont plus petits que sur PC (environ 30 × 41 px sur un écran de 1024 px).
 - En portrait, la tablette garde l'écran du téléphone (deux colonnes) et un message conseille de la tourner.
 - Hors de la table, la page reprend sa largeur normale. Téléphones et PC ne sont pas concernés. Test : `tests/tablette.js`.
+
+## Zones de tir (à l'essai)
+
+- Option à cocher sous le niveau **Complet** (au lancement ou dans le menu ⋯) : « Zones de tir ». Décochée par défaut. Elle ne joue que sur PC ou tablette en paysage.
+- Après chaque tir saisi (réussi ou raté), le bandeau du bas demande d'où il a été pris : à 2 points **Raquette** ou **Mi-distance** ; à 3 points **Corner**, **45°** ou **Axe**. La question s'ajoute au bandeau de la passe ou du rebond.
+- Ce n'est jamais bloquant : le tir est déjà compté. Sans réponse dans les 15 secondes, ou si une autre action arrive, le tir reste sans zone.
+- Dans les données : `zones:true` sur la séance, et `z` (`r`, `m`, `c`, `w`, `t`) sur l'action `pt` ou `miss`.
+- Restitution : un demi-terrain avec réussis / tentés par zone, sur la fiche du joueur (« Matchs suivis en détail ») et dans les stats du jour. Il n'apparaît que si au moins un tir a une zone, et il dit toujours sur combien de tirs la zone a été notée.
+- Les zones n'entrent dans aucune note. Test : `tests/zones.js`.
+
+## L'accueil du joueur identifié
+
+- En tête : « Bonjour Prénom », son surnom s'il en a un, et une phrase tirée de son dernier dimanche (victoires, points, passes), sans jugement. S'il n'a pas joué, la phrase le dit.
+- Trois raccourcis : « Mon dimanche » (descend à la carte), « Ma saison » (sa fiche), « Classement ». Pendant une séance, « Le direct » s'ajoute.
+- Les chiffres de ses cartes montent jusqu'à leur valeur une fois par visite, sauf si l'appareil demande moins d'animations.
+- Pour qui ne tient pas la table, la liste des inscrits est repliée dans « Prochaine séance » : la carte « Séance préparée » ne s'affiche plus en double.
+- Le temps de jeu de « Mon dernier dimanche » est donné à la seconde (« 23 min 40 s »). Test : `tests/accueil.js`.
+
+## Les images à partager (refonte du 28/11/2026)
+
+- **Le résumé** : le podium des équipes (une marche par équipe, à sa couleur), le MVP en carte penchée avec sa note en très grand, les leaders en médaillons, le zoom, « les chiffres du jour » (points marqués, match le plus serré, le plus large), les résultats avec une barre de duel aux couleurs des équipes.
+- **Le ladder** : le podium des trois premiers (visage, note sur la marche), puis la course de la 4e à la 10e place, la remontée de la semaine et les leaders de la saison.

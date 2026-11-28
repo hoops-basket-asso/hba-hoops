@@ -1,0 +1,21 @@
+// L'accueil du joueur identifié : bonjour + une phrase vraie sur son dernier dimanche + raccourcis. Les chiffres qui montent finissent sur la vraie valeur. Pas de doublon de la liste des inscrits.
+const { chromium } = require('playwright'); const fs=require('fs');
+(async()=>{ const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'}); const ctx=await b.newContext({viewport:{width:390,height:844},serviceWorkers:'block'}); const fake=fs.readFileSync('tests/fake-firebase.js','utf8');
+  await ctx.route(/gstatic\.com\/firebasejs\//, r=>r.fulfill({contentType:'application/javascript',body:'/* noop */'})); await ctx.route(/gstatic\.com\/firebasejs\/.*firebase-app-compat/, r=>r.fulfill({contentType:'application/javascript',body:fake}));
+  const p=await ctx.newPage(); p.setDefaultTimeout(8000); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); p.on('dialog',d=>d.accept()); const E=(c,m)=>{ if(!c) errs.push(m); };
+  await p.goto('http://127.0.0.1:8099/index.html'); await p.waitForTimeout(800); await p.click('[data-act="show-login"]',{timeout:1500}).catch(()=>{}); await p.waitForTimeout(150); await p.fill('#fbEmail','claude.test@example.org'); await p.fill('#fbPass','x'); await p.click('[data-act="fb-login"]'); await p.waitForTimeout(500);
+  await p.setInputFiles('#impFile','tests/fixture-export.json'); await p.fill('#bureauEmails','claude.test@example.org'); await p.click('[data-act="fb-import"]'); await p.waitForTimeout(1500);
+  // sans joueur identifié : pas de bonjour
+  await p.evaluate(()=>{ const h=window.__hs; h.S.unlocked=false; h.S.me=null; h.S.view='home'; h.render(); }); await p.waitForTimeout(200); E(!(await p.$('#hello')),'sans joueur identifié, pas de bonjour');
+  // un joueur qui a joué la dernière séance
+  const who=await p.evaluate(()=>{ const h=window.__hs; const last=Object.values(h.S.sessions).filter(s=>s.status==='closed').sort((a,b)=>a.date<b.date?1:-1)[0]; const ids=[...new Set(last.matches.flatMap(m=>(m.events||[]).filter(e=>e.type==='pt').map(e=>e.pid)))]; const id=ids[0]; let pts=0; last.matches.forEach(m=>(m.events||[]).forEach(e=>{ if(e.pid===id){ if(e.type==='pt') pts+=e.v; if(e.type==='ft'&&e.made) pts+=1; } })); h.S._cu=false; h.S.me=id; h.render(); return {id,first:h.S.players[id].name.trim().split(/\s+/)[0],pts}; });
+  await p.waitForSelector('#hello'); const t0=await p.textContent('#hello'); E(t0.includes('Bonjour '+who.first),'bonjour avec le prénom attendu : '+t0); E(new RegExp('\\b'+who.pts+' point').test(t0),'la phrase doit donner ses '+who.pts+' points : '+t0); E(!/[!]/.test(t0),'pas de point d\'exclamation ni de jugement dans la phrase');
+  E(await p.$('#hello [data-act="jump"][data-id="myLast"]')&&await p.$('#myLast'),'raccourci « Mon dimanche » et sa carte'); E(await p.$('#hello [data-act="player-detail"]')&&await p.$('#hello [data-go="stats"]'),'raccourcis « Ma saison » et « Classement »');
+  // les chiffres qui montent finissent sur la vraie valeur
+  await p.waitForTimeout(1100); const a=await p.$$eval('#mySeason .tile .v, #myLast .tile .v',l=>l.map(x=>x.textContent.trim())); await p.evaluate(()=>window.__hs.render()); await p.waitForTimeout(150); const c=await p.$$eval('#mySeason .tile .v, #myLast .tile .v',l=>l.map(x=>x.textContent.trim())); E(a.length>0&&JSON.stringify(a)===JSON.stringify(c),'après l\'animation, les chiffres doivent être les vrais : '+JSON.stringify(a)+' / '+JSON.stringify(c));
+  // les raccourcis mènent quelque part
+  await p.click('#hello [data-go="stats"]'); await p.waitForTimeout(400); E(await p.evaluate(()=>window.__hs.S.view==='stats'),'« Classement » doit ouvrir les stats');
+  // la liste des inscrits n'apparaît qu'une fois pour qui ne tient pas la table
+  await p.evaluate(()=>{ const h=window.__hs; h.S.view='home'; h.render(); }); await p.waitForTimeout(200); const dup=await p.evaluate(()=>({list:!!document.querySelector('#nextList'),card:[...document.querySelectorAll('.pill')].some(x=>x.textContent.trim()==='Séance préparée')})); E(!(dup.list&&dup.card),'la liste des inscrits ne doit pas apparaître deux fois : '+JSON.stringify(dup));
+  console.log('errors',errs); await b.close(); process.exit(errs.length?1:0);
+})().catch(e=>{console.error(e);process.exit(1);});

@@ -361,3 +361,4 @@ Ils sont conservés tels quels par l'appli web, qui ne les lit pas.
 - `treasury/ledger.log` : journal `[{at,by,byId,what:'opening'|'add'|'del',from,to,note}]`. À conserver à chaque écriture du document `ledger` ; toute modification du solde de départ doit y ajouter une ligne avec un motif.
 - Nouveau document `treasury/dues` : `{remind:{[pid]:{at,by,byId}}}`, la dernière relance du bureau pour participations non réglées. À conserver tel quel. Règle de blocage d'inscription : voir REGLES.md, « Participations non réglées ».
 - Nouvelle collection `liveViews` (audience du direct) : écrite par `direct.html` sans compte, lue par le bureau. L'appli Android n'a pas à y toucher.
+- Zones de tir (essai) : `zones:true` sur la séance et champ `z` (`r`,`m`,`c`,`w`,`t`) sur les actions `pt` et `miss`. À conserver tels quels : une appli qui réécrit les actions sans ce champ efface les zones.

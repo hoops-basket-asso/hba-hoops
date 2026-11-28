@@ -1130,8 +1130,8 @@ function vHome(){
   const past=Object.values(S.sessions).filter(s=>s.status==='closed').sort((a,b)=>a.date<b.date?1:-1);
   let h='';
   if(!S.loaded) h+=`<div class="empty">Chargement des données…</div>`;
-  if(S.loaded) h+=helloCard(live,past);
   if(S.loaded&&!S.scorer&&!Object.values(S.sessions).some(x=>x.status==='live')) h+=potmHero();
+  if(S.loaded) h+=helloCard(live,past);
   if(fbMode()&&(S.bootstrap||(S.unlocked&&S.loaded&&!Object.keys(S.players).length))) h+=`<div class="card" style="border:2px solid var(--accent)"><h2>Première installation</h2><p class="muted small">Importez le fichier <b>hba-export.json</b> (joueurs, séances, sanctions, trésorerie) et indiquez les emails des membres du bureau, un par ligne. À faire une seule fois.</p><textarea id="bureauEmails" rows="3" placeholder="email1@…&#10;email2@…&#10;email3@…">${esc(S.fbEmail||'')}</textarea><div class="row" style="margin-top:8px"><input type="file" id="impFile" accept=".json,application/json" class="grow"><button class="btn primary" data-act="fb-import">Importer</button></div></div>`;
   const acctLine=fbMode()&&S.unlocked?`<p class="muted small center" style="margin:8px 0 0">Connecté : ${esc(S.fbEmail||'')} · <button class="btn sm ghost" data-act="lock">Déconnexion</button> · <button class="btn sm ghost" data-act="fb-export">Sauvegarde JSON</button></p>`:(S.unlocked&&!S.demo&&!S.scorer?`<p class="center" style="margin:8px 0 0"><button class="btn sm ghost" data-act="lock">Verrouiller</button></p>`:'');
   const prepToday=!live&&S.unlocked&&!S.demo&&Object.values(S.sessions).find(x=>x.status==='setup'&&x.date===today());
