@@ -357,5 +357,5 @@ Une page à part, en lecture seule, pour suivre la séance à distance : tableau
 
 ## Les images à partager (refonte du 28/11/2026)
 
-- **Le résumé** : le podium des équipes (une marche par équipe, à sa couleur), le MVP en carte penchée avec sa note en très grand, les leaders en médaillons, le zoom, « les chiffres du jour » (points marqués, match le plus serré, le plus large), les résultats avec une barre de duel aux couleurs des équipes.
+- **Le Débrief** (ancien « résumé », renommé le 28/11/2026 ; le résumé en texte a été retiré, on ne partage plus que les images) : le podium des équipes (une marche par équipe, à sa couleur), le MVP en carte penchée avec sa note en très grand, les leaders en médaillons, le zoom, « les chiffres du jour » (points marqués, match le plus serré, le plus large), les résultats avec une barre de duel aux couleurs des équipes.
 - **Le ladder** : le podium des trois premiers (visage, note sur la marche), puis la course de la 4e à la 10e place, la remontée de la semaine et les leaders de la saison.

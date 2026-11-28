@@ -29,6 +29,6 @@ const { chromium } = require('playwright'); const APP=process.env.APP||'src/app.
   const info=await p.evaluate(()=>({txt:document.body.innerText.slice(0,500),w:window.__w,fail:window.__fail,last:window.__last}));
   console.log('actions',acts,'quarters seen',quarters,'ms',Date.now()-t0,'writes',info.w,'fails',info.fail,'doc bytes',info.last,'errors',errs);
   await p.screenshot({path:'out/c_end.png'}); console.log(info.txt.replace(/\n+/g,' | ').slice(0,400));
-  await p.click('[data-go="share"]'); await p.waitForTimeout(300); console.log(await p.$eval('#sumTxt',e=>e.value.split('\n').slice(0,6).join(' / ')));
+  await p.click('[data-go="share"]'); await p.waitForTimeout(300); console.log('débrief', !!(await p.$('[data-act="make-img"]')), 'plus de texte', !(await p.$('#sumTxt')));
   await b.close();
 })().catch(e=>{console.error(e);process.exit(1);});
