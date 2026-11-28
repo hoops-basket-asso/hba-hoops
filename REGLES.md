@@ -371,3 +371,11 @@ Le message WhatsApp accompagne les deux images sans les répéter : la caisse et
 - Le vainqueur enregistré ne change jamais tout seul. Si un panier ajouté fait passer le perdant devant, l'appli le signale et renvoie vers « ✎ Résultats ».
 - **Le MVP du jour** est la meilleure note du dimanche et suit les corrections tant qu'il n'est pas validé. Sur la page du Débrief, le bureau le valide d'un bouton quand les corrections sont faites : il est alors figé (`mvp`, `mvpAt`, `mvpBy`) et ne change plus. « Annuler » le remet en suivi.
 - Ordre conseillé le dimanche : clôturer, corriger, valider le MVP, partager le Débrief. Test : `tests/apres.js`.
+
+## La page Trésorerie alignée sur le point du président (28/11/2026)
+
+- Les deux disent maintenant la même chose. La troisième tuile s'appelle « Fin de saison » et donne la caisse prévue **avant le barbecue** (avant : une « Prévision » après barbecue, différente du chiffre publié).
+- La courbe s'arrête sur ce même chiffre, sans la marche du barbecue. Elle part de ce qui est réellement en caisse aujourd'hui.
+- Sous la courbe : « D'ici la fin de saison » (en caisse, entrées attendues, sorties prévues, caisse de fin de saison, avec le report de la saison passée et le bénéfice de l'exercice) et « Une séance coûte X € · qui la paye ? ».
+- Le barbecue et le matériel restent dans le volet « Projection fin de saison », qui montre l'affectation de l'excédent.
+- **Correction de la prévision.** La moyenne de participations par séance ne compte plus que les séances jouées, et une participation payée d'avance pour un dimanche à venir n'est plus attendue une seconde fois. Avant, les deux gonflaient la prévision. Test : `tests/tresoaligne.js`.
