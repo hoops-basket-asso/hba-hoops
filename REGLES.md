@@ -150,37 +150,37 @@ Ce qu'on en tire : le pourcentage de réussite au tir (à partir de 5 tirs sur u
 
 ### Trophées de la saison
 
-Recalculés après chaque dimanche, remis en fin de saison.
+Sept trophées (liste resserrée le 28/11/2026 : avant il y en avait seize, dont plusieurs en doublon et aux noms de joueurs NBA). Recalculés après chaque dimanche, remis en fin de saison.
 
 | Trophée | Critère |
 |---|---|
-| 👑 MVP | N° 1 du ladder |
-| 🎩 Westbrook | Meilleure part de paniers servis |
-| 🎯 Curry | Le plus de paniers à 3 points |
-| 🆓 Calderón | Meilleur % aux lancers francs (30 tentés minimum) |
-| 🧱 Draymond | Meilleur impact (150 min jouées et 90 min sur le banc minimum) |
-| 🔒 Le Verrou | Son équipe encaisse le moins (300 min chronométrées minimum) |
-| 📅 A.C. Green | Le plus de dimanches de présence |
-| 🏆 73-9 | Meilleur % de victoires (60 matchs minimum) |
-| 🏆 Monsieur Dimanche | Le plus souvent dans l'équipe du jour |
-| 🎖️ Champion de la saison | Premier du championnat |
-| 🦾 Iron Man | Le plus de minutes sur le terrain |
-| 🚀 Most Improved | Plus forte hausse de points par match entre les deux moitiés de saison |
-| 🧊 Tim Duncan | Aucune technique ni sanction, 25 dimanches minimum |
-| 🪑 Sixième homme | Meilleur joueur parmi ceux présents moins d'un dimanche sur deux |
-| 🃏 Jokić | Meilleur passeur hors meneurs (10 passes minimum) |
-| 🛰️ Brook Lopez | Le plus de paniers à 3 points parmi les intérieurs |
+| 👑 MVP de la saison | N° 1 du ladder |
+| 🏀 Meilleur marqueur | Le plus de points par match, présent au moins un dimanche sur deux |
+| 🤝 Meilleur passeur | Le plus de passes par match, présent au moins un dimanche sur deux |
+| 🎯 Meilleur tireur à 3 points | Le plus de paniers à 3 points |
+| 📅 Le plus assidu | Le plus de dimanches de présence |
+| 🚀 Meilleure progression | Plus forte hausse de la note entre les deux moitiés de saison (10 matchs dans chaque moitié) |
+| 🤍 Fair-play | Vote des joueurs en fin de saison |
 
-### Prix votés (prévus pour juin 2027)
+Pas de trophée de défense : contres et interceptions ne sont saisis qu'en Complet, le classement serait faussé.
 
-- Deux prix : **fair-play** et **progrès de l'année**.
-- Vote ouvert parmi les joueurs réguliers, on ne vote pas pour soi.
-- Un vote par appareil. Le vote est confidentiel : on n'annonce que le gagnant, jamais le nombre de voix.
-- Les règles Firebase sont déjà prêtes ; l'écran de vote reste à construire au printemps.
+**Ce qu'on remet en vrai.** En fin de saison, trois trophées physiques : le MVP (gravé), la meilleure progression, le fair-play. À mi-saison, un cadeau au « MVP de mi-saison » : le n° 1 du ladder à la dernière séance de janvier.
 
-### Badges
+### Prix voté (prévu pour juin 2027)
 
-Des paliers franchis dans un dimanche : gros match, série à 3 points, record personnel, plusieurs passes, invaincu… Ils sont là pour le plaisir et n'entrent dans aucun classement.
+- Un seul prix : le **fair-play**. (Le « progrès de l'année » voté est abandonné : il ferait doublon avec la meilleure progression, qui se calcule.)
+- Ne sont éligibles que les joueurs sans technique, antisportive ni sanction dans la saison.
+- Vote ouvert parmi les joueurs réguliers, on ne vote pas pour soi. Un vote par appareil. Confidentiel : on n'annonce que le gagnant.
+- Les règles Firebase sont prêtes ; l'écran de vote reste à construire au printemps.
+
+### Records et 5 du jour (à la place des badges)
+
+Les onze badges ont été retirés le 28/11/2026 : peu regardés, et on ne savait pas ce qu'ils valaient.
+
+- **Ses records** (fiche du joueur) : son meilleur dimanche de la saison aux points, aux passes, à 3 points et à la note du jour, avec la date. Affiché dès deux dimanches joués.
+- Quand un record tombe, l'accueil du joueur le dit : « Nouveau record de points : 14. » Le tout premier dimanche ne compte pas comme un record battu.
+- **Le 5 du jour** : les cinq meilleures notes du dimanche (3 matchs joués minimum), dans l'ordre des notes. Le MVP officiel du jour, figé à la clôture, y est signalé même si une correction l'a fait passer derrière. Dans les stats du jour et sur l'image du Débrief.
+- Rien de tout cela n'entre dans la note. Test : `tests/records.js`.
 
 ---
 
@@ -198,7 +198,7 @@ L'en-tête de la fiche porte trois choses, toutes facultatives et choisies par l
 
 **La couleur de la saison** se règle dans Bureau → Réglages. L'orange du club ne change pas. Cette couleur habille les fiches sans couleur propre.
 
-**La fiche en deux niveaux.** En haut, toujours visibles : rang, note, présences, points, victoires, courbe des points. En dessous, trois volets à ouvrir : Points et tirs, Jeu collectif, Badges. Le téléphone retient les volets ouverts.
+**La fiche en deux niveaux.** En haut, toujours visibles : rang, note, présences, points, victoires, courbe des points. En dessous, trois volets à ouvrir : Points et tirs, Jeu collectif, Ses records. Le téléphone retient les volets ouverts.
 
 ### Le direct (direct.html)
 
@@ -359,3 +359,7 @@ Une page à part, en lecture seule, pour suivre la séance à distance : tableau
 
 - **Le Débrief** (ancien « résumé », renommé le 28/11/2026 ; le résumé en texte a été retiré, on ne partage plus que les images) : le podium des équipes (une marche par équipe, à sa couleur), le MVP en carte penchée avec sa note en très grand, les leaders en médaillons, le zoom, « les chiffres du jour » (points marqués, match le plus serré, le plus large), les résultats avec une barre de duel aux couleurs des équipes.
 - **Le ladder** : le podium des trois premiers (visage, note sur la marche), puis la course de la 4e à la 10e place, la remontée de la semaine et les leaders de la saison.
+
+## Le texte du point du président (réécrit le 28/11/2026)
+
+Le message WhatsApp accompagne les deux images sans les répéter : la caisse et le solde du pack, ce que coûte une séance et qui la paye, ce qui reste à recouvrer, la caisse prévue en fin de saison. Pas de liste, pas de fréquentation ni d'awards (ils sont sur les images).
