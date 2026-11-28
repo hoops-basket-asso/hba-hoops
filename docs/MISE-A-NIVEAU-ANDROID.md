@@ -362,3 +362,4 @@ Ils sont conservés tels quels par l'appli web, qui ne les lit pas.
 - Nouveau document `treasury/dues` : `{remind:{[pid]:{at,by,byId}}}`, la dernière relance du bureau pour participations non réglées. À conserver tel quel. Règle de blocage d'inscription : voir REGLES.md, « Participations non réglées ».
 - Nouvelle collection `liveViews` (audience du direct) : écrite par `direct.html` sans compte, lue par le bureau. L'appli Android n'a pas à y toucher.
 - Zones de tir (essai) : `zones:true` sur la séance et champ `z` (`r`,`m`,`c`,`w`,`t`) sur les actions `pt` et `miss`. À conserver tels quels : une appli qui réécrit les actions sans ce champ efface les zones.
+- Corrections après coup : une action peut porter `added:true` (ajoutée depuis le journal des matchs). La séance peut porter `mvp`, `mvpAt`, `mvpBy` (MVP validé par le bureau) : à conserver.

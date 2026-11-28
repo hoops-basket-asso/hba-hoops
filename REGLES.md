@@ -363,3 +363,11 @@ Une page à part, en lecture seule, pour suivre la séance à distance : tableau
 ## Le texte du point du président (réécrit le 28/11/2026)
 
 Le message WhatsApp accompagne les deux images sans les répéter : la caisse et le solde du pack, ce que coûte une séance et qui la paye, ce qui reste à recouvrer, la caisse prévue en fin de saison. Pas de liste, pas de fréquentation ni d'awards (ils sont sur les images).
+
+## Après la séance : corriger, puis valider le MVP
+
+- **Journal des matchs** (Stats → le dimanche → Équipes, bureau, séance close) : on tape une ligne pour changer le joueur, la valeur du panier ou la supprimer. Le bouton « + Ajouter une action oubliée » ajoute un panier à 2 ou à 3, un lancer réussi ou raté, une passe décisive ou une faute, pour un joueur de l'un des deux effectifs du match.
+- L'action ajoutée se place à la fin du match et porte la mention « ajoutée après coup » (`added:true`). Les stats se recalculent aussitôt.
+- Le vainqueur enregistré ne change jamais tout seul. Si un panier ajouté fait passer le perdant devant, l'appli le signale et renvoie vers « ✎ Résultats ».
+- **Le MVP du jour** est la meilleure note du dimanche et suit les corrections tant qu'il n'est pas validé. Sur la page du Débrief, le bureau le valide d'un bouton quand les corrections sont faites : il est alors figé (`mvp`, `mvpAt`, `mvpBy`) et ne change plus. « Annuler » le remet en suivi.
+- Ordre conseillé le dimanche : clôturer, corriger, valider le MVP, partager le Débrief. Test : `tests/apres.js`.
