@@ -2,7 +2,7 @@
 const { chromium } = require('playwright');
 (async()=>{ const b=await chromium.launch(); const ctx=await b.newContext({viewport:{width:390,height:844}}); await ctx.route(/gstatic\.com\/firebasejs/, r=>r.fulfill({contentType:'application/javascript',body:'/* noop */'}));
   const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
-  await p.goto('http://127.0.0.1:8099/direct.html?src=tests/fixture-2211.json&vitesse=200'); await p.waitForTimeout(1200);
+  await p.goto('http://127.0.0.1:8099/direct.html?src=tests/fixture-2211.json&vitesse=200'); await p.waitForTimeout(1200); if(await p.evaluate(()=>!!window.__direct.aud)) errs.push('audience : la rediffusion ne doit pas compter');
   if(!(await p.$('#board'))) errs.push('tableau de score absent');
   // le son est coupé par défaut ; un appui l'active, sans erreur
   if(!/Son/.test(await p.textContent('#snd'))) errs.push('bouton Son absent'); await p.click('#snd'); if(await p.evaluate(()=>localStorage.getItem('hs-direct-son'))!=='1') errs.push('le son ne s\'active pas'); if(!(await p.$('#film'))) errs.push('film du match absent');
@@ -21,6 +21,9 @@ const { chromium } = require('playwright');
   const p3=await c3.newPage(); p3.on('pageerror',e=>errs.push('direct '+e.message)); await p3.goto('http://127.0.0.1:8099/direct.html?delai=3'); await p3.waitForTimeout(1500);
   const sc=()=>p3.evaluate(()=>[...document.querySelectorAll('.tm .sc')].map(e=>e.textContent).join('-'));
   if(await sc()!=='2-0') errs.push('direct : score de départ '+await sc()); if(!/EN DIRECT/.test(await p3.textContent('#live'))) errs.push('direct : badge « en direct » absent');
+  // audience : une fiche anonyme par appareil et par jour, « live » ne monte que devant une séance en cours, et l'identifiant survit à un rechargement
+  { const a=await p3.evaluate(async()=>{ const D=window.__direct; if(!D.aud) return null; const g=D.aud.get(); const sn=await firebase.firestore().doc('liveViews/'+g.id).get(); const d0=sn.exists?sn.data():null; D.aud.beat(true); await new Promise(r=>setTimeout(r,50)); const d1=(await firebase.firestore().doc('liveViews/'+g.id).get()).data(); return {g,d0,d1,keys:d1?Object.keys(d1).sort().join(','):''}; });
+    if(!a||!a.d0) errs.push('audience : aucune fiche écrite à l\'ouverture du direct'); else { if(a.keys!=='day,first,last,live') errs.push('audience : champs inattendus '+a.keys); if(!/^\d{4}-\d{2}-\d{2}$/.test(a.d1.day)||a.g.id.length>=40) errs.push('audience : jour ou identifiant mal formé'); if(a.d0.live!==0||a.d1.live!==1) errs.push('audience : « live » doit passer de 0 à 1 devant une séance en cours : '+a.d0.live+' → '+a.d1.live); if(a.d1.first!==a.d0.first) errs.push('audience : le début ne doit pas bouger'); } }
   const add=ev=>p3.evaluate(ev=>{ const fs=firebase.firestore(); return fs.doc('sessions/s1').get().then(sn=>{ const s=sn.data(); if(ev==='undo') s.matches[0].events.pop(); else if(ev==='close'){ s.status='closed'; s.matches[0].status='done'; s.matches[0].endedAt=Date.now(); s.matches[0].winner='B'; } else s.matches[0].events.push({...ev,t:Date.now(),el:40000}); return fs.doc('sessions/s1').set(s); }); },ev);
   await add({type:'pt',team:'B',pid:'b1',v:3}); await p3.waitForTimeout(1200); if(await sc()!=='2-0') errs.push('direct : le panier s\'affiche sans attendre le différé');
   await p3.waitForTimeout(3300); if(await sc()!=='2-3') errs.push('direct : panier à 3 points non affiché après le différé : '+await sc()); if(!/3 points/i.test(await p3.textContent('#feed'))) errs.push('direct : fil sans le panier à 3 points');

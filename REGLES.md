@@ -323,3 +323,17 @@ Une page à part, en lecture seule, pour suivre la séance à distance : tableau
 - Dès que les participations sont marquées payées, l'alerte et le blocage disparaissent.
 - Les noms n'apparaissent que pour le bureau. Dans le point du président, la ligne est sans nom : « N inscription(s) bloquée(s) pour participations non réglées ».
 - Test : `tests/impayes.js`.
+
+## Qui regarde le direct (audience)
+
+- Chaque appareil qui ouvre `direct.html` écrit une fiche `liveViews/{jour_identifiant}` : `{day, first, last, live}`. Aucun nom, aucun compte : l'identifiant est tiré au hasard et gardé sur l'appareil pour la journée.
+- Un signal part à l'ouverture, puis une fois par minute tant que la page est à l'écran. `live` compte les minutes passées devant une séance en cours. La rediffusion ne compte pas.
+- Le bureau lit le résultat dans Réglages, carte « Qui regarde le direct » : appareils, ceux qui ont vu du jeu, ceux restés 5 minutes ou plus, durée moyenne, pic, et « en ce moment » le jour même.
+- Il faut publier la règle `liveViews` de `firestore.rules`. Tant qu'elle ne l'est pas, le direct marche comme avant et rien n'est compté.
+- Limites : un même joueur sur deux appareils compte deux fois ; la table et le bureau comptent s'ils ouvrent le direct ; n'importe qui peut gonfler le chiffre en ouvrant plusieurs navigateurs.
+
+## La table de marque sur tablette
+
+- Tablette tenue en paysage (écran de 900 à 1199 px de large, tactile) : pendant la saisie, la page est dessinée sur 1200 px et réduite à l'écran. On a la table en trois colonnes, comme sur PC. Les boutons sont plus petits que sur PC (environ 30 × 41 px sur un écran de 1024 px).
+- En portrait, la tablette garde l'écran du téléphone (deux colonnes) et un message conseille de la tourner.
+- Hors de la table, la page reprend sa largeur normale. Téléphones et PC ne sont pas concernés. Test : `tests/tablette.js`.

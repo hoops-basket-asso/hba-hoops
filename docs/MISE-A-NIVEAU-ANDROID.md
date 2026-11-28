@@ -360,3 +360,4 @@ Ils sont conservés tels quels par l'appli web, qui ne les lit pas.
 - `treasury/pack.accStart` (date, facultative) : début des comptes de l'exercice. À conserver à l'enregistrement du pack.
 - `treasury/ledger.log` : journal `[{at,by,byId,what:'opening'|'add'|'del',from,to,note}]`. À conserver à chaque écriture du document `ledger` ; toute modification du solde de départ doit y ajouter une ligne avec un motif.
 - Nouveau document `treasury/dues` : `{remind:{[pid]:{at,by,byId}}}`, la dernière relance du bureau pour participations non réglées. À conserver tel quel. Règle de blocage d'inscription : voir REGLES.md, « Participations non réglées ».
+- Nouvelle collection `liveViews` (audience du direct) : écrite par `direct.html` sans compte, lue par le bureau. L'appli Android n'a pas à y toucher.

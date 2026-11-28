@@ -62,6 +62,20 @@ service cloud.firestore {
       allow create, update: if signedIn() && request.resource.data.keys().hasOnly(['count', 'devices', 'named']);
       allow delete: if isBureau();
     }
+    // Audience du direct : chaque appareil qui ouvre le direct note sa présence (une fiche par appareil et par jour, sans nom, sans compte).
+    // Écriture ouverte mais limitée à quatre champs de forme imposée ; le jour et l'heure de début ne peuvent plus changer. Lecture et suppression : bureau uniquement.
+    match /liveViews/{id} {
+      function viewOk() {
+        return request.resource.data.keys().hasOnly(['day', 'first', 'last', 'live'])
+          && request.resource.data.keys().hasAll(['day', 'first', 'last', 'live'])
+          && request.resource.data.day is string && request.resource.data.day.size() == 10
+          && request.resource.data.first is int && request.resource.data.last is int
+          && request.resource.data.live is int && request.resource.data.live >= 0 && request.resource.data.live <= 900;
+      }
+      allow read, delete: if isBureau();
+      allow create: if id.size() < 40 && viewOk();
+      allow update: if viewOk() && request.resource.data.day == resource.data.day && request.resource.data.first == resource.data.first;
+    }
     // Votes de fin de saison : un bulletin par appareil (identifiant anonyme). Chacun écrit et relit le sien ; seul le bureau lit l'ensemble.
     match /votes/{uid} {
       allow read: if isBureau() || (signedIn() && request.auth.uid == uid);

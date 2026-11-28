@@ -270,11 +270,18 @@ async function boot(){ D.mode='load'; render();
     if(SRC){ if(!/^[\w./-]+\.json$/.test(SRC)||SRC.includes('..')) throw new Error('source refusée'); const d=await (await fetch(SRC)).json(); D.players=d.players||{}; D.cfg={...D.cfg,...((d.config||{}).main||{})}; const L=Object.values(d.sessions||{}).filter(s=>(s.matches||[]).length).sort((a,b)=>a.date<b.date?1:-1); startReplay(L[0]); return; }
     firebase.initializeApp(window.FIREBASE_CONFIG); const fs=firebase.firestore();
     fs.doc('config/main').get().then(sn=>{ if(sn.exists) D.cfg={...D.cfg,...sn.data()}; }).catch(()=>{});
+    if(!REPLAY) audience(fs);
     const ps=await fs.collection('players').get(); (ps.docs||[]).forEach(d=>D.players[d.id]=d.data());
     if(REPLAY){ const q=await fs.collection('sessions').where('status','==','closed').get(); const L=[]; (q.docs||[]).forEach(d=>L.push({id:d.id,...d.data()})); startReplay(L.filter(s=>(s.matches||[]).length&&!s.excluded).sort((a,b)=>a.date<b.date?1:-1)[0]); return; }
     fs.collection('sessions').where('status','==','live').onSnapshot(q=>{ let s=null; (q.docs||[]).forEach(d=>{ const x={id:d.id,...d.data()}; if(!s||x.date>s.date) s=x; }); setSession(s); tick(); },()=>{ D.mode='ok'; render(); });
     setInterval(tick,500);
   }catch(e){ console.error(e); D.mode='ok'; D.sess=null; render(); } }
+/* Audience du direct : chaque appareil note sa présence une fois par minute, sans nom (identifiant tiré au hasard, gardé sur l'appareil pour la journée). « live » compte les minutes passées devant une séance en cours. Lecture réservée au bureau. Si la règle Firebase n'est pas publiée, le premier envoi échoue et on n'insiste pas. */
+function audience(fs){ const d=new Date(), day=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); const rnd=()=>Math.random().toString(36).slice(2,10); let id=day+'_'+rnd()+rnd(), first=Date.now(), live=0, off=false;
+  try{ const o=JSON.parse(localStorage.getItem('hs-dv')||'null'); if(o&&o.day===day&&o.id){ id=o.id; first=+o.first||first; live=+o.live||0; } }catch(e){}
+  const keep=()=>{ try{ localStorage.setItem('hs-dv',JSON.stringify({day,id,first,live})); }catch(e){} };
+  const beat=inc=>{ if(off||document.hidden) return; if(inc&&D.sess&&D.sess.status==='live'&&live<900) live++; keep(); try{ fs.doc('liveViews/'+id).set({day,first,last:Date.now(),live}).catch(()=>{ off=true; }); }catch(e){ off=true; } };
+  D.aud={beat,get:()=>({id,day,first,live,off})}; beat(false); setInterval(()=>beat(true),60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) beat(false); }); }
 function startReplay(s){ if(!s){ D.mode='ok'; render(); return; } D.sess=s; D.tl=items(s); D.vt=(D.tl[0]?D.tl[0].t:0)-1500; D.seen=new Set(); D.rt0=performance.now(); D.mode='ok'; setInterval(tick,200); tick(); }
 D.api={play,describe,pushFeed}; window.__direct=D; boot();
 </script></body></html>
